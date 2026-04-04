@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grab music</title>
+    <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="stylesheet" href="visual.css">
+</head>
+<body>
+    <div class="top-controls">
+        <div class="top-buttons">
+            <a href="mailto:oleguhexa@proton.me?subject=Add%20song" class="support-plus-btn" title="Support">+</a>
+            <a href="#" onclick="openPremiumModal(); return false;" class="support-plus-btn premium-btn" title="Premium">⭐</a>
+        </div>
+        <div class="language-buttons">
+            <div class="lang-buttons-row">
+                <button onclick="switchLanguage('uk')" class="lang-btn">UK</button>
+                <button onclick="switchLanguage('en')" class="lang-btn active">EN</button>
+            </div>
+        </div>
+    </div>
+ 
+    <div class="content">
+        <h1>Grab music</h1>
+        <p class="beta-badge">Beta test</p>
+        <p id="pageDescription">Take music and lyrics</p>
+        
+        <button onclick="openModal()" class="tutorial-btn">📖 Open Tutorial</button>
+        
+        <div class="search-section">
+            <input type="text" id="searchInput" placeholder="Search songs..." class="search-input" onkeyup="searchSongs()">
+            <div id="searchResults" class="search-results"></div>
+        </div>
+        
+        <div class="player-section">
+            <audio id="audioPlayer" controls><source src="" type="audio/mpeg"></audio>
+            <p id="nowPlaying" class="now-playing">▶ Now playing:</p>
+        </div>
+ 
+        <div id="lyricsSection" class="lyrics-section">
+            <h2 id="lyricsTitle">Lyrics</h2>
+            <pre id="lyricsContent" class="lyrics-content">Select a song to see lyrics.</pre>
+        </div>
+    </div>
+ 
+    <div id="tutorial-modal" class="modal" style="display:none; position:fixed; z-index:10000; left:0; top:0; width:100%; height:100%; background-color: rgba(0,0,0,0.8);">
+        <div class="modal-content" style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: 15px; text-align: center; color: black; position: relative;">
+            <span class="close" onclick="closeModal()" style="color: #aaa; position: absolute; right: 20px; top: 10px; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+            <h2 style="color: #a4c2f4;">🎵 Tutorial</h2>
+            <p style="font-size: 18px; margin-top: 20px;">I'm so lazy that I didn't write a song list. Just type any letters in the search, and the site will find everything!</p>
+        </div>
+    </div>
+ 
+    <div id="premium-modal" class="modal" style="display:none; position:fixed; z-index:10000; left:0; top:0; width:100%; height:100%; background-color: rgba(0,0,0,0.8);">
+        <div class="modal-content" style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: 15px; text-align: center; color: black; position: relative;">
+            <span class="close" onclick="closePremiumModal()" style="color: #aaa; position: absolute; right: 20px; top: 10px; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+            <h2 style="color: #a4c2f4;">⭐ Premium</h2>
+            <p style="font-size: 20px; margin-top: 20px; font-weight: bold; color: #5d9cec;">Everything is FREE 🎉<br>Premium is not needed!</p>
+        </div>
+    </div>
+ 
+    <script src="java.js"></script>
+</body>
+</html>
