@@ -1,0 +1,947 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Comfortaa:wght@300;400;700&display=swap');
+ 
+body {
+    margin: 0;
+    padding: 20px;
+    position: relative;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+}
+ 
+.top-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    max-width: 900px;
+    margin: 0 auto 10px auto;
+}
+ 
+.top-buttons {
+    display: flex;
+    gap: 10px;
+}
+ 
+.language-buttons {
+    position: static;
+    text-align: center;
+}
+ 
+.lang-buttons-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+ 
+.lang-btn {
+    font-family: 'Comfortaa', cursive;
+    font-size: 16px;
+    padding: 10px 18px;
+    border: 2px solid #a4c2f4;
+    background-color: transparent;
+    color: #a4c2f4;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+}
+ 
+.lang-btn:hover {
+    background-color: #a4c2f4;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(164, 194, 244, 0.3);
+}
+ 
+.lang-btn.active {
+    background-color: #a4c2f4;
+    color: white;
+    box-shadow: 0 4px 8px rgba(164, 194, 244, 0.3);
+}
+ 
+.content {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+}
+ 
+.support-plus-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #a4c2f4 0%, #5d9cec 100%);
+    color: white;
+    text-decoration: none;
+    font-size: 34px;
+    font-weight: bold;
+    font-family: 'Comfortaa', cursive;
+    box-shadow: 0 6px 14px rgba(164, 194, 244, 0.35);
+    transition: all 0.3s ease;
+}
+ 
+.support-plus-btn:hover {
+    transform: translateY(-3px) scale(1.06);
+    box-shadow: 0 10px 18px rgba(164, 194, 244, 0.4);
+}
+ 
+.beta-badge {
+    font-family: 'Caveat', cursive;
+    font-size: 55px;
+    color: #ff6b81;
+    margin: 0 0 6px 0;
+    text-shadow: 2px 2px 4px rgba(255, 107, 129, 0.18);
+}
+ 
+h1 {
+    font-family: 'Caveat', cursive;
+    font-size: 75px;
+    color: #a4c2f4;
+    margin: 0;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(164, 194, 244, 0.2);
+}
+ 
+p {
+    font-family: 'Comfortaa', cursive;
+    font-size: 30px;
+    color: #333;
+    margin: 0 0 40px 0;
+}
+ 
+/* Пошук */
+.search-section {
+    margin-top: 40px;
+}
+ 
+.search-input {
+    font-family: 'Comfortaa', cursive;
+    width: 100%;
+    max-width: 400px;
+    padding: 14px 18px;
+    font-size: 16px;
+    border: 2px solid #a4c2f4;
+    border-radius: 10px;
+    background-color: white;
+    color: #333;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+ 
+.search-input:focus {
+    outline: none;
+    border-color: #5d9cec;
+    box-shadow: 0 0 12px rgba(164, 194, 244, 0.4);
+    transform: translateY(-2px);
+}
+ 
+.search-input::placeholder {
+    color: #a4c2f4;
+}
+ 
+/* Результати пошуку */
+.search-results {
+    margin-top: 20px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+ 
+.result-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+    margin: 16px 0;
+    background-color: white;
+    border-left: 5px solid #a4c2f4;
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+ 
+.song-image {
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    object-fit: cover;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+ 
+.result-info {
+    flex: 1;
+    text-align: left;
+}
+ 
+.result-buttons {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-left: auto;
+}
+ 
+.result-item:hover {
+    transform: translateX(8px);
+    box-shadow: 0 8px 16px rgba(164, 194, 244, 0.2);
+    border-left-color: #5d9cec;
+}
+ 
+.result-info h3 {
+    font-family: 'Comfortaa', cursive;
+    font-size: 18px;
+    color: #333;
+    margin: 0 0 5px 0;
+    font-weight: bold;
+}
+ 
+.result-info p {
+    font-family: 'Comfortaa', cursive;
+    font-size: 14px;
+    color: #a4c2f4;
+    margin: 0;
+    font-weight: 500;
+}
+ 
+.highlight {
+    background-color: #fff59d;
+    font-weight: bold;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+ 
+.result-buttons {
+    display: flex;
+    gap: 8px;
+    margin-left: 15px;
+}
+ 
+.play-btn,
+.download-btn {
+    font-family: 'Comfortaa', cursive;
+    padding: 10px 18px;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+ 
+.play-btn {
+    background: linear-gradient(135deg, #a4c2f4 0%, #5d9cec 100%);
+}
+ 
+.play-btn:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 6px 12px rgba(164, 194, 244, 0.3);
+}
+ 
+.play-btn:active {
+    transform: translateY(-1px);
+}
+ 
+.download-btn {
+    background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+}
+ 
+.download-btn:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 6px 12px rgba(76, 175, 80, 0.3);
+}
+ 
+.download-btn:active {
+    transform: translateY(-1px);
+}
+ 
+.no-results {
+    font-family: 'Comfortaa', cursive;
+    color: #a4c2f4;
+    font-size: 16px;
+    margin: 20px 0;
+    font-weight: bold;
+}
+ 
+/* Audio Player */
+.player-section {
+    margin-top: 50px;
+    padding: 30px;
+    background: linear-gradient(135deg, #ffffff 0%, #f0f4ff 100%);
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(164, 194, 244, 0.15),
+                0 2px 8px rgba(0, 0, 0, 0.05);
+    border-top: 6px solid #a4c2f4;
+    border-bottom: 3px solid #5d9cec;
+    position: relative;
+    overflow: hidden;
+}
+ 
+.player-section::before {
+    content: '🎵';
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    opacity: 0.1;
+}
+ 
+#audioPlayer {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    display: block;
+    border-radius: 12px;
+    padding: 14px;
+    background: linear-gradient(135deg, #a4c2f4 0%, #5d9cec 100%);
+    accent-color: #fff;
+    height: 35px;
+    box-shadow: 0 4px 12px rgba(164, 194, 244, 0.25);
+}
+ 
+#audioPlayer::-webkit-media-controls-panel {
+    border-radius: 8px;
+}
+ 
+.tutorial-btn {
+    position: relative;
+    display: inline-block;
+    background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 25px;
+    font-family: 'Comfortaa', cursive;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+    font-size: 14px;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+}
+ 
+.tutorial-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 107, 107, 0.4);
+}
+ 
+.now-playing {
+    font-family: 'Comfortaa', cursive;
+    color: #5d9cec;
+    font-size: 16px;
+    margin-top: 18px;
+    font-weight: bold;
+    animation: fadeIn 0.5s ease;
+    text-align: center;
+    padding: 12px 20px;
+    background: rgba(164, 194, 244, 0.15);
+    border-radius: 12px;
+    border-left: 4px solid #a4c2f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    line-height: 1.4;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+ 
+.player-image {
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    object-fit: cover;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+ 
+/* Текст пісні */
+.lyrics-section {
+    margin-top: 28px;
+    padding: 24px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(164, 194, 244, 0.12),
+                0 2px 8px rgba(0, 0, 0, 0.05);
+    text-align: left;
+    border-left: 5px solid #a4c2f4;
+}
+ 
+.lyrics-section h2 {
+    font-family: 'Comfortaa', cursive;
+    font-size: 22px;
+    color: #5d9cec;
+    margin: 0 0 16px 0;
+    text-align: center;
+}
+ 
+.lyrics-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 12px;
+}
+ 
+.lyrics-tab-btn {
+    font-family: 'Comfortaa', cursive;
+    padding: 10px 18px;
+    border: none;
+    background-color: transparent;
+    color: #999;
+    border-radius: 0;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    position: relative;
+    padding-bottom: 14px;
+}
+ 
+.lyrics-tab-btn::after {
+    content: '';
+    position: absolute;
+    bottom: -12px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(135deg, #a4c2f4 0%, #5d9cec 100%);
+    border-radius: 2px;
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+ 
+.lyrics-tab-btn:hover {
+    color: #333;
+}
+ 
+.lyrics-tab-btn.active {
+    color: #a4c2f4;
+}
+ 
+.lyrics-tab-btn.active::after {
+    transform: scaleX(1);
+}
+ 
+.lyrics-content {
+    font-family: 'Comfortaa', cursive;
+    font-size: 15px;
+    line-height: 2;
+    color: #333;
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: rgba(164, 194, 244, 0.08);
+    border-radius: 10px;
+    padding: 16px;
+    border: 1px solid rgba(164, 194, 244, 0.25);
+    max-height: 400px;
+    overflow-y: auto;
+}
+ 
+.lrc-line {
+    padding: 8px 0;
+    color: #999;
+    transition: all 0.2s ease;
+    cursor: default;
+}
+ 
+.lrc-line.active {
+    color: #a4c2f4;
+    font-weight: bold;
+    font-size: 16px;
+    text-shadow: 0 0 10px rgba(164, 194, 244, 0.3);
+}
+ 
+.now-playing.animate-text-change {
+    animation: slideInFade 0.6s ease;
+}
+ 
+@keyframes slideInFade {
+    0% {
+        opacity: 0;
+        transform: translateX(-10px);
+        background: rgba(164, 194, 244, 0.25);
+    }
+    50% {
+        background: rgba(164, 194, 244, 0.15);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+        background: rgba(164, 194, 244, 0.1);
+    }
+}
+ 
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+ 
+@media (max-width: 1024px) {
+    .top-controls {
+        max-width: 700px;
+        padding: 0 10px;
+    }
+ 
+    .content {
+        max-width: 680px;
+    }
+ 
+    h1 {
+        font-size: 64px;
+    }
+ 
+    .beta-badge {
+        font-size: 48px;
+    }
+}
+ 
+@media (max-width: 768px) {
+    body {
+        padding: 12px;
+    }
+ 
+    .top-controls {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+ 
+    .top-buttons {
+        display: flex;
+        gap: 8px;
+    }
+ 
+    .support-plus-btn {
+        width: 48px;
+        height: 48px;
+        font-size: 26px;
+    }
+ 
+    .language-buttons {
+        position: static;
+        margin-bottom: 0;
+    }
+ 
+    .lang-buttons-row {
+        flex-wrap: wrap;
+        gap: 6px;
+        justify-content: center;
+    }
+ 
+    .lang-btn {
+        padding: 8px 14px;
+        font-size: 13px;
+        min-height: 38px;
+    }
+ 
+    .content {
+        max-width: 100%;
+    }
+ 
+    h1 {
+        font-size: 46px;
+        margin-bottom: 6px;
+    }
+ 
+    .beta-badge {
+        font-size: 34px;
+        margin: 0 0 8px 0;
+    }
+ 
+    p#pageDescription {
+        font-size: 16px;
+        margin-bottom: 14px;
+    }
+ 
+    .tutorial-btn {
+        margin-bottom: 14px;
+        padding: 9px 18px;
+        font-size: 12px;
+    }
+ 
+    .search-input {
+        max-width: 100%;
+        font-size: 14px;
+        padding: 11px 12px;
+        margin-bottom: 12px;
+    }
+ 
+    .search-results {
+        max-width: 100%;
+    }
+ 
+    .result-item {
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        margin: 8px 0;
+    }
+ 
+    .song-image {
+        width: 65px;
+        height: 65px;
+        flex-shrink: 0;
+    }
+ 
+    .result-info {
+        flex: 1;
+    }
+ 
+    .result-info h3 {
+        font-size: 14px;
+        margin: 0 0 2px 0;
+        font-weight: bold;
+    }
+ 
+    .result-info p {
+        font-size: 11px;
+        margin: 0;
+        color: #a4c2f4;
+    }
+ 
+    .result-buttons {
+        flex-shrink: 0;
+        flex-direction: column;
+        gap: 5px;
+        margin-left: auto;
+        width: auto;
+    }
+ 
+    .play-btn,
+    .download-btn {
+        width: auto;
+        padding: 7px 10px;
+        font-size: 11px;
+        min-height: auto;
+        font-weight: bold;
+    }
+ 
+    .player-section {
+        margin: 14px auto 0 auto;
+        padding: 14px;
+    }
+ 
+    #audioPlayer {
+        width: 100%;
+        max-width: 100%;
+        height: 45px;
+        border-radius: 10px;
+    }
+ 
+    .now-playing {
+        font-size: 12px;
+        margin-top: 12px;
+        padding: 9px;
+        gap: 8px;
+        flex-wrap: wrap;
+        line-height: 1.3;
+    }
+ 
+    .player-image {
+        width: 36px;
+        height: 36px;
+    }
+ 
+    .lyrics-section {
+        margin-top: 14px;
+        padding: 12px;
+    }
+ 
+    .lyrics-section h2 {
+        font-size: 16px;
+        margin: 0 0 10px 0;
+    }
+ 
+    .lyrics-buttons {
+        gap: 5px;
+        margin-bottom: 10px;
+        padding-bottom: 6px;
+    }
+ 
+    .lyrics-tab-btn {
+        padding: 7px 10px;
+        font-size: 11px;
+        flex: 1;
+        padding-bottom: 8px;
+    }
+ 
+    .lyrics-content {
+        padding: 10px;
+        font-size: 12px;
+        line-height: 1.5;
+        max-height: 300px;
+    }
+ 
+    .lrc-line {
+        padding: 5px 0;
+    }
+ 
+    .lrc-line.active {
+        font-size: 13px;
+    }
+}
+ 
+@media (max-width: 600px) {
+    .result-item {
+        gap: 8px;
+        padding: 10px;
+        margin: 6px 0;
+    }
+ 
+    .song-image {
+        width: 60px;
+        height: 60px;
+    }
+ 
+    .result-info h3 {
+        font-size: 13px;
+    }
+ 
+    .result-info p {
+        font-size: 10px;
+    }
+ 
+    .result-buttons {
+        gap: 4px;
+    }
+ 
+    .play-btn,
+    .download-btn {
+        padding: 6px 9px;
+        font-size: 10px;
+    }
+ 
+    .player-section {
+        margin: 12px auto 0 auto;
+        padding: 12px;
+    }
+ 
+    #audioPlayer {
+        width: 100%;
+        max-width: 100%;
+        height: 42px;
+        border-radius: 10px;
+        margin: 0 auto;
+        display: block;
+        background: linear-gradient(135deg, #a4c2f4 0%, #5d9cec 100%);
+        accent-color: white;
+    }
+ 
+    .now-playing {
+        font-size: 11px;
+        padding: 8px;
+        margin-top: 10px;
+    }
+ 
+    .player-image {
+        width: 32px;
+        height: 32px;
+    }
+ 
+    .lyrics-buttons {
+        gap: 4px;
+        padding-bottom: 5px;
+        margin-bottom: 8px;
+    }
+ 
+    .lyrics-tab-btn {
+        padding: 6px 8px;
+        font-size: 10px;
+        padding-bottom: 7px;
+    }
+ 
+    .lyrics-content {
+        padding: 8px;
+        font-size: 11px;
+        line-height: 1.4;
+        max-height: 280px;
+    }
+ 
+    .lrc-line {
+        padding: 4px 0;
+    }
+ 
+    .lrc-line.active {
+        font-size: 12px;
+    }
+}
+ 
+@media (max-width: 480px) {
+ 
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+ 
+    .top-controls {
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+ 
+    .top-buttons {
+        gap: 6px;
+    }
+ 
+    .support-plus-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 24px;
+    }
+ 
+    h1 {
+        font-size: 40px;
+        margin-bottom: 4px;
+    }
+ 
+    .beta-badge {
+        font-size: 30px;
+        margin: 0 0 6px 0;
+    }
+ 
+    p#pageDescription {
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+ 
+    .tutorial-btn {
+        margin-bottom: 10px;
+        padding: 8px 16px;
+        font-size: 11px;
+    }
+ 
+    .lang-btn {
+        width: auto;
+        max-width: 90px;
+        padding: 8px 12px;
+        font-size: 12px;
+        min-height: 36px;
+    }
+ 
+    .lang-buttons-row {
+        flex-direction: row;
+        width: 100%;
+        align-items: center;
+        gap: 4px;
+    }
+ 
+    .search-section {
+        margin-top: 10px;
+    }
+ 
+    .search-input {
+        width: 100%;
+        max-width: 100%;
+        padding: 10px 11px;
+        font-size: 13px;
+        margin-bottom: 10px;
+    }
+ 
+    .result-item {
+        gap: 8px;
+        padding: 9px;
+        margin: 6px 0;
+    }
+ 
+    .song-image {
+        width: 55px;
+        height: 55px;
+    }
+ 
+    .result-info h3 {
+        font-size: 12px;
+        margin: 0 0 2px 0;
+    }
+ 
+    .result-info p {
+        font-size: 9px;
+    }
+ 
+    .result-buttons {
+        gap: 3px;
+    }
+ 
+    .play-btn,
+    .download-btn {
+        padding: 5px 8px;
+        font-size: 9px;
+    }
+ 
+    .player-section {
+        margin: 10px auto 0 auto;
+        padding: 10px;
+    }
+ 
+    #audioPlayer {
+        width: 100%;
+        max-width: 100%;
+        height: 38px;
+        border-radius: 8px;
+        margin: 0 auto;
+        display: block;
+        background: linear-gradient(135deg, #a4c2f4 0%, #5d9cec 100%);
+        accent-color: white;
+    }
+ 
+    .now-playing {
+        font-size: 10px;
+        padding: 7px;
+        margin-top: 8px;
+        gap: 6px;
+    }
+ 
+    .player-image {
+        width: 30px;
+        height: 30px;
+    }
+ 
+    .lyrics-section {
+        margin-top: 10px;
+        padding: 10px;
+    }
+ 
+    .lyrics-section h2 {
+        font-size: 14px;
+        margin: 0 0 8px 0;
+    }
+ 
+    .lyrics-buttons {
+        gap: 3px;
+        padding-bottom: 4px;
+        margin-bottom: 8px;
+    }
+ 
+    .lyrics-tab-btn {
+        padding: 5px 8px;
+        font-size: 9px;
+        padding-bottom: 6px;
+    }
+ 
+    .lyrics-content {
+        padding: 8px;
+        font-size: 10px;
+        line-height: 1.4;
+        max-height: 250px;
+    }
+ 
+    .lrc-line {
+        padding: 3px 0;
+    }
+ 
+    .lrc-line.active {
+        font-size: 11px;
+    }
+}
