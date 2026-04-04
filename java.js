@@ -7,7 +7,7 @@ let isUserInteracting = false;
 // ==================== ЗАВАНТАЖЕННЯ БАЗИ ====================
 async function loadDatabase() {
     try {
-        const response = await fetch('database.json');
+        const response = await fetch('./database.json');
         if (!response.ok) throw new Error('Файл бази не знайдено');
         songsDatabase = await response.json();
         console.log('✅ База даних завантажена успішно!', songsDatabase.length);
@@ -17,7 +17,6 @@ async function loadDatabase() {
         const lyricsContent = document.getElementById('lyricsContent');
         if (lyricsContent) lyricsContent.textContent = 'Помилка завантаження бази пісень.';
     }
-    // Якщо вже є текст у пошуку – виконати пошук повторно
     const searchInput = document.getElementById('searchInput');
     if (searchInput && searchInput.value.trim() !== '') searchSongs();
 }
@@ -65,7 +64,6 @@ async function showLyricsTab(filename, type) {
     const song = songsDatabase.find(s => s.file === filename);
     if (!song) return;
     const lyricsContent = document.getElementById('lyricsContent');
-    // Оновлюємо активну кнопку
     document.querySelectorAll('.lyrics-tab-btn').forEach(btn => {
         btn.classList.remove('active');
         if ((type === 'text' && btn.textContent.includes('Текст')) ||
@@ -81,7 +79,7 @@ async function showLyricsTab(filename, type) {
         lyricsContent.textContent = song.lyrics || (window.location.href.includes('index_en.html') ? 'No lyrics.' : 'Текст відсутній.');
     } else if (type === 'lrc' && song.lrc) {
         try {
-            const resp = await fetch(song.lrc);
+            const resp = await fetch('./' + song.lrc);
             if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
             const lrcText = await resp.text();
             currentLrcLines = parseLRC(lrcText);
@@ -120,10 +118,8 @@ function showLyrics(song) {
     const lyricsSection = document.getElementById('lyricsSection');
     const lyricsContent = document.getElementById('lyricsContent');
     if (!lyricsSection || !lyricsContent) return;
-    // Видаляємо старі кнопки, якщо є
     const oldButtons = lyricsSection.querySelector('.lyrics-buttons');
     if (oldButtons) oldButtons.remove();
-    // Створюємо нові кнопки
     const btnDiv = document.createElement('div');
     btnDiv.className = 'lyrics-buttons';
     const hasLrc = !!song.lrc;
@@ -133,7 +129,6 @@ function showLyrics(song) {
     `;
     const title = lyricsSection.querySelector('h2');
     title.parentNode.insertBefore(btnDiv, title.nextSibling);
-    // Показуємо текст за замовчуванням
     lyricsContent.textContent = song.lyrics || (window.location.href.includes('index_en.html') ? 'No lyrics.' : 'Текст відсутній.');
     currentLrcLines = [];
     if (lrcSyncInterval) clearInterval(lrcSyncInterval);
@@ -151,10 +146,10 @@ function playSong(filename) {
     }
     if (lrcSyncInterval) clearInterval(lrcSyncInterval);
     lrcSyncInterval = null;
-    audio.src = 'music/' + filename;
+    audio.src = './music/' + filename;
     const lang = window.location.href.includes('index_en.html') ? 'en' : 'uk';
     const label = lang === 'en' ? 'Now playing:' : 'Програється:';
-    nowPlaying.innerHTML = `<img src="${escapeHtml(song.image)}" alt="${escapeHtml(song.name)}" class="player-image" onerror="this.src='fotomusic/no-photo.jpg'">▶ ${label} <strong>${escapeHtml(song.name)}</strong> - ${escapeHtml(song.artist)}`;
+    nowPlaying.innerHTML = `<img src="${escapeHtml(song.image)}" alt="${escapeHtml(song.name)}" class="player-image" onerror="this.src='./fotomusic/no-photo.jpg'">▶ ${label} <strong>${escapeHtml(song.name)}</strong> - ${escapeHtml(song.artist)}`;
     showLyrics(song);
     audio.play().catch(e => console.log('Автовідтворення заблоковане', e));
 }
@@ -162,7 +157,7 @@ function playSong(filename) {
 // ==================== ЗАВАНТАЖЕННЯ ФАЙЛУ ====================
 function downloadSong(filename) {
     const link = document.createElement('a');
-    link.href = 'music/' + filename;
+    link.href = './music/' + filename;
     link.download = filename;
     document.body.appendChild(link);
     link.click();
@@ -193,7 +188,7 @@ function searchSongs() {
     
     resultsDiv.innerHTML = results.map(song => `
         <div class="result-item">
-            <img src="${escapeHtml(song.image)}" alt="${escapeHtml(song.name)}" class="song-image" onerror="this.src='fotomusic/no-photo.jpg'">
+            <img src="${escapeHtml(song.image)}" alt="${escapeHtml(song.name)}" class="song-image" onerror="this.src='./fotomusic/no-photo.jpg'">
             <div class="result-info">
                 <h3>${escapeHtml(song.name)}</h3>
                 <p>${escapeHtml(song.artist)}</p>
@@ -208,8 +203,8 @@ function searchSongs() {
  
 // ==================== ПЕРЕМИКАННЯ МОВИ ====================
 function switchLanguage(lang) {
-    if (lang === 'uk') window.location.href = 'index.html';
-    else window.location.href = 'index_en.html';
+    if (lang === 'uk') window.location.href = './index.html';
+    else window.location.href = './index_en.html';
 }
  
 // ==================== МОДАЛЬНІ ВІКНА ====================
@@ -253,7 +248,6 @@ function setupAudioListeners() {
         if (lrcSyncInterval) clearInterval(lrcSyncInterval);
         lrcSyncInterval = null;
     });
-    // Скидаємо прапорець взаємодії при скролі
     ['scroll', 'wheel', 'touchmove'].forEach(ev => {
         document.addEventListener(ev, () => {
             isUserInteracting = true;
@@ -267,4 +261,3 @@ window.addEventListener('DOMContentLoaded', async () => {
     await loadDatabase();
     setupAudioListeners();
 });
- 
