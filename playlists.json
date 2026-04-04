@@ -1,0 +1,26 @@
+[
+  {
+    "id": "favorites",
+    "name": "Улюблені",
+    "name_en": "Favorites",
+    "description": "Твої улюблені пісні",
+    "description_en": "Your favorite songs",
+    "songs": []
+  },
+  {
+    "id": "recent",
+    "name": "Недавно відтворені",
+    "name_en": "Recently Played",
+    "description": "Пісні які ти недавно слухав",
+    "description_en": "Songs you recently played",
+    "songs": []
+  },
+  {
+    "id": "all_songs",
+    "name": "Усі пісні",
+    "name_en": "All Songs",
+    "description": "Усі доступні пісні",
+    "description_en": "All available songs",
+    "songs": ["Скрябін — Кольорова.mp3", "Снова - Беспокойник.mp3", "The Unknowing.mp3", "Tokyo.mp3", "Valasy.mp3", "Восьмий колір.mp3", "Памятай свій дім.mp3", "Тут було місто.mp3"]
+  }
+]

@@ -1,8 +1,10 @@
 // ==================== ГЛОБАЛЬНІ ЗМІННІ ====================
 let songsDatabase = [];
+let playlistsDatabase = [];
 let currentLrcLines = [];
 let lrcSyncInterval = null;
 let isUserInteracting = false;
+let currentPlaylist = null;
  
 // ==================== ЗАВАНТАЖЕННЯ БАЗИ ====================
 async function loadDatabase() {
@@ -16,6 +18,16 @@ async function loadDatabase() {
         songsDatabase = [];
         const lyricsContent = document.getElementById('lyricsContent');
         if (lyricsContent) lyricsContent.textContent = 'Помилка завантаження бази пісень.';
+    }
+    try {
+        const response = await fetch('./playlists.json');
+        if (!response.ok) throw new Error('Файл плейлистів не знайдено');
+        playlistsDatabase = await response.json();
+        console.log('✅ Плейлисти завантажені успішно!');
+        displayPlaylists();
+    } catch (error) {
+        console.error('⚠️ Помилка завантаження плейлистів:', error);
+        playlistsDatabase = [];
     }
     const searchInput = document.getElementById('searchInput');
     if (searchInput && searchInput.value.trim() !== '') searchSongs();
@@ -196,6 +208,7 @@ function searchSongs() {
             <div class="result-buttons">
                 <button class="play-btn" onclick="playSong('${escapeHtml(song.file)}')">▶ ${playLabel}</button>
                 <button class="download-btn" onclick="downloadSong('${escapeHtml(song.file)}')">⬇ ${downloadLabel}</button>
+                <button class="like-btn ${isFavorite(song.file) ? 'liked' : ''}" onclick="toggleFavorite('${escapeHtml(song.file)}')">❤️</button>
             </div>
         </div>
     `).join('');
@@ -261,3 +274,107 @@ window.addEventListener('DOMContentLoaded', async () => {
     await loadDatabase();
     setupAudioListeners();
 });
+ 
+// ==================== ПЛЕЙЛИСТИ ====================
+function displayPlaylists() {
+    const playlistsList = document.getElementById('playlistsList');
+    if (!playlistsList) return;
+    
+    const lang = window.location.href.includes('index_en.html') ? 'en' : 'uk';
+    const viewLabel = lang === 'en' ? 'View' : 'Переглянути';
+    
+    playlistsList.innerHTML = playlistsDatabase.map(playlist => `
+        <div class="playlist-card">
+            <div class="playlist-card-info">
+                <h4>${lang === 'en' ? playlist.name_en : playlist.name}</h4>
+                <p>${playlist.songs.length} ${lang === 'en' ? 'songs' : 'пісень'}</p>
+            </div>
+            <button class="view-btn" onclick="viewPlaylist('${playlist.id}')">▶ ${viewLabel}</button>
+        </div>
+    `).join('');
+}
+ 
+function viewPlaylist(playlistId) {
+    currentPlaylist = playlistsDatabase.find(p => p.id === playlistId);
+    if (!currentPlaylist) return;
+    
+    const resultsDiv = document.getElementById('searchResults');
+    const lang = window.location.href.includes('index_en.html') ? 'en' : 'uk';
+    const playLabel = lang === 'en' ? 'Play' : 'Програвати';
+    const downloadLabel = lang === 'en' ? 'Download' : 'Скачати';
+    
+    const songs = currentPlaylist.songs
+        .map(filename => songsDatabase.find(s => s.file === filename))
+        .filter(song => song);
+    
+    resultsDiv.innerHTML = `
+        <div style="margin-bottom: 20px;">
+            <button class="back-btn" onclick="backToPlaylists()" style="padding: 8px 16px; background: #a4c2f4; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">← ${lang === 'en' ? 'Back' : 'Назад'}</button>
+            <h2 style="color: #a4c2f4; margin-top: 15px;">📋 ${lang === 'en' ? currentPlaylist.name_en : currentPlaylist.name}</h2>
+        </div>
+        ${songs.map(song => `
+            <div class="result-item">
+                <img src="${escapeHtml(song.image)}" alt="${escapeHtml(song.name)}" class="song-image" onerror="this.src='./fotomusic/no-photo.jpg'">
+                <div class="result-info">
+                    <h3>${escapeHtml(song.name)}</h3>
+                    <p>${escapeHtml(song.artist)}</p>
+                </div>
+                <div class="result-buttons">
+                    <button class="play-btn" onclick="playSong('${escapeHtml(song.file)}')">▶ ${playLabel}</button>
+                    <button class="download-btn" onclick="downloadSong('${escapeHtml(song.file)}')">⬇ ${downloadLabel}</button>
+                    <button class="like-btn ${isFavorite(song.file) ? 'liked' : ''}" onclick="toggleFavorite('${escapeHtml(song.file)}')">❤️</button>
+                </div>
+            </div>
+        `).join('')}
+    `;
+}
+ 
+function backToPlaylists() {
+    currentPlaylist = null;
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) searchInput.value = '';
+    displayPlaylists();
+}
+ 
+function addToPlaylist(playlistId, filename) {
+    const playlist = playlistsDatabase.find(p => p.id === playlistId);
+    if (playlist && !playlist.songs.includes(filename)) {
+        playlist.songs.push(filename);
+        console.log('✅ Пісня додана до плейлиста');
+    }
+}
+ 
+// ==================== СИСТЕМА ЛАЙКІВ ====================
+function isFavorite(filename) {
+    const favorites = playlistsDatabase.find(p => p.id === 'favorites');
+    return favorites && favorites.songs.includes(filename);
+}
+ 
+function toggleFavorite(filename) {
+    const favorites = playlistsDatabase.find(p => p.id === 'favorites');
+    if (!favorites) return;
+    
+    const index = favorites.songs.indexOf(filename);
+    if (index > -1) {
+        // Видалити з улюблених
+        favorites.songs.splice(index, 1);
+        console.log('❌ Пісня видалена з улюблених');
+    } else {
+        // Додати в улюблені
+        favorites.songs.push(filename);
+        console.log('✅ Пісня додана в улюблені');
+    }
+    
+    // Оновити кнопку
+    const buttons = document.querySelectorAll('.like-btn');
+    buttons.forEach(btn => {
+        if (btn.onclick.toString().includes(filename)) {
+            btn.classList.toggle('liked');
+        }
+    });
+    
+    // Перезавантажити результати якщо вони видимі
+    if (!document.getElementById('searchInput').value.trim()) {
+        displayPlaylists();
+    }
+}
