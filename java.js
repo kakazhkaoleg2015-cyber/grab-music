@@ -10,9 +10,72 @@ let currentPlaylist = null;
 let currentQueue = [];
 let currentQueueIndex = -1;
 let playlistEndedHandler = null;
+let isPlaylistLoopEnabled = false;
+
+// Audio context and equalizer
+let audioContext = null;
+let sourceNode = null;
+let analyserNode = null;
+let bassFilter = null;
+let midFilter = null;
+let trebleFilter = null;
+let visualizerAnimationId = null;
+let isEqInitialized = false;
 
 // ==================== LANGUAGE DETECTION ====================
 let currentLanguage = window.location.pathname.includes('_en.html') ? 'en' : 'uk';
+
+// ==================== TRANSLATIONS ====================
+const translations = {
+    uk: {
+        errorLoadingDB: 'Помилка завантаження бази пісень.',
+        noLyrics: 'Текст відсутній.',
+        invalidLrc: 'Неправильний формат LRC.',
+        lrcNotAvailable: 'LRC файл недоступний.',
+        noResults: '❌ Пісні не знайдені',
+        playlistEnded: '▶ Плейлист завершено.',
+        favoriteAdded: '✅ Пісня додана в улюблені',
+        favoriteRemoved: '❌ Пісня видалена з улюблених',
+        nowPlayingLabel: 'Програється:',
+        playBtn: 'Програвати',
+        downloadBtn: 'Скачати',
+        viewBtn: 'Переглянути',
+        backBtn: 'Назад',
+        playAllBtn: 'Програвати всі',
+        lyricsTabText: '📝 Текст',
+        lrcTabText: '🎵 LRC',
+        eqBass: '🔊 Низькі',
+        eqMid: '🎵 Середні',
+        eqTreble: '🎶 Високі',
+        resetEq: '⟳ Скинути'
+    },
+    en: {
+        errorLoadingDB: 'Error loading song database.',
+        noLyrics: 'No lyrics available.',
+        invalidLrc: 'Invalid LRC format.',
+        lrcNotAvailable: 'LRC file not available.',
+        noResults: '❌ No songs found',
+        playlistEnded: '▶ Playlist ended.',
+        favoriteAdded: '✅ Song added to favorites',
+        favoriteRemoved: '❌ Song removed from favorites',
+        nowPlayingLabel: 'Now playing:',
+        playBtn: 'Play',
+        downloadBtn: 'Download',
+        viewBtn: 'View',
+        backBtn: 'Back',
+        playAllBtn: 'Play all',
+        lyricsTabText: '📝 Lyrics',
+        lrcTabText: '🎵 LRC',
+        eqBass: '🔊 Bass',
+        eqMid: '🎵 Mid',
+        eqTreble: '🎶 Treble',
+        resetEq: '⟳ Reset'
+    }
+};
+
+function t(key) {
+    return translations[currentLanguage][key] || key;
+}
 
 // ==================== THEME MANAGEMENT ====================
 function loadThemePreference() {
@@ -35,48 +98,134 @@ function toggleTheme() {
     if (toggleBtn) toggleBtn.innerHTML = isDark ? '☀️' : '🌙';
 }
 
-// ==================== TRANSLATIONS FOR DYNAMIC MESSAGES ====================
-const translations = {
-    uk: {
-        errorLoadingDB: 'Помилка завантаження бази пісень.',
-        noLyrics: 'Текст відсутній.',
-        invalidLrc: 'Неправильний формат LRC.',
-        lrcNotAvailable: 'LRC файл недоступний.',
-        noResults: '❌ Пісні не знайдені',
-        playlistEnded: '▶ Плейлист завершено.',
-        favoriteAdded: '✅ Пісня додана в улюблені',
-        favoriteRemoved: '❌ Пісня видалена з улюблених',
-        nowPlayingLabel: 'Програється:',
-        playBtn: 'Програвати',
-        downloadBtn: 'Скачати',
-        viewBtn: 'Переглянути',
-        backBtn: 'Назад',
-        playAllBtn: 'Програвати всі',
-        lyricsTabText: '📝 Текст',
-        lrcTabText: '🎵 LRC'
-    },
-    en: {
-        errorLoadingDB: 'Error loading song database.',
-        noLyrics: 'No lyrics available.',
-        invalidLrc: 'Invalid LRC format.',
-        lrcNotAvailable: 'LRC file not available.',
-        noResults: '❌ No songs found',
-        playlistEnded: '▶ Playlist ended.',
-        favoriteAdded: '✅ Song added to favorites',
-        favoriteRemoved: '❌ Song removed from favorites',
-        nowPlayingLabel: 'Now playing:',
-        playBtn: 'Play',
-        downloadBtn: 'Download',
-        viewBtn: 'View',
-        backBtn: 'Back',
-        playAllBtn: 'Play all',
-        lyricsTabText: '📝 Lyrics',
-        lrcTabText: '🎵 LRC'
+// ==================== UPDATE EQUALIZER LABELS ON LANGUAGE CHANGE ====================
+function updateEqualizerLabels() {
+    const eqDiv = document.getElementById('eqControls');
+    if (!eqDiv) return;
+    // Save current slider values before rebuilding
+    const bassVal = document.getElementById('bassSlider')?.value || 0;
+    const midVal = document.getElementById('midSlider')?.value || 0;
+    const trebleVal = document.getElementById('trebleSlider')?.value || 0;
+    eqDiv.innerHTML = `
+        <label>${t('eqBass')} <input type="range" id="bassSlider" min="-20" max="20" value="${bassVal}" step="1"></label>
+        <label>${t('eqMid')} <input type="range" id="midSlider" min="-20" max="20" value="${midVal}" step="1"></label>
+        <label>${t('eqTreble')} <input type="range" id="trebleSlider" min="-20" max="20" value="${trebleVal}" step="1"></label>
+        <button id="resetEqBtn" class="reset-eq-btn" title="${t('resetEq')}">${t('resetEq')}</button>
+    `;
+    // Reattach event listeners if filters exist
+    if (bassFilter && midFilter && trebleFilter) {
+        const bassSlider = document.getElementById('bassSlider');
+        const midSlider = document.getElementById('midSlider');
+        const trebleSlider = document.getElementById('trebleSlider');
+        const resetBtn = document.getElementById('resetEqBtn');
+        if (bassSlider) bassSlider.addEventListener('input', (e) => { bassFilter.gain.value = e.target.value; });
+        if (midSlider) midSlider.addEventListener('input', (e) => { midFilter.gain.value = e.target.value; });
+        if (trebleSlider) trebleSlider.addEventListener('input', (e) => { trebleFilter.gain.value = e.target.value; });
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                const bs = document.getElementById('bassSlider');
+                const ms = document.getElementById('midSlider');
+                const ts = document.getElementById('trebleSlider');
+                if (bs) bs.value = 0;
+                if (ms) ms.value = 0;
+                if (ts) ts.value = 0;
+                if (bassFilter) bassFilter.gain.value = 0;
+                if (midFilter) midFilter.gain.value = 0;
+                if (trebleFilter) trebleFilter.gain.value = 0;
+            });
+        }
     }
-};
+}
 
-function t(key) {
-    return translations[currentLanguage][key] || key;
+// ==================== EQUALIZER SETUP ====================
+function initEqualizer() {
+    const audio = document.getElementById('audioPlayer');
+    if (!audio || isEqInitialized) return;
+
+    try {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        sourceNode = audioContext.createMediaElementSource(audio);
+        
+        // Create filters
+        bassFilter = audioContext.createBiquadFilter();
+        bassFilter.type = 'lowshelf';
+        bassFilter.frequency.value = 200;
+        bassFilter.gain.value = 0;
+        
+        midFilter = audioContext.createBiquadFilter();
+        midFilter.type = 'peaking';
+        midFilter.frequency.value = 1000;
+        midFilter.Q.value = 1;
+        midFilter.gain.value = 0;
+        
+        trebleFilter = audioContext.createBiquadFilter();
+        trebleFilter.type = 'highshelf';
+        trebleFilter.frequency.value = 4000;
+        trebleFilter.gain.value = 0;
+        
+        // Analyser for visualizer
+        analyserNode = audioContext.createAnalyser();
+        analyserNode.fftSize = 256;
+        const bufferLength = analyserNode.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        
+        // Connect: source -> filters -> analyser -> destination
+        sourceNode.connect(bassFilter);
+        bassFilter.connect(midFilter);
+        midFilter.connect(trebleFilter);
+        trebleFilter.connect(analyserNode);
+        analyserNode.connect(audioContext.destination);
+        
+        // Visualizer canvas
+        const canvas = document.getElementById('visualizer');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            function draw() {
+                if (!analyserNode) return;
+                visualizerAnimationId = requestAnimationFrame(draw);
+                analyserNode.getByteFrequencyData(dataArray);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const barWidth = (canvas.width / bufferLength) * 2.5;
+                let x = 0;
+                for (let i = 0; i < bufferLength; i++) {
+                    const barHeight = dataArray[i] / 2;
+                    ctx.fillStyle = `hsl(${200 + i / bufferLength * 100}, 80%, 60%)`;
+                    ctx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
+                    x += barWidth;
+                }
+            }
+            draw();
+        }
+        
+        // Connect sliders and reset button
+        const bassSlider = document.getElementById('bassSlider');
+        const midSlider = document.getElementById('midSlider');
+        const trebleSlider = document.getElementById('trebleSlider');
+        const resetBtn = document.getElementById('resetEqBtn');
+        if (bassSlider) bassSlider.addEventListener('input', (e) => { bassFilter.gain.value = e.target.value; });
+        if (midSlider) midSlider.addEventListener('input', (e) => { midFilter.gain.value = e.target.value; });
+        if (trebleSlider) trebleSlider.addEventListener('input', (e) => { trebleFilter.gain.value = e.target.value; });
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                if (bassSlider) bassSlider.value = 0;
+                if (midSlider) midSlider.value = 0;
+                if (trebleSlider) trebleSlider.value = 0;
+                bassFilter.gain.value = 0;
+                midFilter.gain.value = 0;
+                trebleFilter.gain.value = 0;
+            });
+        }
+        
+        isEqInitialized = true;
+        
+        audio.addEventListener('play', () => {
+            if (audioContext.state === 'suspended') audioContext.resume();
+            const eqDiv = document.getElementById('eqControls');
+            if (eqDiv) eqDiv.style.display = 'flex';
+        });
+    } catch (e) {
+        console.error('Equalizer init error:', e);
+    }
 }
 
 // ==================== LOCALSTORAGE PERSISTENCE ====================
@@ -85,10 +234,7 @@ const STORAGE_KEY = 'grab_music_playlists';
 function savePlaylistsToLocalStorage() {
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(playlistsDatabase));
-        console.log('💾 Playlists saved to localStorage');
-    } catch (e) {
-        console.error('Failed to save playlists:', e);
-    }
+    } catch (e) {}
 }
 
 function loadPlaylistsFromLocalStorage() {
@@ -98,12 +244,9 @@ function loadPlaylistsFromLocalStorage() {
             const parsed = JSON.parse(stored);
             if (Array.isArray(parsed)) {
                 playlistsDatabase = parsed;
-                console.log('📀 Playlists loaded from localStorage');
                 return true;
             }
-        } catch (e) {
-            console.error('Error parsing stored playlists:', e);
-        }
+        } catch (e) {}
     }
     return false;
 }
@@ -112,11 +255,9 @@ function loadPlaylistsFromLocalStorage() {
 async function loadDatabase() {
     try {
         const response = await fetch('./database.json');
-        if (!response.ok) throw new Error('Database file not found');
+        if (!response.ok) throw new Error();
         songsDatabase = await response.json();
-        console.log('✅ Database loaded successfully!', songsDatabase.length);
     } catch (error) {
-        console.error('❌ Error loading database:', error);
         songsDatabase = [];
         const lyricsContent = document.getElementById('lyricsContent');
         if (lyricsContent) lyricsContent.textContent = t('errorLoadingDB');
@@ -125,13 +266,8 @@ async function loadDatabase() {
     if (!loadPlaylistsFromLocalStorage()) {
         try {
             const response = await fetch('./playlists.json');
-            if (!response.ok) throw new Error('Playlists file not found');
-            playlistsDatabase = await response.json();
-            console.log('✅ Playlists loaded from file');
-        } catch (error) {
-            console.error('⚠️ Error loading playlists:', error);
-            playlistsDatabase = [];
-        }
+            if (response.ok) playlistsDatabase = await response.json();
+        } catch (e) { playlistsDatabase = []; }
     }
 
     if (!playlistsDatabase.find(p => p.id === 'favorites')) {
@@ -149,9 +285,12 @@ async function loadDatabase() {
     displayPlaylists();
     const searchInput = document.getElementById('searchInput');
     if (searchInput && searchInput.value.trim() !== '') searchSongs();
+    
+    // Update equalizer labels after page load
+    updateEqualizerLabels();
 }
 
-// ==================== LRC PARSING ====================
+// ==================== LRC PARSING & SYNC ====================
 function parseLRC(lrcText) {
     const lines = [];
     const regex = /\[(\d{2}):(\d{2})\.(\d{2})\]/;
@@ -180,9 +319,8 @@ function syncLRC() {
     }
     const lines = document.querySelectorAll('.lrc-line');
     const currentActive = document.querySelector('.lrc-line.active');
-    const currentIdx = currentActive ? Array.from(lines).indexOf(currentActive) : -1;
-    if (currentIdx !== activeIndex && activeIndex >= 0 && lines[activeIndex]) {
-        if (currentActive) currentActive.classList.remove('active');
+    if (currentActive && lines && activeIndex >= 0 && lines[activeIndex] && currentActive !== lines[activeIndex]) {
+        currentActive.classList.remove('active');
         lines[activeIndex].classList.add('active');
         lines[activeIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
@@ -192,22 +330,17 @@ async function showLyricsTab(filename, type) {
     const song = songsDatabase.find(s => s.file === filename);
     if (!song) return;
     const lyricsContent = document.getElementById('lyricsContent');
-    document.querySelectorAll('.lyrics-tab-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if ((type === 'text' && btn.textContent.includes(t('lyricsTabText'))) ||
-            (type === 'lrc' && btn.textContent.includes('LRC'))) {
-            btn.classList.add('active');
-        }
-    });
+    document.querySelectorAll('.lyrics-tab-btn').forEach(btn => btn.classList.remove('active'));
     if (type === 'text') {
         if (lrcSyncInterval) clearInterval(lrcSyncInterval);
         lrcSyncInterval = null;
         currentLrcLines = [];
         lyricsContent.textContent = song.lyrics || t('noLyrics');
+        document.querySelector('.lyrics-tab-btn:first-child')?.classList.add('active');
     } else if (type === 'lrc' && song.lrc) {
         try {
             const resp = await fetch('./' + song.lrc);
-            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            if (!resp.ok) throw new Error();
             const lrcText = await resp.text();
             currentLrcLines = parseLRC(lrcText);
             if (currentLrcLines.length) {
@@ -215,28 +348,18 @@ async function showLyricsTab(filename, type) {
                 if (lrcSyncInterval) clearInterval(lrcSyncInterval);
                 lrcSyncInterval = setInterval(syncLRC, 100);
                 syncLRC();
-            } else {
-                lyricsContent.textContent = t('invalidLrc');
-                currentLrcLines = [];
-            }
+                document.querySelector('.lyrics-tab-btn:last-child')?.classList.add('active');
+            } else lyricsContent.textContent = t('invalidLrc');
         } catch (err) {
-            console.error('LRC error:', err);
             lyricsContent.textContent = t('lrcNotAvailable');
-            currentLrcLines = [];
         }
     } else {
         lyricsContent.textContent = t('lrcNotAvailable');
-        currentLrcLines = [];
     }
 }
 
 function escapeHtml(str) {
-    return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-    });
+    return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
 }
 
 function showLyrics(song) {
@@ -250,7 +373,7 @@ function showLyrics(song) {
     const hasLrc = !!song.lrc;
     btnDiv.innerHTML = `
         <button class="lyrics-tab-btn active" onclick="showLyricsTab('${song.file}', 'text')">${t('lyricsTabText')}</button>
-        ${hasLrc ? '<button class="lyrics-tab-btn" onclick="showLyricsTab(\'' + song.file + '\', \'lrc\')">' + t('lrcTabText') + '</button>' : ''}
+        ${hasLrc ? `<button class="lyrics-tab-btn" onclick="showLyricsTab('${song.file}', 'lrc')">${t('lrcTabText')}</button>` : ''}
     `;
     const title = lyricsSection.querySelector('h2');
     title.parentNode.insertBefore(btnDiv, title.nextSibling);
@@ -260,25 +383,31 @@ function showLyrics(song) {
     lrcSyncInterval = null;
 }
 
+// ==================== PLAY SONG ====================
 function playSong(filename, fromQueue = false) {
     if (!fromQueue) clearQueue();
 
     const audio = document.getElementById('audioPlayer');
-    const nowPlaying = document.getElementById('nowPlaying');
+    const nowPlayingDiv = document.getElementById('nowPlaying');
     const song = songsDatabase.find(s => s.file === filename);
-    if (!song) {
-        console.error('Song not found in database');
-        return;
-    }
+    if (!song) return;
+
     if (lrcSyncInterval) clearInterval(lrcSyncInterval);
     lrcSyncInterval = null;
     audio.src = './music/' + filename;
     const label = t('nowPlayingLabel');
-    nowPlaying.innerHTML = `<img src="${escapeHtml(song.image)}" alt="${escapeHtml(song.name)}" class="player-image" onerror="this.src='./fotomusic/no-photo.jpg'">▶ ${label} <strong>${escapeHtml(song.name)}</strong> - ${escapeHtml(song.artist)}`;
+    let loopBtnHtml = '';
+    if (currentQueue.length > 0) {
+        loopBtnHtml = `<button class="loop-btn ${isPlaylistLoopEnabled ? 'active' : ''}" onclick="togglePlaylistLoop()">🔁</button>`;
+    }
+    nowPlayingDiv.innerHTML = `<img src="${escapeHtml(song.image)}" alt="${escapeHtml(song.name)}" class="player-image" onerror="this.src='./fotomusic/no-photo.jpg'">▶ ${label} <strong>${escapeHtml(song.name)}</strong> - ${escapeHtml(song.artist)} ${loopBtnHtml}`;
     showLyrics(song);
     audio.play().catch(e => console.log('Autoplay blocked', e));
+    
+    if (!isEqInitialized) initEqualizer();
 }
 
+// ==================== PLAYLIST AUTO-PLAY ====================
 function clearQueue() {
     if (playlistEndedHandler) {
         const audio = document.getElementById('audioPlayer');
@@ -287,16 +416,25 @@ function clearQueue() {
     }
     currentQueue = [];
     currentQueueIndex = -1;
+    const nowPlayingDiv = document.getElementById('nowPlaying');
+    if (nowPlayingDiv && !nowPlayingDiv.innerHTML.includes('loop-btn')) {
+        const loopBtn = nowPlayingDiv.querySelector('.loop-btn');
+        if (loopBtn) loopBtn.remove();
+    }
+    isPlaylistLoopEnabled = false;
 }
 
 function playNextInQueue() {
     if (currentQueueIndex + 1 < currentQueue.length) {
         currentQueueIndex++;
         playSong(currentQueue[currentQueueIndex], true);
+    } else if (isPlaylistLoopEnabled && currentQueue.length > 0) {
+        currentQueueIndex = 0;
+        playSong(currentQueue[currentQueueIndex], true);
     } else {
         clearQueue();
-        const nowPlaying = document.getElementById('nowPlaying');
-        if (nowPlaying) nowPlaying.innerHTML = t('playlistEnded');
+        const nowPlayingDiv = document.getElementById('nowPlaying');
+        if (nowPlayingDiv) nowPlayingDiv.innerHTML = t('playlistEnded');
     }
 }
 
@@ -313,6 +451,20 @@ function playPlaylist(songFiles) {
     playSong(currentQueue[0], true);
 }
 
+function togglePlaylistLoop() {
+    if (currentQueue.length === 0) return;
+    isPlaylistLoopEnabled = !isPlaylistLoopEnabled;
+    const loopBtn = document.querySelector('#nowPlaying .loop-btn');
+    if (loopBtn) {
+        if (isPlaylistLoopEnabled) {
+            loopBtn.classList.add('active');
+        } else {
+            loopBtn.classList.remove('active');
+        }
+    }
+}
+
+// ==================== DOWNLOAD SONG ====================
 function downloadSong(filename) {
     const link = document.createElement('a');
     link.href = './music/' + filename;
@@ -322,22 +474,14 @@ function downloadSong(filename) {
     document.body.removeChild(link);
 }
 
+// ==================== SEARCH ====================
 function searchSongs() {
     const input = document.getElementById('searchInput');
     const resultsDiv = document.getElementById('searchResults');
     const query = input.value.trim().toLowerCase();
-    if (!query) {
-        resultsDiv.innerHTML = '';
-        return;
-    }
-    const results = songsDatabase.filter(song =>
-        song.name.toLowerCase().includes(query) ||
-        song.artist.toLowerCase().includes(query)
-    );
-    if (!results.length) {
-        resultsDiv.innerHTML = `<p class="no-results">${t('noResults')}</p>`;
-        return;
-    }
+    if (!query) { resultsDiv.innerHTML = ''; return; }
+    const results = songsDatabase.filter(song => song.name.toLowerCase().includes(query) || song.artist.toLowerCase().includes(query));
+    if (!results.length) { resultsDiv.innerHTML = `<p class="no-results">${t('noResults')}</p>`; return; }
     
     resultsDiv.innerHTML = results.map(song => `
         <div class="result-item">
@@ -355,35 +499,23 @@ function searchSongs() {
     `).join('');
 }
 
+// ==================== SWITCH LANGUAGE ====================
 function switchLanguage(lang) {
     if (lang === 'uk') window.location.href = './index.html';
     else window.location.href = './index_en.html';
 }
 
-function openModal() {
-    const modal = document.getElementById('tutorial-modal');
-    if (modal) modal.style.display = 'block';
-}
-function closeModal() {
-    const modal = document.getElementById('tutorial-modal');
-    if (modal) modal.style.display = 'none';
-}
-function openPremiumModal() {
-    const modal = document.getElementById('premium-modal');
-    if (modal) modal.style.display = 'block';
-}
-function closePremiumModal() {
-    const modal = document.getElementById('premium-modal');
-    if (modal) modal.style.display = 'none';
-}
-
+// ==================== MODALS ====================
+function openModal() { document.getElementById('tutorial-modal').style.display = 'block'; }
+function closeModal() { document.getElementById('tutorial-modal').style.display = 'none'; }
+function openPremiumModal() { document.getElementById('premium-modal').style.display = 'block'; }
+function closePremiumModal() { document.getElementById('premium-modal').style.display = 'none'; }
 window.onclick = function(e) {
-    const tutorialModal = document.getElementById('tutorial-modal');
-    const premiumModal = document.getElementById('premium-modal');
-    if (e.target === tutorialModal) tutorialModal.style.display = 'none';
-    if (e.target === premiumModal) premiumModal.style.display = 'none';
+    if (e.target === document.getElementById('tutorial-modal')) closeModal();
+    if (e.target === document.getElementById('premium-modal')) closePremiumModal();
 };
 
+// ==================== AUDIO LISTENERS ====================
 function setupAudioListeners() {
     const audio = document.getElementById('audioPlayer');
     if (!audio || audio.hasAttribute('data-listener')) return;
@@ -406,16 +538,17 @@ function setupAudioListeners() {
     });
 }
 
+// ==================== START ====================
 window.addEventListener('DOMContentLoaded', async () => {
     await loadDatabase();
     setupAudioListeners();
     loadThemePreference();
 });
 
+// ==================== PLAYLISTS DISPLAY ====================
 function displayPlaylists() {
     const container = document.getElementById('playlistsContainer');
     if (!container) return;
-    
     container.innerHTML = playlistsDatabase.map(playlist => {
         const name = currentLanguage === 'en' ? (playlist.name_en || playlist.name) : playlist.name;
         const desc = currentLanguage === 'en' ? (playlist.description_en || playlist.description) : playlist.description;
@@ -434,22 +567,16 @@ function displayPlaylists() {
 function viewPlaylist(playlistId) {
     currentPlaylist = playlistsDatabase.find(p => p.id === playlistId);
     if (!currentPlaylist) return;
-    
     const resultsDiv = document.getElementById('searchResults');
-    const songs = currentPlaylist.songs
-        .map(filename => songsDatabase.find(s => s.file === filename))
-        .filter(song => song);
+    const songs = currentPlaylist.songs.map(fn => songsDatabase.find(s => s.file === fn)).filter(s => s);
     const playlistName = currentLanguage === 'en' ? (currentPlaylist.name_en || currentPlaylist.name) : currentPlaylist.name;
-    const playAllButton = songs.length > 0 
-        ? `<button class="play-all-btn" onclick="playPlaylist(${JSON.stringify(currentPlaylist.songs).replace(/"/g, '&quot;')})">▶ ${t('playAllBtn')}</button>`
-        : '';
-    
+    const playAllButton = songs.length ? `<button class="play-all-btn" onclick="playPlaylist(${JSON.stringify(currentPlaylist.songs).replace(/"/g, '&quot;')})">▶ ${t('playAllBtn')}</button>` : '';
     resultsDiv.innerHTML = `
-        <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-            <button class="back-btn" onclick="backToPlaylists()" style="padding: 8px 16px; background: var(--accent-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">← ${t('backBtn')}</button>
+        <div style="margin-bottom:20px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+            <button class="back-btn" onclick="backToPlaylists()" style="padding:8px 16px; background:var(--accent-color); color:#1a2a3a; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">← ${t('backBtn')}</button>
             ${playAllButton}
         </div>
-        <h2 style="color: var(--accent-color); margin-top: 0;">📋 ${escapeHtml(playlistName)}</h2>
+        <h2 style="color:var(--accent-color); margin-top:0;">📋 ${escapeHtml(playlistName)}</h2>
         ${songs.map(song => `
             <div class="result-item">
                 <img src="${escapeHtml(song.image)}" alt="${escapeHtml(song.name)}" class="song-image" onerror="this.src='./fotomusic/no-photo.jpg'">
@@ -476,37 +603,21 @@ function backToPlaylists() {
     if (resultsDiv) resultsDiv.innerHTML = '';
 }
 
+// ==================== FAVORITES ====================
 function isFavorite(filename) {
-    const favorites = playlistsDatabase.find(p => p.id === 'favorites');
-    return favorites && favorites.songs.includes(filename);
+    const fav = playlistsDatabase.find(p => p.id === 'favorites');
+    return fav && fav.songs.includes(filename);
 }
 
 function toggleFavorite(filename) {
-    const favorites = playlistsDatabase.find(p => p.id === 'favorites');
-    if (!favorites) return;
-    
-    const index = favorites.songs.indexOf(filename);
-    if (index > -1) {
-        favorites.songs.splice(index, 1);
-        console.log(t('favoriteRemoved'));
-    } else {
-        favorites.songs.push(filename);
-        console.log(t('favoriteAdded'));
-    }
-    
+    const fav = playlistsDatabase.find(p => p.id === 'favorites');
+    if (!fav) return;
+    const idx = fav.songs.indexOf(filename);
+    if (idx > -1) fav.songs.splice(idx, 1);
+    else fav.songs.push(filename);
     savePlaylistsToLocalStorage();
-    
-    const likeBtn = document.querySelector(`.like-btn[data-filename="${filename}"]`);
-    if (likeBtn) {
-        if (favorites.songs.includes(filename)) {
-            likeBtn.classList.add('liked');
-        } else {
-            likeBtn.classList.remove('liked');
-        }
-    }
-    
+    const btn = document.querySelector(`.like-btn[data-filename="${filename}"]`);
+    if (btn) btn.classList.toggle('liked', fav.songs.includes(filename));
     displayPlaylists();
-    if (currentPlaylist && currentPlaylist.id === 'favorites') {
-        viewPlaylist('favorites');
-    }
+    if (currentPlaylist && currentPlaylist.id === 'favorites') viewPlaylist('favorites');
 }

@@ -37,8 +37,15 @@
         </div>
         
         <div class="player-section">
+            <canvas id="visualizer" class="equalizer" width="300" height="60"></canvas>
+            <div id="eqControls" class="equalizer-sliders" style="display: none;">
+                <label>🔊 Низькі <input type="range" id="bassSlider" min="-20" max="20" value="0" step="1"></label>
+                <label>🎵 Середні <input type="range" id="midSlider" min="-20" max="20" value="0" step="1"></label>
+                <label>🎶 Високі <input type="range" id="trebleSlider" min="-20" max="20" value="0" step="1"></label>
+                <button id="resetEqBtn" class="reset-eq-btn" title="Скинути еквалайзер">⟳ Скинути</button>
+            </div>
             <audio id="audioPlayer" controls><source src="" type="audio/mpeg"></audio>
-            <p id="nowPlaying" class="now-playing">▶ Програється:</p>
+            <div id="nowPlaying" class="now-playing">▶ Програється:</div>
         </div>
  
         <div id="lyricsSection" class="lyrics-section">

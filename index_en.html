@@ -37,8 +37,15 @@
         </div>
         
         <div class="player-section">
+            <canvas id="visualizer" class="equalizer" width="300" height="60"></canvas>
+            <div id="eqControls" class="equalizer-sliders" style="display: none;">
+                <label>🔊 Bass <input type="range" id="bassSlider" min="-20" max="20" value="0" step="1"></label>
+                <label>🎵 Mid <input type="range" id="midSlider" min="-20" max="20" value="0" step="1"></label>
+                <label>🎶 Treble <input type="range" id="trebleSlider" min="-20" max="20" value="0" step="1"></label>
+                <button id="resetEqBtn" class="reset-eq-btn" title="Reset equalizer">⟳ Reset</button>
+            </div>
             <audio id="audioPlayer" controls><source src="" type="audio/mpeg"></audio>
-            <p id="nowPlaying" class="now-playing">▶ Now playing:</p>
+            <div id="nowPlaying" class="now-playing">▶ Now playing:</div>
         </div>
  
         <div id="lyricsSection" class="lyrics-section">
