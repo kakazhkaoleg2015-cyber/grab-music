@@ -58,8 +58,38 @@ function t(key) {
     return translations[currentLanguage][key] || key;
 }
 
+// ==================== LOCALSTORAGE PERSISTENCE ====================
+const STORAGE_KEY = 'grab_music_playlists';
+
+function savePlaylistsToLocalStorage() {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(playlistsDatabase));
+        console.log('💾 Playlists saved to localStorage');
+    } catch (e) {
+        console.error('Failed to save playlists:', e);
+    }
+}
+
+function loadPlaylistsFromLocalStorage() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+        try {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed)) {
+                playlistsDatabase = parsed;
+                console.log('📀 Playlists loaded from localStorage');
+                return true;
+            }
+        } catch (e) {
+            console.error('Error parsing stored playlists:', e);
+        }
+    }
+    return false;
+}
+
 // ==================== LOAD DATABASE ====================
 async function loadDatabase() {
+    // Load songs database
     try {
         const response = await fetch('./database.json');
         if (!response.ok) throw new Error('Database file not found');
@@ -71,27 +101,34 @@ async function loadDatabase() {
         const lyricsContent = document.getElementById('lyricsContent');
         if (lyricsContent) lyricsContent.textContent = t('errorLoadingDB');
     }
-    try {
-        const response = await fetch('./playlists.json');
-        if (!response.ok) throw new Error('Playlists file not found');
-        playlistsDatabase = await response.json();
-        // Ensure "Favorites" playlist exists
-        if (!playlistsDatabase.find(p => p.id === 'favorites')) {
-            playlistsDatabase.push({
-                id: 'favorites',
-                name: 'Улюблене',
-                name_en: 'Favorites',
-                description: 'Твої улюблені пісні',
-                description_en: 'Your favorite songs',
-                songs: []
-            });
+
+    // Load playlists (from localStorage if available, otherwise from file)
+    if (!loadPlaylistsFromLocalStorage()) {
+        try {
+            const response = await fetch('./playlists.json');
+            if (!response.ok) throw new Error('Playlists file not found');
+            playlistsDatabase = await response.json();
+            console.log('✅ Playlists loaded from file');
+        } catch (error) {
+            console.error('⚠️ Error loading playlists:', error);
+            playlistsDatabase = [];
         }
-        console.log('✅ Playlists loaded successfully!');
-        displayPlaylists();
-    } catch (error) {
-        console.error('⚠️ Error loading playlists:', error);
-        playlistsDatabase = [];
     }
+
+    // Ensure "Favorites" playlist exists
+    if (!playlistsDatabase.find(p => p.id === 'favorites')) {
+        playlistsDatabase.push({
+            id: 'favorites',
+            name: 'Улюблене',
+            name_en: 'Favorites',
+            description: 'Твої улюблені пісні',
+            description_en: 'Your favorite songs',
+            songs: []
+        });
+        savePlaylistsToLocalStorage();
+    }
+
+    displayPlaylists();
     const searchInput = document.getElementById('searchInput');
     if (searchInput && searchInput.value.trim() !== '') searchSongs();
 }
@@ -435,7 +472,7 @@ function backToPlaylists() {
     if (resultsDiv) resultsDiv.innerHTML = '';
 }
 
-// ==================== FAVORITES SYSTEM ====================
+// ==================== FAVORITES SYSTEM (with persistence) ====================
 function isFavorite(filename) {
     const favorites = playlistsDatabase.find(p => p.id === 'favorites');
     return favorites && favorites.songs.includes(filename);
@@ -453,6 +490,9 @@ function toggleFavorite(filename) {
         favorites.songs.push(filename);
         console.log(t('favoriteAdded'));
     }
+    
+    // Save to localStorage
+    savePlaylistsToLocalStorage();
     
     // Update like button state
     const likeBtn = document.querySelector(`.like-btn[data-filename="${filename}"]`);
