@@ -115,6 +115,17 @@ p {
     margin-top: 40px;
 }
  
+.playlists-container {
+    margin-top: 30px;
+    margin-bottom: 30px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+}
+ 
 .search-input {
     font-family: 'Comfortaa', cursive;
     width: 100%;
@@ -244,6 +255,18 @@ p {
  
 .back-btn {
     font-family: 'Comfortaa', cursive;
+    background-color: #a4c2f4;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+ 
+.back-btn:hover {
+    transform: translateY(-2px);
+    background-color: #5d9cec;
 }
  
 .result-item:hover {
@@ -574,6 +597,26 @@ p {
     }
 }
  
+/* Кнопка "Програвати всі" */
+.play-all-btn {
+    font-family: 'Comfortaa', cursive;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+ 
+.play-all-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(76, 175, 80, 0.3);
+}
+ 
+/* ========== АДАПТИВНІСТЬ ========== */
 @media (max-width: 1024px) {
     .top-controls {
         max-width: 700px;
@@ -663,6 +706,12 @@ p {
         font-size: 14px;
         padding: 11px 12px;
         margin-bottom: 12px;
+    }
+ 
+    .playlists-container {
+        grid-template-columns: 1fr;
+        margin-top: 20px;
+        margin-bottom: 20px;
     }
  
     .search-results {
@@ -872,8 +921,6 @@ p {
 }
  
 @media (max-width: 480px) {
- 
-@media (max-width: 480px) {
     body {
         padding: 10px;
     }
@@ -1036,4 +1083,3 @@ p {
         font-size: 11px;
     }
 }
- 

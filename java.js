@@ -1,39 +1,102 @@
-// ==================== ГЛОБАЛЬНІ ЗМІННІ ====================
+// ==================== GLOBAL VARIABLES ====================
 let songsDatabase = [];
 let playlistsDatabase = [];
 let currentLrcLines = [];
 let lrcSyncInterval = null;
 let isUserInteracting = false;
 let currentPlaylist = null;
- 
-// ==================== ЗАВАНТАЖЕННЯ БАЗИ ====================
+
+// For auto-playing playlist
+let currentQueue = [];
+let currentQueueIndex = -1;
+let playlistEndedHandler = null;
+
+// ==================== LANGUAGE DETECTION ====================
+let currentLanguage = window.location.pathname.includes('_en.html') ? 'en' : 'uk';
+
+// ==================== TRANSLATIONS FOR DYNAMIC MESSAGES ====================
+const translations = {
+    uk: {
+        errorLoadingDB: 'Помилка завантаження бази пісень.',
+        noLyrics: 'Текст відсутній.',
+        invalidLrc: 'Неправильний формат LRC.',
+        lrcNotAvailable: 'LRC файл недоступний.',
+        noResults: '❌ Пісні не знайдені',
+        playlistEnded: '▶ Плейлист завершено.',
+        favoriteAdded: '✅ Пісня додана в улюблені',
+        favoriteRemoved: '❌ Пісня видалена з улюблених',
+        nowPlayingLabel: 'Програється:',
+        playBtn: 'Програвати',
+        downloadBtn: 'Скачати',
+        viewBtn: 'Переглянути',
+        backBtn: 'Назад',
+        playAllBtn: 'Програвати всі',
+        lyricsTabText: '📝 Текст',
+        lrcTabText: '🎵 LRC'
+    },
+    en: {
+        errorLoadingDB: 'Error loading song database.',
+        noLyrics: 'No lyrics available.',
+        invalidLrc: 'Invalid LRC format.',
+        lrcNotAvailable: 'LRC file not available.',
+        noResults: '❌ No songs found',
+        playlistEnded: '▶ Playlist ended.',
+        favoriteAdded: '✅ Song added to favorites',
+        favoriteRemoved: '❌ Song removed from favorites',
+        nowPlayingLabel: 'Now playing:',
+        playBtn: 'Play',
+        downloadBtn: 'Download',
+        viewBtn: 'View',
+        backBtn: 'Back',
+        playAllBtn: 'Play all',
+        lyricsTabText: '📝 Lyrics',
+        lrcTabText: '🎵 LRC'
+    }
+};
+
+function t(key) {
+    return translations[currentLanguage][key] || key;
+}
+
+// ==================== LOAD DATABASE ====================
 async function loadDatabase() {
     try {
         const response = await fetch('./database.json');
-        if (!response.ok) throw new Error('Файл бази не знайдено');
+        if (!response.ok) throw new Error('Database file not found');
         songsDatabase = await response.json();
-        console.log('✅ База даних завантажена успішно!', songsDatabase.length);
+        console.log('✅ Database loaded successfully!', songsDatabase.length);
     } catch (error) {
-        console.error('❌ Помилка завантаження бази:', error);
+        console.error('❌ Error loading database:', error);
         songsDatabase = [];
         const lyricsContent = document.getElementById('lyricsContent');
-        if (lyricsContent) lyricsContent.textContent = 'Помилка завантаження бази пісень.';
+        if (lyricsContent) lyricsContent.textContent = t('errorLoadingDB');
     }
     try {
         const response = await fetch('./playlists.json');
-        if (!response.ok) throw new Error('Файл плейлистів не знайдено');
+        if (!response.ok) throw new Error('Playlists file not found');
         playlistsDatabase = await response.json();
-        console.log('✅ Плейлисти завантажені успішно!');
+        // Ensure "Favorites" playlist exists
+        if (!playlistsDatabase.find(p => p.id === 'favorites')) {
+            playlistsDatabase.push({
+                id: 'favorites',
+                name: 'Улюблене',
+                name_en: 'Favorites',
+                description: 'Твої улюблені пісні',
+                description_en: 'Your favorite songs',
+                songs: []
+            });
+        }
+        console.log('✅ Playlists loaded successfully!');
         displayPlaylists();
     } catch (error) {
-        console.error('⚠️ Помилка завантаження плейлистів:', error);
+        console.error('⚠️ Error loading playlists:', error);
         playlistsDatabase = [];
     }
     const searchInput = document.getElementById('searchInput');
     if (searchInput && searchInput.value.trim() !== '') searchSongs();
 }
- 
-// ==================== ПАРСИНГ LRC ====================
+
+// ==================== LRC PARSING ====================
 function parseLRC(lrcText) {
     const lines = [];
     const regex = /\[(\d{2}):(\d{2})\.(\d{2})\]/;
@@ -50,8 +113,8 @@ function parseLRC(lrcText) {
     });
     return lines;
 }
- 
-// ==================== СИНХРОНІЗАЦІЯ LRC ====================
+
+// ==================== LRC SYNC ====================
 function syncLRC() {
     const audio = document.getElementById('audioPlayer');
     if (!audio || currentLrcLines.length === 0 || isUserInteracting) return;
@@ -70,16 +133,15 @@ function syncLRC() {
         lines[activeIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 }
- 
-// ==================== ПОКАЗ ТЕКСТУ АБО LRC ====================
+
+// ==================== DISPLAY LYRICS OR LRC ====================
 async function showLyricsTab(filename, type) {
     const song = songsDatabase.find(s => s.file === filename);
     if (!song) return;
     const lyricsContent = document.getElementById('lyricsContent');
     document.querySelectorAll('.lyrics-tab-btn').forEach(btn => {
         btn.classList.remove('active');
-        if ((type === 'text' && btn.textContent.includes('Текст')) ||
-            (type === 'text' && btn.textContent.includes('Text')) ||
+        if ((type === 'text' && btn.textContent.includes(t('lyricsTabText'))) ||
             (type === 'lrc' && btn.textContent.includes('LRC'))) {
             btn.classList.add('active');
         }
@@ -88,7 +150,7 @@ async function showLyricsTab(filename, type) {
         if (lrcSyncInterval) clearInterval(lrcSyncInterval);
         lrcSyncInterval = null;
         currentLrcLines = [];
-        lyricsContent.textContent = song.lyrics || (window.location.href.includes('index_en.html') ? 'No lyrics.' : 'Текст відсутній.');
+        lyricsContent.textContent = song.lyrics || t('noLyrics');
     } else if (type === 'lrc' && song.lrc) {
         try {
             const resp = await fetch('./' + song.lrc);
@@ -101,21 +163,20 @@ async function showLyricsTab(filename, type) {
                 lrcSyncInterval = setInterval(syncLRC, 100);
                 syncLRC();
             } else {
-                lyricsContent.textContent = 'Неправильний формат LRC.';
+                lyricsContent.textContent = t('invalidLrc');
                 currentLrcLines = [];
             }
         } catch (err) {
-            console.error('LRC помилка:', err);
-            lyricsContent.textContent = 'Не вдалося завантажити LRC файл.';
+            console.error('LRC error:', err);
+            lyricsContent.textContent = t('lrcNotAvailable');
             currentLrcLines = [];
         }
     } else {
-        lyricsContent.textContent = 'LRC файл недоступний.';
+        lyricsContent.textContent = t('lrcNotAvailable');
         currentLrcLines = [];
     }
 }
- 
-// Допоміжна функція для безпечного HTML
+
 function escapeHtml(str) {
     return str.replace(/[&<>]/g, function(m) {
         if (m === '&') return '&amp;';
@@ -124,8 +185,8 @@ function escapeHtml(str) {
         return m;
     });
 }
- 
-// ==================== ПОКАЗ КНОПОК ТА ТЕКСТУ ПІСНІ ====================
+
+// ==================== SHOW LYRICS BUTTONS ====================
 function showLyrics(song) {
     const lyricsSection = document.getElementById('lyricsSection');
     const lyricsContent = document.getElementById('lyricsContent');
@@ -136,37 +197,73 @@ function showLyrics(song) {
     btnDiv.className = 'lyrics-buttons';
     const hasLrc = !!song.lrc;
     btnDiv.innerHTML = `
-        <button class="lyrics-tab-btn active" onclick="showLyricsTab('${song.file}', 'text')">📝 Текст</button>
-        ${hasLrc ? '<button class="lyrics-tab-btn" onclick="showLyricsTab(\'' + song.file + '\', \'lrc\')">🎵 LRC</button>' : ''}
+        <button class="lyrics-tab-btn active" onclick="showLyricsTab('${song.file}', 'text')">${t('lyricsTabText')}</button>
+        ${hasLrc ? '<button class="lyrics-tab-btn" onclick="showLyricsTab(\'' + song.file + '\', \'lrc\')">' + t('lrcTabText') + '</button>' : ''}
     `;
     const title = lyricsSection.querySelector('h2');
     title.parentNode.insertBefore(btnDiv, title.nextSibling);
-    lyricsContent.textContent = song.lyrics || (window.location.href.includes('index_en.html') ? 'No lyrics.' : 'Текст відсутній.');
+    lyricsContent.textContent = song.lyrics || t('noLyrics');
     currentLrcLines = [];
     if (lrcSyncInterval) clearInterval(lrcSyncInterval);
     lrcSyncInterval = null;
 }
- 
-// ==================== ПРОГРАВАННЯ ПІСНІ ====================
-function playSong(filename) {
+
+// ==================== PLAY SONG (with queue support) ====================
+function playSong(filename, fromQueue = false) {
+    if (!fromQueue) clearQueue();
+
     const audio = document.getElementById('audioPlayer');
     const nowPlaying = document.getElementById('nowPlaying');
     const song = songsDatabase.find(s => s.file === filename);
     if (!song) {
-        console.error('Пісня не знайдена в базі');
+        console.error('Song not found in database');
         return;
     }
     if (lrcSyncInterval) clearInterval(lrcSyncInterval);
     lrcSyncInterval = null;
     audio.src = './music/' + filename;
-    const lang = window.location.href.includes('index_en.html') ? 'en' : 'uk';
-    const label = lang === 'en' ? 'Now playing:' : 'Програється:';
+    const label = t('nowPlayingLabel');
     nowPlaying.innerHTML = `<img src="${escapeHtml(song.image)}" alt="${escapeHtml(song.name)}" class="player-image" onerror="this.src='./fotomusic/no-photo.jpg'">▶ ${label} <strong>${escapeHtml(song.name)}</strong> - ${escapeHtml(song.artist)}`;
     showLyrics(song);
-    audio.play().catch(e => console.log('Автовідтворення заблоковане', e));
+    audio.play().catch(e => console.log('Autoplay blocked', e));
 }
- 
-// ==================== ЗАВАНТАЖЕННЯ ФАЙЛУ ====================
+
+// ==================== AUTO-PLAY PLAYLIST ====================
+function clearQueue() {
+    if (playlistEndedHandler) {
+        const audio = document.getElementById('audioPlayer');
+        if (audio) audio.removeEventListener('ended', playlistEndedHandler);
+        playlistEndedHandler = null;
+    }
+    currentQueue = [];
+    currentQueueIndex = -1;
+}
+
+function playNextInQueue() {
+    if (currentQueueIndex + 1 < currentQueue.length) {
+        currentQueueIndex++;
+        playSong(currentQueue[currentQueueIndex], true);
+    } else {
+        clearQueue();
+        const nowPlaying = document.getElementById('nowPlaying');
+        if (nowPlaying) nowPlaying.innerHTML = t('playlistEnded');
+    }
+}
+
+function playPlaylist(songFiles) {
+    if (!songFiles.length) return;
+    clearQueue();
+    currentQueue = [...songFiles];
+    currentQueueIndex = 0;
+    if (!playlistEndedHandler) {
+        const audio = document.getElementById('audioPlayer');
+        playlistEndedHandler = () => playNextInQueue();
+        audio.addEventListener('ended', playlistEndedHandler);
+    }
+    playSong(currentQueue[0], true);
+}
+
+// ==================== DOWNLOAD SONG ====================
 function downloadSong(filename) {
     const link = document.createElement('a');
     link.href = './music/' + filename;
@@ -175,8 +272,8 @@ function downloadSong(filename) {
     link.click();
     document.body.removeChild(link);
 }
- 
-// ==================== ПОШУК ====================
+
+// ==================== SEARCH ====================
 function searchSongs() {
     const input = document.getElementById('searchInput');
     const resultsDiv = document.getElementById('searchResults');
@@ -190,13 +287,9 @@ function searchSongs() {
         song.artist.toLowerCase().includes(query)
     );
     if (!results.length) {
-        resultsDiv.innerHTML = '<p class="no-results">❌ Пісні не знайдені</p>';
+        resultsDiv.innerHTML = `<p class="no-results">${t('noResults')}</p>`;
         return;
     }
-    
-    const lang = window.location.href.includes('index_en.html') ? 'en' : 'uk';
-    const playLabel = lang === 'en' ? 'Play' : 'Програвати';
-    const downloadLabel = lang === 'en' ? 'Download' : 'Скачати';
     
     resultsDiv.innerHTML = results.map(song => `
         <div class="result-item">
@@ -206,21 +299,21 @@ function searchSongs() {
                 <p>${escapeHtml(song.artist)}</p>
             </div>
             <div class="result-buttons">
-                <button class="play-btn" onclick="playSong('${escapeHtml(song.file)}')">▶ ${playLabel}</button>
-                <button class="download-btn" onclick="downloadSong('${escapeHtml(song.file)}')">⬇ ${downloadLabel}</button>
-                <button class="like-btn ${isFavorite(song.file) ? 'liked' : ''}" onclick="toggleFavorite('${escapeHtml(song.file)}')">❤️</button>
+                <button class="play-btn" onclick="playSong('${escapeHtml(song.file)}', false)">▶ ${t('playBtn')}</button>
+                <button class="download-btn" onclick="downloadSong('${escapeHtml(song.file)}')">⬇ ${t('downloadBtn')}</button>
+                <button class="like-btn ${isFavorite(song.file) ? 'liked' : ''}" data-filename="${escapeHtml(song.file)}" onclick="toggleFavorite('${escapeHtml(song.file)}')">❤️</button>
             </div>
         </div>
     `).join('');
 }
- 
-// ==================== ПЕРЕМИКАННЯ МОВИ ====================
+
+// ==================== SWITCH LANGUAGE ====================
 function switchLanguage(lang) {
     if (lang === 'uk') window.location.href = './index.html';
     else window.location.href = './index_en.html';
 }
- 
-// ==================== МОДАЛЬНІ ВІКНА ====================
+
+// ==================== MODALS ====================
 function openModal() {
     const modal = document.getElementById('tutorial-modal');
     if (modal) modal.style.display = 'block';
@@ -229,7 +322,7 @@ function closeModal() {
     const modal = document.getElementById('tutorial-modal');
     if (modal) modal.style.display = 'none';
 }
- 
+
 function openPremiumModal() {
     const modal = document.getElementById('premium-modal');
     if (modal) modal.style.display = 'block';
@@ -238,15 +331,15 @@ function closePremiumModal() {
     const modal = document.getElementById('premium-modal');
     if (modal) modal.style.display = 'none';
 }
- 
+
 window.onclick = function(e) {
     const tutorialModal = document.getElementById('tutorial-modal');
     const premiumModal = document.getElementById('premium-modal');
     if (e.target === tutorialModal) tutorialModal.style.display = 'none';
     if (e.target === premiumModal) premiumModal.style.display = 'none';
 };
- 
-// ==================== СЛУХАЧІ ДЛЯ ПАУЗИ/ПРОГРАВАННЯ ====================
+
+// ==================== AUDIO LISTENERS ====================
 function setupAudioListeners() {
     const audio = document.getElementById('audioPlayer');
     if (!audio || audio.hasAttribute('data-listener')) return;
@@ -268,50 +361,54 @@ function setupAudioListeners() {
         });
     });
 }
- 
-// ==================== СТАРТ ====================
+
+// ==================== START ====================
 window.addEventListener('DOMContentLoaded', async () => {
     await loadDatabase();
     setupAudioListeners();
 });
- 
-// ==================== ПЛЕЙЛИСТИ ====================
+
+// ==================== PLAYLISTS ====================
 function displayPlaylists() {
-    const playlistsList = document.getElementById('playlistsList');
-    if (!playlistsList) return;
+    const container = document.getElementById('playlistsContainer');
+    if (!container) return;
     
-    const lang = window.location.href.includes('index_en.html') ? 'en' : 'uk';
-    const viewLabel = lang === 'en' ? 'View' : 'Переглянути';
-    
-    playlistsList.innerHTML = playlistsDatabase.map(playlist => `
-        <div class="playlist-card">
-            <div class="playlist-card-info">
-                <h4>${lang === 'en' ? playlist.name_en : playlist.name}</h4>
-                <p>${playlist.songs.length} ${lang === 'en' ? 'songs' : 'пісень'}</p>
+    container.innerHTML = playlistsDatabase.map(playlist => {
+        const name = currentLanguage === 'en' ? (playlist.name_en || playlist.name) : playlist.name;
+        const desc = currentLanguage === 'en' ? (playlist.description_en || playlist.description) : playlist.description;
+        return `
+        <div class="playlist-item">
+            <div class="playlist-info">
+                <h3>📋 ${escapeHtml(name)}</h3>
+                <p>${escapeHtml(desc)}</p>
+                <small>${playlist.songs.length} ${currentLanguage === 'en' ? 'songs' : 'пісень'}</small>
             </div>
-            <button class="view-btn" onclick="viewPlaylist('${playlist.id}')">▶ ${viewLabel}</button>
+            <button class="view-btn" onclick="viewPlaylist('${playlist.id}')">▶ ${t('viewBtn')}</button>
         </div>
-    `).join('');
+    `}).join('');
 }
- 
+
 function viewPlaylist(playlistId) {
     currentPlaylist = playlistsDatabase.find(p => p.id === playlistId);
     if (!currentPlaylist) return;
     
     const resultsDiv = document.getElementById('searchResults');
-    const lang = window.location.href.includes('index_en.html') ? 'en' : 'uk';
-    const playLabel = lang === 'en' ? 'Play' : 'Програвати';
-    const downloadLabel = lang === 'en' ? 'Download' : 'Скачати';
     
     const songs = currentPlaylist.songs
         .map(filename => songsDatabase.find(s => s.file === filename))
         .filter(song => song);
     
+    const playlistName = currentLanguage === 'en' ? (currentPlaylist.name_en || currentPlaylist.name) : currentPlaylist.name;
+    const playAllButton = songs.length > 0 
+        ? `<button class="play-all-btn" onclick="playPlaylist(${JSON.stringify(currentPlaylist.songs).replace(/"/g, '&quot;')})">▶ ${t('playAllBtn')}</button>`
+        : '';
+    
     resultsDiv.innerHTML = `
-        <div style="margin-bottom: 20px;">
-            <button class="back-btn" onclick="backToPlaylists()" style="padding: 8px 16px; background: #a4c2f4; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">← ${lang === 'en' ? 'Back' : 'Назад'}</button>
-            <h2 style="color: #a4c2f4; margin-top: 15px;">📋 ${lang === 'en' ? currentPlaylist.name_en : currentPlaylist.name}</h2>
+        <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <button class="back-btn" onclick="backToPlaylists()" style="padding: 8px 16px; background: #a4c2f4; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">← ${t('backBtn')}</button>
+            ${playAllButton}
         </div>
+        <h2 style="color: #a4c2f4; margin-top: 0;">📋 ${escapeHtml(playlistName)}</h2>
         ${songs.map(song => `
             <div class="result-item">
                 <img src="${escapeHtml(song.image)}" alt="${escapeHtml(song.name)}" class="song-image" onerror="this.src='./fotomusic/no-photo.jpg'">
@@ -320,61 +417,56 @@ function viewPlaylist(playlistId) {
                     <p>${escapeHtml(song.artist)}</p>
                 </div>
                 <div class="result-buttons">
-                    <button class="play-btn" onclick="playSong('${escapeHtml(song.file)}')">▶ ${playLabel}</button>
-                    <button class="download-btn" onclick="downloadSong('${escapeHtml(song.file)}')">⬇ ${downloadLabel}</button>
-                    <button class="like-btn ${isFavorite(song.file) ? 'liked' : ''}" onclick="toggleFavorite('${escapeHtml(song.file)}')">❤️</button>
+                    <button class="play-btn" onclick="playSong('${escapeHtml(song.file)}', false)">▶ ${t('playBtn')}</button>
+                    <button class="download-btn" onclick="downloadSong('${escapeHtml(song.file)}')">⬇ ${t('downloadBtn')}</button>
+                    <button class="like-btn ${isFavorite(song.file) ? 'liked' : ''}" data-filename="${escapeHtml(song.file)}" onclick="toggleFavorite('${escapeHtml(song.file)}')">❤️</button>
                 </div>
             </div>
         `).join('')}
     `;
 }
- 
+
 function backToPlaylists() {
     currentPlaylist = null;
     const searchInput = document.getElementById('searchInput');
     if (searchInput) searchInput.value = '';
     displayPlaylists();
+    const resultsDiv = document.getElementById('searchResults');
+    if (resultsDiv) resultsDiv.innerHTML = '';
 }
- 
-function addToPlaylist(playlistId, filename) {
-    const playlist = playlistsDatabase.find(p => p.id === playlistId);
-    if (playlist && !playlist.songs.includes(filename)) {
-        playlist.songs.push(filename);
-        console.log('✅ Пісня додана до плейлиста');
-    }
-}
- 
-// ==================== СИСТЕМА ЛАЙКІВ ====================
+
+// ==================== FAVORITES SYSTEM ====================
 function isFavorite(filename) {
     const favorites = playlistsDatabase.find(p => p.id === 'favorites');
     return favorites && favorites.songs.includes(filename);
 }
- 
+
 function toggleFavorite(filename) {
     const favorites = playlistsDatabase.find(p => p.id === 'favorites');
     if (!favorites) return;
     
     const index = favorites.songs.indexOf(filename);
     if (index > -1) {
-        // Видалити з улюблених
         favorites.songs.splice(index, 1);
-        console.log('❌ Пісня видалена з улюблених');
+        console.log(t('favoriteRemoved'));
     } else {
-        // Додати в улюблені
         favorites.songs.push(filename);
-        console.log('✅ Пісня додана в улюблені');
+        console.log(t('favoriteAdded'));
     }
     
-    // Оновити кнопку
-    const buttons = document.querySelectorAll('.like-btn');
-    buttons.forEach(btn => {
-        if (btn.onclick.toString().includes(filename)) {
-            btn.classList.toggle('liked');
+    // Update like button state
+    const likeBtn = document.querySelector(`.like-btn[data-filename="${filename}"]`);
+    if (likeBtn) {
+        if (favorites.songs.includes(filename)) {
+            likeBtn.classList.add('liked');
+        } else {
+            likeBtn.classList.remove('liked');
         }
-    });
+    }
     
-    // Перезавантажити результати якщо вони видимі
-    if (!document.getElementById('searchInput').value.trim()) {
-        displayPlaylists();
+    // Update playlist counters and view if needed
+    displayPlaylists();
+    if (currentPlaylist && currentPlaylist.id === 'favorites') {
+        viewPlaylist('favorites');
     }
 }
