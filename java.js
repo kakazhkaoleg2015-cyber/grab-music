@@ -14,6 +14,27 @@ let playlistEndedHandler = null;
 // ==================== LANGUAGE DETECTION ====================
 let currentLanguage = window.location.pathname.includes('_en.html') ? 'en' : 'uk';
 
+// ==================== THEME MANAGEMENT ====================
+function loadThemePreference() {
+    const savedTheme = localStorage.getItem('grab_music_theme');
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-theme');
+        const toggleBtn = document.getElementById('themeToggle');
+        if (toggleBtn) toggleBtn.innerHTML = '☀️';
+    } else {
+        document.body.classList.remove('dark-theme');
+        const toggleBtn = document.getElementById('themeToggle');
+        if (toggleBtn) toggleBtn.innerHTML = '🌙';
+    }
+}
+
+function toggleTheme() {
+    const isDark = document.body.classList.toggle('dark-theme');
+    localStorage.setItem('grab_music_theme', isDark ? 'dark' : 'light');
+    const toggleBtn = document.getElementById('themeToggle');
+    if (toggleBtn) toggleBtn.innerHTML = isDark ? '☀️' : '🌙';
+}
+
 // ==================== TRANSLATIONS FOR DYNAMIC MESSAGES ====================
 const translations = {
     uk: {
@@ -89,7 +110,6 @@ function loadPlaylistsFromLocalStorage() {
 
 // ==================== LOAD DATABASE ====================
 async function loadDatabase() {
-    // Load songs database
     try {
         const response = await fetch('./database.json');
         if (!response.ok) throw new Error('Database file not found');
@@ -102,7 +122,6 @@ async function loadDatabase() {
         if (lyricsContent) lyricsContent.textContent = t('errorLoadingDB');
     }
 
-    // Load playlists (from localStorage if available, otherwise from file)
     if (!loadPlaylistsFromLocalStorage()) {
         try {
             const response = await fetch('./playlists.json');
@@ -115,7 +134,6 @@ async function loadDatabase() {
         }
     }
 
-    // Ensure "Favorites" playlist exists
     if (!playlistsDatabase.find(p => p.id === 'favorites')) {
         playlistsDatabase.push({
             id: 'favorites',
@@ -151,7 +169,6 @@ function parseLRC(lrcText) {
     return lines;
 }
 
-// ==================== LRC SYNC ====================
 function syncLRC() {
     const audio = document.getElementById('audioPlayer');
     if (!audio || currentLrcLines.length === 0 || isUserInteracting) return;
@@ -171,7 +188,6 @@ function syncLRC() {
     }
 }
 
-// ==================== DISPLAY LYRICS OR LRC ====================
 async function showLyricsTab(filename, type) {
     const song = songsDatabase.find(s => s.file === filename);
     if (!song) return;
@@ -223,7 +239,6 @@ function escapeHtml(str) {
     });
 }
 
-// ==================== SHOW LYRICS BUTTONS ====================
 function showLyrics(song) {
     const lyricsSection = document.getElementById('lyricsSection');
     const lyricsContent = document.getElementById('lyricsContent');
@@ -245,7 +260,6 @@ function showLyrics(song) {
     lrcSyncInterval = null;
 }
 
-// ==================== PLAY SONG (with queue support) ====================
 function playSong(filename, fromQueue = false) {
     if (!fromQueue) clearQueue();
 
@@ -265,7 +279,6 @@ function playSong(filename, fromQueue = false) {
     audio.play().catch(e => console.log('Autoplay blocked', e));
 }
 
-// ==================== AUTO-PLAY PLAYLIST ====================
 function clearQueue() {
     if (playlistEndedHandler) {
         const audio = document.getElementById('audioPlayer');
@@ -300,7 +313,6 @@ function playPlaylist(songFiles) {
     playSong(currentQueue[0], true);
 }
 
-// ==================== DOWNLOAD SONG ====================
 function downloadSong(filename) {
     const link = document.createElement('a');
     link.href = './music/' + filename;
@@ -310,7 +322,6 @@ function downloadSong(filename) {
     document.body.removeChild(link);
 }
 
-// ==================== SEARCH ====================
 function searchSongs() {
     const input = document.getElementById('searchInput');
     const resultsDiv = document.getElementById('searchResults');
@@ -344,13 +355,11 @@ function searchSongs() {
     `).join('');
 }
 
-// ==================== SWITCH LANGUAGE ====================
 function switchLanguage(lang) {
     if (lang === 'uk') window.location.href = './index.html';
     else window.location.href = './index_en.html';
 }
 
-// ==================== MODALS ====================
 function openModal() {
     const modal = document.getElementById('tutorial-modal');
     if (modal) modal.style.display = 'block';
@@ -359,7 +368,6 @@ function closeModal() {
     const modal = document.getElementById('tutorial-modal');
     if (modal) modal.style.display = 'none';
 }
-
 function openPremiumModal() {
     const modal = document.getElementById('premium-modal');
     if (modal) modal.style.display = 'block';
@@ -376,7 +384,6 @@ window.onclick = function(e) {
     if (e.target === premiumModal) premiumModal.style.display = 'none';
 };
 
-// ==================== AUDIO LISTENERS ====================
 function setupAudioListeners() {
     const audio = document.getElementById('audioPlayer');
     if (!audio || audio.hasAttribute('data-listener')) return;
@@ -399,13 +406,12 @@ function setupAudioListeners() {
     });
 }
 
-// ==================== START ====================
 window.addEventListener('DOMContentLoaded', async () => {
     await loadDatabase();
     setupAudioListeners();
+    loadThemePreference();
 });
 
-// ==================== PLAYLISTS ====================
 function displayPlaylists() {
     const container = document.getElementById('playlistsContainer');
     if (!container) return;
@@ -430,11 +436,9 @@ function viewPlaylist(playlistId) {
     if (!currentPlaylist) return;
     
     const resultsDiv = document.getElementById('searchResults');
-    
     const songs = currentPlaylist.songs
         .map(filename => songsDatabase.find(s => s.file === filename))
         .filter(song => song);
-    
     const playlistName = currentLanguage === 'en' ? (currentPlaylist.name_en || currentPlaylist.name) : currentPlaylist.name;
     const playAllButton = songs.length > 0 
         ? `<button class="play-all-btn" onclick="playPlaylist(${JSON.stringify(currentPlaylist.songs).replace(/"/g, '&quot;')})">▶ ${t('playAllBtn')}</button>`
@@ -442,10 +446,10 @@ function viewPlaylist(playlistId) {
     
     resultsDiv.innerHTML = `
         <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-            <button class="back-btn" onclick="backToPlaylists()" style="padding: 8px 16px; background: #a4c2f4; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">← ${t('backBtn')}</button>
+            <button class="back-btn" onclick="backToPlaylists()" style="padding: 8px 16px; background: var(--accent-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">← ${t('backBtn')}</button>
             ${playAllButton}
         </div>
-        <h2 style="color: #a4c2f4; margin-top: 0;">📋 ${escapeHtml(playlistName)}</h2>
+        <h2 style="color: var(--accent-color); margin-top: 0;">📋 ${escapeHtml(playlistName)}</h2>
         ${songs.map(song => `
             <div class="result-item">
                 <img src="${escapeHtml(song.image)}" alt="${escapeHtml(song.name)}" class="song-image" onerror="this.src='./fotomusic/no-photo.jpg'">
@@ -472,7 +476,6 @@ function backToPlaylists() {
     if (resultsDiv) resultsDiv.innerHTML = '';
 }
 
-// ==================== FAVORITES SYSTEM (with persistence) ====================
 function isFavorite(filename) {
     const favorites = playlistsDatabase.find(p => p.id === 'favorites');
     return favorites && favorites.songs.includes(filename);
@@ -491,10 +494,8 @@ function toggleFavorite(filename) {
         console.log(t('favoriteAdded'));
     }
     
-    // Save to localStorage
     savePlaylistsToLocalStorage();
     
-    // Update like button state
     const likeBtn = document.querySelector(`.like-btn[data-filename="${filename}"]`);
     if (likeBtn) {
         if (favorites.songs.includes(filename)) {
@@ -504,7 +505,6 @@ function toggleFavorite(filename) {
         }
     }
     
-    // Update playlist counters and view if needed
     displayPlaylists();
     if (currentPlaylist && currentPlaylist.id === 'favorites') {
         viewPlaylist('favorites');

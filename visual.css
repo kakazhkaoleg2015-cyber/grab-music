@@ -1,13 +1,69 @@
 @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Comfortaa:wght@300;400;700&display=swap');
- 
+
+/* ========== СВІТЛА ТЕМА ========== */
+:root {
+    --bg-gradient-start: #f8f9fa;
+    --bg-gradient-end: #e9ecef;
+    --text-primary: #333;
+    --text-secondary: #a4c2f4;
+    --text-muted: #666;
+    --card-bg: white;
+    --card-border: #a4c2f4;
+    --player-bg: linear-gradient(135deg, #ffffff 0%, #f0f4ff 100%);
+    --lyrics-bg: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+    --accent-color: #a4c2f4;
+    --accent-dark: #5d9cec;
+    --btn-play: linear-gradient(135deg, #a4c2f4 0%, #5d9cec 100%);
+    --btn-download: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+    --like-border: #e74c3c;
+    --search-bg: white;
+    --search-text: #333;
+    --search-placeholder: #a4c2f4;
+    --shadow: rgba(0, 0, 0, 0.08);
+    --modal-bg: #fefefe;
+    --modal-text: black;
+    --border-light: #e0e0e0;
+    --icon-color: #333;
+    --results-bg: transparent;
+}
+
+/* ========== ТЕМНА ТЕМА (синьо-сіра, покращений контраст) ========== */
+body.dark-theme {
+    --bg-gradient-start: #1a2a3a;
+    --bg-gradient-end: #0f1a24;
+    --text-primary: #ffffff;
+    --text-secondary: #c0e0ff;
+    --text-muted: #d0e0f0;
+    --card-bg: #1e2f3e;
+    --card-border: #7aafd4;
+    --player-bg: linear-gradient(135deg, #2c475f 0%, #1b5d93 100%);
+    --lyrics-bg: linear-gradient(135deg, #1e2f3e 0%, #1a2a3a 100%);
+    --accent-color: #8ab8d8;
+    --accent-dark: #4a7aa0;
+    --btn-play: linear-gradient(135deg, #5d8bb8 0%, #3a6b9e 100%);
+    --btn-download: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+    --like-border: #ff8a8a;
+    --search-bg: #2a3e4e;
+    --search-text: #ffffff;
+    --search-placeholder: #c0e0ff;
+    --shadow: rgba(0, 0, 0, 0.5);
+    --modal-bg: #2c3e44;
+    --modal-text: #f0f0f0;
+    --border-light: #2c3e44;
+    --icon-color: #ffffff;
+    --results-bg: rgba(30, 47, 62, 0.7);
+}
+
 body {
     margin: 0;
     padding: 20px;
     position: relative;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
     min-height: 100vh;
+    color: var(--text-primary);
+    transition: background 0.3s ease, color 0.2s ease;
 }
- 
+
 .top-controls {
     display: flex;
     justify-content: space-between;
@@ -15,55 +71,78 @@ body {
     max-width: 900px;
     margin: 0 auto 10px auto;
 }
- 
+
 .top-buttons {
     display: flex;
     gap: 10px;
+    align-items: center;
 }
- 
+
 .language-buttons {
     position: static;
     text-align: center;
 }
- 
+
 .lang-buttons-row {
     display: flex;
     gap: 10px;
     justify-content: center;
 }
- 
+
 .lang-btn {
     font-family: 'Comfortaa', cursive;
     font-size: 16px;
     padding: 10px 18px;
-    border: 2px solid #a4c2f4;
+    border: 2px solid var(--accent-color);
     background-color: transparent;
-    color: #a4c2f4;
+    color: var(--accent-color);
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
     font-weight: bold;
 }
- 
+
 .lang-btn:hover {
-    background-color: #a4c2f4;
-    color: white;
+    background-color: var(--accent-color);
+    color: #1a2a3a;
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(164, 194, 244, 0.3);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
- 
+
 .lang-btn.active {
-    background-color: #a4c2f4;
-    color: white;
-    box-shadow: 0 4px 8px rgba(164, 194, 244, 0.3);
+    background-color: var(--accent-color);
+    color: #1a2a3a;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
- 
+
+.theme-toggle-btn {
+    font-family: 'Comfortaa', cursive;
+    font-size: 24px;
+    padding: 10px 15px;
+    border: 2px solid var(--accent-color);
+    background-color: transparent;
+    color: var(--icon-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-toggle-btn:hover {
+    background-color: var(--accent-color);
+    color: #1a2a3a;
+    transform: translateY(-2px);
+}
+
 .content {
     text-align: center;
     max-width: 600px;
     margin: 0 auto;
 }
- 
+
 .support-plus-btn {
     display: inline-flex;
     align-items: center;
@@ -71,50 +150,48 @@ body {
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #a4c2f4 0%, #5d9cec 100%);
+    background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-dark) 100%);
     color: white;
     text-decoration: none;
     font-size: 34px;
     font-weight: bold;
     font-family: 'Comfortaa', cursive;
-    box-shadow: 0 6px 14px rgba(164, 194, 244, 0.35);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
 }
- 
+
 .support-plus-btn:hover {
     transform: translateY(-3px) scale(1.06);
-    box-shadow: 0 10px 18px rgba(164, 194, 244, 0.4);
 }
- 
+
 .beta-badge {
     font-family: 'Caveat', cursive;
     font-size: 55px;
     color: #ff6b81;
     margin: 0 0 6px 0;
-    text-shadow: 2px 2px 4px rgba(255, 107, 129, 0.18);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 }
- 
+
 h1 {
     font-family: 'Caveat', cursive;
     font-size: 75px;
-    color: #a4c2f4;
+    color: var(--accent-color);
     margin: 0;
     margin-bottom: 10px;
-    text-shadow: 2px 2px 4px rgba(164, 194, 244, 0.2);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 }
- 
+
 p {
     font-family: 'Comfortaa', cursive;
     font-size: 30px;
-    color: #333;
+    color: var(--text-primary);
     margin: 0 0 40px 0;
 }
- 
-/* Пошук */
+
 .search-section {
     margin-top: 40px;
 }
- 
+
 .playlists-container {
     margin-top: 30px;
     margin-bottom: 30px;
@@ -125,68 +202,72 @@ p {
     margin-left: auto;
     margin-right: auto;
 }
- 
+
 .search-input {
     font-family: 'Comfortaa', cursive;
     width: 100%;
     max-width: 400px;
     padding: 14px 18px;
     font-size: 16px;
-    border: 2px solid #a4c2f4;
+    border: 2px solid var(--accent-color);
     border-radius: 10px;
-    background-color: white;
-    color: #333;
+    background-color: var(--search-bg);
+    color: var(--search-text);
     transition: all 0.3s ease;
     box-sizing: border-box;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 6px var(--shadow);
 }
- 
+
 .search-input:focus {
     outline: none;
-    border-color: #5d9cec;
-    box-shadow: 0 0 12px rgba(164, 194, 244, 0.4);
+    border-color: var(--accent-dark);
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
     transform: translateY(-2px);
 }
- 
+
 .search-input::placeholder {
-    color: #a4c2f4;
+    color: var(--search-placeholder);
+    opacity: 0.9;
 }
- 
-/* Результати пошуку */
+
 .search-results {
     margin-top: 20px;
     max-width: 500px;
     margin-left: auto;
     margin-right: auto;
+    background: var(--results-bg);
+    border-radius: 16px;
+    padding: 8px;
+    transition: background 0.3s;
 }
- 
+
 .result-item {
     display: flex;
     align-items: flex-start;
     gap: 16px;
     padding: 20px;
     margin: 16px 0;
-    background-color: white;
-    border-left: 5px solid #a4c2f4;
+    background-color: var(--card-bg);
+    border-left: 5px solid var(--card-border);
     border-radius: 12px;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 6px 12px var(--shadow);
     transition: all 0.3s ease;
 }
- 
+
 .song-image {
     flex-shrink: 0;
     width: 80px;
     height: 80px;
     border-radius: 12px;
     object-fit: cover;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
- 
+
 .result-info {
     flex: 1;
     text-align: left;
 }
- 
+
 .result-buttons {
     flex-shrink: 0;
     display: flex;
@@ -194,25 +275,25 @@ p {
     gap: 8px;
     margin-left: auto;
 }
- 
+
 .playlist-item {
     display: flex;
     align-items: center;
     gap: 16px;
     padding: 20px;
     margin: 16px 0;
-    background: linear-gradient(135deg, #a4c2f4 0%, #5d9cec 100%);
+    background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-dark) 100%);
     border-radius: 12px;
-    box-shadow: 0 6px 12px rgba(164, 194, 244, 0.3);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
 }
- 
+
 .playlist-info {
     flex: 1;
     text-align: left;
     color: white;
 }
- 
+
 .playlist-item h3 {
     font-family: 'Comfortaa', cursive;
     font-size: 18px;
@@ -220,25 +301,25 @@ p {
     margin: 0 0 5px 0;
     font-weight: bold;
 }
- 
+
 .playlist-item p {
     font-family: 'Comfortaa', cursive;
     font-size: 14px;
     color: rgba(255, 255, 255, 0.9);
     margin: 0 0 5px 0;
 }
- 
+
 .playlist-item small {
     font-family: 'Comfortaa', cursive;
     font-size: 12px;
     color: rgba(255, 255, 255, 0.8);
 }
- 
+
 .view-btn {
     font-family: 'Comfortaa', cursive;
     padding: 10px 18px;
     background-color: white;
-    color: #a4c2f4;
+    color: var(--accent-dark);
     border: none;
     border-radius: 8px;
     cursor: pointer;
@@ -247,63 +328,64 @@ p {
     transition: all 0.3s ease;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
- 
+
 .view-btn:hover {
     transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
- 
+
 .back-btn {
     font-family: 'Comfortaa', cursive;
-    background-color: #a4c2f4;
-    color: white;
+    background-color: var(--accent-color);
+    color: #1a2a3a;
     border: none;
     border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
     transition: all 0.3s ease;
+    padding: 8px 16px;
 }
- 
+
 .back-btn:hover {
     transform: translateY(-2px);
-    background-color: #5d9cec;
+    background-color: var(--accent-dark);
+    color: white;
 }
- 
+
 .result-item:hover {
     transform: translateX(8px);
-    box-shadow: 0 8px 16px rgba(164, 194, 244, 0.2);
-    border-left-color: #5d9cec;
+    box-shadow: 0 8px 16px var(--shadow);
+    border-left-color: var(--accent-dark);
 }
- 
+
 .result-info h3 {
     font-family: 'Comfortaa', cursive;
     font-size: 18px;
-    color: #333;
+    color: var(--text-primary);
     margin: 0 0 5px 0;
     font-weight: bold;
 }
- 
+
 .result-info p {
     font-family: 'Comfortaa', cursive;
     font-size: 14px;
-    color: #a4c2f4;
+    color: var(--text-secondary);
     margin: 0;
     font-weight: 500;
 }
- 
+
 .highlight {
     background-color: #fff59d;
     font-weight: bold;
     padding: 2px 4px;
     border-radius: 3px;
 }
- 
+
 .result-buttons {
     display: flex;
     gap: 8px;
     margin-left: 15px;
 }
- 
+
 .play-btn,
 .download-btn {
     font-family: 'Comfortaa', cursive;
@@ -315,81 +397,73 @@ p {
     font-size: 14px;
     transition: all 0.3s ease;
     font-weight: bold;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px var(--shadow);
 }
- 
+
 .like-btn {
     font-family: 'Comfortaa', cursive;
     padding: 10px 12px;
     background-color: transparent;
-    border: 2px solid #e74c3c;
+    border: 2px solid var(--like-border);
     border-radius: 8px;
     cursor: pointer;
     font-size: 16px;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 6px rgba(231, 76, 60, 0.2);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    color: var(--icon-color);
 }
- 
+
 .like-btn:hover {
-    background-color: rgba(231, 76, 60, 0.1);
+    background-color: rgba(231, 76, 60, 0.2);
     transform: scale(1.1);
 }
- 
+
 .like-btn.liked {
-    background-color: #e74c3c;
-    border-color: #c0392b;
+    background-color: var(--like-border);
+    border-color: var(--like-border);
     box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
     transform: scale(1.15);
+    color: white;
 }
- 
+
 .play-btn {
-    background: linear-gradient(135deg, #a4c2f4 0%, #5d9cec 100%);
+    background: var(--btn-play);
 }
- 
+
 .play-btn:hover {
     transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 6px 12px rgba(164, 194, 244, 0.3);
 }
- 
-.play-btn:active {
-    transform: translateY(-1px);
-}
- 
+
 .download-btn {
-    background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+    background: var(--btn-download);
 }
- 
+
 .download-btn:hover {
     transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 6px 12px rgba(76, 175, 80, 0.3);
 }
- 
-.download-btn:active {
-    transform: translateY(-1px);
-}
- 
+
 .no-results {
     font-family: 'Comfortaa', cursive;
-    color: #a4c2f4;
+    color: var(--text-secondary);
     font-size: 16px;
     margin: 20px 0;
     font-weight: bold;
+    text-align: center;
+    padding: 20px;
 }
- 
-/* Audio Player */
+
 .player-section {
     margin-top: 50px;
     padding: 30px;
-    background: linear-gradient(135deg, #ffffff 0%, #f0f4ff 100%);
+    background: var(--player-bg);
     border-radius: 15px;
-    box-shadow: 0 8px 20px rgba(164, 194, 244, 0.15),
-                0 2px 8px rgba(0, 0, 0, 0.05);
-    border-top: 6px solid #a4c2f4;
-    border-bottom: 3px solid #5d9cec;
+    box-shadow: 0 8px 20px var(--shadow);
+    border-top: 6px solid var(--accent-color);
+    border-bottom: 3px solid var(--accent-dark);
     position: relative;
     overflow: hidden;
 }
- 
+
 .player-section::before {
     content: '🎵';
     position: absolute;
@@ -398,7 +472,7 @@ p {
     font-size: 24px;
     opacity: 0.1;
 }
- 
+
 #audioPlayer {
     width: 100%;
     max-width: 400px;
@@ -406,16 +480,16 @@ p {
     display: block;
     border-radius: 12px;
     padding: 14px;
-    background: linear-gradient(135deg, #a4c2f4 0%, #5d9cec 100%);
+    background: var(--btn-play);
     accent-color: #fff;
     height: 35px;
-    box-shadow: 0 4px 12px rgba(164, 194, 244, 0.25);
+    box-shadow: 0 4px 12px var(--shadow);
 }
- 
+
 #audioPlayer::-webkit-media-controls-panel {
     border-radius: 8px;
 }
- 
+
 .tutorial-btn {
     position: relative;
     display: inline-block;
@@ -432,24 +506,23 @@ p {
     transition: all 0.3s ease;
     margin-bottom: 20px;
 }
- 
+
 .tutorial-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(255, 107, 107, 0.4);
 }
- 
+
 .now-playing {
     font-family: 'Comfortaa', cursive;
-    color: #5d9cec;
+    color: var(--text-primary);
     font-size: 16px;
     margin-top: 18px;
     font-weight: bold;
     animation: fadeIn 0.5s ease;
     text-align: center;
     padding: 12px 20px;
-    background: rgba(164, 194, 244, 0.15);
+    background: rgba(0, 0, 0, 0.05);
     border-radius: 12px;
-    border-left: 4px solid #a4c2f4;
+    border-left: 4px solid var(--accent-color);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -459,51 +532,49 @@ p {
     max-width: 100%;
     box-sizing: border-box;
 }
- 
+
 .player-image {
     width: 48px;
     height: 48px;
     border-radius: 6px;
     object-fit: cover;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
- 
-/* Текст пісні */
+
 .lyrics-section {
     margin-top: 28px;
     padding: 24px;
-    background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+    background: var(--lyrics-bg);
     border-radius: 15px;
-    box-shadow: 0 8px 20px rgba(164, 194, 244, 0.12),
-                0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 8px 20px var(--shadow);
     text-align: left;
-    border-left: 5px solid #a4c2f4;
+    border-left: 5px solid var(--accent-color);
 }
- 
+
 .lyrics-section h2 {
     font-family: 'Comfortaa', cursive;
     font-size: 22px;
-    color: #5d9cec;
+    color: var(--text-primary);
     margin: 0 0 16px 0;
     text-align: center;
 }
- 
+
 .lyrics-buttons {
     display: flex;
     gap: 10px;
     justify-content: center;
     margin-bottom: 16px;
     flex-wrap: wrap;
-    border-bottom: 2px solid #e0e0e0;
+    border-bottom: 2px solid var(--border-light);
     padding-bottom: 12px;
 }
- 
+
 .lyrics-tab-btn {
     font-family: 'Comfortaa', cursive;
     padding: 10px 18px;
     border: none;
     background-color: transparent;
-    color: #999;
+    color: var(--text-muted);
     border-radius: 0;
     cursor: pointer;
     font-size: 14px;
@@ -512,7 +583,7 @@ p {
     position: relative;
     padding-bottom: 14px;
 }
- 
+
 .lyrics-tab-btn::after {
     content: '';
     position: absolute;
@@ -520,504 +591,189 @@ p {
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(135deg, #a4c2f4 0%, #5d9cec 100%);
+    background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-dark) 100%);
     border-radius: 2px;
     transform: scaleX(0);
     transition: transform 0.3s ease;
 }
- 
+
 .lyrics-tab-btn:hover {
-    color: #333;
+    color: var(--text-primary);
 }
- 
+
 .lyrics-tab-btn.active {
-    color: #a4c2f4;
+    color: var(--accent-color);
 }
- 
+
 .lyrics-tab-btn.active::after {
     transform: scaleX(1);
 }
- 
+
 .lyrics-content {
     font-family: 'Comfortaa', cursive;
     font-size: 15px;
     line-height: 2;
-    color: #333;
+    color: var(--text-primary);
     margin: 0;
     white-space: pre-wrap;
     word-break: break-word;
-    background: rgba(164, 194, 244, 0.08);
+    background: rgba(0, 0, 0, 0.05);
     border-radius: 10px;
     padding: 16px;
-    border: 1px solid rgba(164, 194, 244, 0.25);
+    border: 1px solid var(--border-light);
     max-height: 400px;
     overflow-y: auto;
 }
- 
+
 .lrc-line {
     padding: 8px 0;
-    color: #999;
+    color: var(--text-muted);
     transition: all 0.2s ease;
     cursor: default;
 }
- 
+
 .lrc-line.active {
-    color: #a4c2f4;
+    color: var(--accent-color);
     font-weight: bold;
     font-size: 16px;
-    text-shadow: 0 0 10px rgba(164, 194, 244, 0.3);
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
- 
+
 .now-playing.animate-text-change {
     animation: slideInFade 0.6s ease;
 }
- 
+
 @keyframes slideInFade {
     0% {
         opacity: 0;
         transform: translateX(-10px);
-        background: rgba(164, 194, 244, 0.25);
-    }
-    50% {
-        background: rgba(164, 194, 244, 0.15);
     }
     100% {
         opacity: 1;
         transform: translateX(0);
-        background: rgba(164, 194, 244, 0.1);
     }
 }
- 
+
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
- 
-/* Кнопка "Програвати всі" */
+
 .play-all-btn {
     font-family: 'Comfortaa', cursive;
     padding: 8px 16px;
-    background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+    background: var(--btn-download);
     color: white;
     border: none;
     border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px var(--shadow);
 }
- 
+
 .play-all-btn:hover {
     transform: translateY(-3px);
-    box-shadow: 0 6px 12px rgba(76, 175, 80, 0.3);
 }
- 
-/* ========== АДАПТИВНІСТЬ ДЛЯ ТЕЛЕФОНІВ (ЗБІЛЬШЕНІ ЕЛЕМЕНТИ) ========== */
-@media (max-width: 1024px) {
-    .top-controls {
-        max-width: 700px;
-        padding: 0 10px;
-    }
- 
-    .content {
-        max-width: 680px;
-    }
- 
-    h1 {
-        font-size: 64px;
-    }
- 
-    .beta-badge {
-        font-size: 48px;
-    }
-}
- 
+
+/* ========== ДОДАТКОВИЙ КОНТРАСТ ДЛЯ ТЕМНОЇ ТЕМИ НА ТЕЛЕФОНАХ ========== */
 @media (max-width: 768px) {
-    body {
-        padding: 16px;
-    }
- 
-    .top-controls {
-        flex-direction: column;
-        align-items: center;
-        gap: 15px;
-        margin-bottom: 20px;
-    }
- 
-    .top-buttons {
-        display: flex;
-        gap: 12px;
-    }
- 
-    .support-plus-btn {
-        width: 56px;
-        height: 56px;
-        font-size: 30px;
-    }
- 
-    .lang-buttons-row {
-        gap: 12px;
-    }
- 
-    .lang-btn {
-        padding: 10px 20px;
-        font-size: 16px;
-        min-height: 44px;
-    }
- 
-    .content {
-        max-width: 100%;
-    }
- 
-    h1 {
-        font-size: 56px;
-        margin-bottom: 10px;
-    }
- 
-    .beta-badge {
-        font-size: 42px;
-        margin: 0 0 12px 0;
-    }
- 
-    p#pageDescription {
-        font-size: 20px;
-        margin-bottom: 20px;
-    }
- 
-    .tutorial-btn {
-        margin-bottom: 20px;
-        padding: 12px 28px;
-        font-size: 16px;
-    }
- 
-    .search-input {
-        max-width: 100%;
-        font-size: 16px;
-        padding: 14px 16px;
-        margin-bottom: 16px;
-    }
- 
-    .playlists-container {
-        grid-template-columns: 1fr;
-        margin-top: 25px;
-        margin-bottom: 25px;
-        gap: 20px;
-    }
- 
-    .search-results {
-        max-width: 100%;
-    }
- 
-    .result-item {
-        gap: 14px;
-        padding: 16px;
-        margin: 12px 0;
-    }
- 
-    .song-image {
-        width: 80px;
-        height: 80px;
-    }
- 
-    .result-info h3 {
-        font-size: 18px;
-        margin: 0 0 4px 0;
-    }
- 
-    .result-info p {
-        font-size: 14px;
-    }
- 
-    .result-buttons {
-        gap: 8px;
-    }
- 
-    .play-btn,
-    .download-btn {
-        padding: 10px 16px;
-        font-size: 14px;
-    }
- 
-    .like-btn {
-        padding: 10px 12px;
-        font-size: 18px;
-    }
- 
-    .player-section {
-        margin: 20px auto 0 auto;
-        padding: 20px;
-    }
- 
-    #audioPlayer {
-        width: 100%;
-        max-width: 100%;
-        height: 48px;
-    }
- 
-    .now-playing {
-        font-size: 15px;
-        margin-top: 16px;
-        padding: 12px 16px;
-        gap: 10px;
-    }
- 
-    .player-image {
-        width: 44px;
-        height: 44px;
-    }
- 
-    .lyrics-section {
-        margin-top: 20px;
-        padding: 18px;
-    }
- 
-    .lyrics-section h2 {
-        font-size: 20px;
-        margin: 0 0 12px 0;
-    }
- 
-    .lyrics-buttons {
-        gap: 8px;
-        margin-bottom: 12px;
-        padding-bottom: 10px;
-    }
- 
-    .lyrics-tab-btn {
-        padding: 10px 16px;
-        font-size: 14px;
-        padding-bottom: 12px;
-    }
- 
-    .lyrics-content {
-        padding: 14px;
-        font-size: 14px;
-        line-height: 1.6;
-        max-height: 350px;
-    }
- 
-    .lrc-line {
-        padding: 8px 0;
-    }
- 
-    .lrc-line.active {
-        font-size: 15px;
-    }
-}
- 
-@media (max-width: 600px) {
-    .result-item {
-        gap: 12px;
-        padding: 14px;
-    }
- 
-    .song-image {
-        width: 75px;
-        height: 75px;
-    }
- 
-    .result-info h3 {
-        font-size: 17px;
-    }
- 
-    .result-info p {
-        font-size: 13px;
-    }
- 
-    .play-btn,
-    .download-btn {
-        padding: 9px 14px;
-        font-size: 13px;
-    }
- 
-    .player-section {
-        padding: 18px;
-    }
- 
-    #audioPlayer {
-        height: 46px;
-    }
- 
-    .now-playing {
-        font-size: 14px;
-        padding: 10px 14px;
-    }
- 
-    .player-image {
-        width: 40px;
-        height: 40px;
-    }
- 
-    .lyrics-section {
-        padding: 16px;
-    }
- 
-    .lyrics-section h2 {
-        font-size: 18px;
-    }
- 
-    .lyrics-tab-btn {
-        padding: 8px 14px;
-        font-size: 13px;
-        padding-bottom: 10px;
-    }
- 
-    .lyrics-content {
+    body.dark-theme .search-results {
+        background: rgba(30, 47, 62, 0.9);
         padding: 12px;
-        font-size: 13px;
-        line-height: 1.5;
-        max-height: 320px;
+        margin-top: 16px;
+        border-radius: 20px;
     }
- 
-    .lrc-line {
-        padding: 6px 0;
+    
+    body.dark-theme .now-playing,
+    body.dark-theme .lyrics-section h2,
+    body.dark-theme .lyrics-content,
+    body.dark-theme .no-results,
+    body.dark-theme .result-info h3,
+    body.dark-theme .result-info p {
+        color: #ffffff !important;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.3);
     }
- 
-    .lrc-line.active {
-        font-size: 14px;
+    
+    body.dark-theme .lyrics-tab-btn {
+        color: #c0c0c0;
+    }
+    
+    body.dark-theme .lyrics-tab-btn.active {
+        color: var(--accent-color);
     }
 }
- 
+
 @media (max-width: 480px) {
-    body {
-        padding: 12px;
+    body.dark-theme .search-results {
+        background: rgba(30, 47, 62, 0.95);
+        padding: 8px;
     }
- 
-    .top-controls {
-        gap: 12px;
-        margin-bottom: 16px;
+    
+    body.dark-theme .now-playing,
+    body.dark-theme .lyrics-section h2,
+    body.dark-theme .lyrics-content {
+        font-weight: bold;
+        letter-spacing: 0.3px;
     }
- 
-    .top-buttons {
-        gap: 10px;
-    }
- 
-    .support-plus-btn {
-        width: 52px;
-        height: 52px;
-        font-size: 28px;
-    }
- 
-    h1 {
-        font-size: 48px;
-        margin-bottom: 8px;
-    }
- 
-    .beta-badge {
-        font-size: 36px;
-        margin: 0 0 10px 0;
-    }
- 
-    p#pageDescription {
-        font-size: 18px;
-        margin-bottom: 18px;
-    }
- 
-    .tutorial-btn {
-        margin-bottom: 18px;
-        padding: 10px 24px;
-        font-size: 15px;
-    }
- 
-    .lang-btn {
-        padding: 9px 18px;
-        font-size: 15px;
-        min-height: 42px;
-    }
- 
-    .search-input {
-        padding: 12px 14px;
-        font-size: 15px;
-    }
- 
-    .result-item {
-        gap: 10px;
-        padding: 12px;
-        margin: 10px 0;
-    }
- 
-    .song-image {
-        width: 70px;
-        height: 70px;
-    }
- 
-    .result-info h3 {
-        font-size: 16px;
-    }
- 
-    .result-info p {
-        font-size: 12px;
-    }
- 
-    .play-btn,
-    .download-btn {
-        padding: 8px 12px;
-        font-size: 12px;
-    }
- 
-    .like-btn {
-        padding: 8px 10px;
-        font-size: 16px;
-    }
- 
-    .player-section {
-        margin: 16px auto 0 auto;
-        padding: 16px;
-    }
- 
-    #audioPlayer {
-        height: 44px;
-    }
- 
-    .now-playing {
-        font-size: 13px;
-        padding: 10px 12px;
-        margin-top: 14px;
-        gap: 8px;
-    }
- 
-    .player-image {
-        width: 36px;
-        height: 36px;
-    }
- 
-    .lyrics-section {
-        margin-top: 16px;
-        padding: 14px;
-    }
- 
-    .lyrics-section h2 {
-        font-size: 17px;
-        margin: 0 0 10px 0;
-    }
- 
-    .lyrics-buttons {
-        gap: 6px;
-        margin-bottom: 10px;
-        padding-bottom: 8px;
-    }
- 
-    .lyrics-tab-btn {
-        padding: 7px 12px;
-        font-size: 12px;
-        padding-bottom: 9px;
-    }
- 
-    .lyrics-content {
-        padding: 10px;
-        font-size: 12px;
-        line-height: 1.5;
-        max-height: 280px;
-    }
- 
-    .lrc-line {
-        padding: 5px 0;
-    }
- 
-    .lrc-line.active {
-        font-size: 13px;
-    }
+}
+
+/* ========== АДАПТИВНІСТЬ (без змін) ========== */
+@media (max-width: 1024px) {
+    .top-controls { max-width: 700px; padding: 0 10px; }
+    .content { max-width: 680px; }
+    h1 { font-size: 64px; }
+    .beta-badge { font-size: 48px; }
+}
+
+@media (max-width: 768px) {
+    body { padding: 16px; }
+    .top-controls { flex-direction: column; align-items: center; gap: 15px; }
+    .top-buttons { gap: 12px; }
+    .support-plus-btn { width: 56px; height: 56px; font-size: 30px; }
+    .theme-toggle-btn { font-size: 22px; padding: 8px 12px; }
+    .lang-buttons-row { gap: 12px; }
+    .lang-btn { padding: 10px 20px; font-size: 16px; min-height: 44px; }
+    h1 { font-size: 56px; }
+    .beta-badge { font-size: 42px; }
+    p#pageDescription { font-size: 20px; }
+    .search-input { font-size: 16px; padding: 14px 16px; }
+    .result-item { padding: 16px; }
+    .song-image { width: 80px; height: 80px; }
+    .result-info h3 { font-size: 18px; }
+    .play-btn, .download-btn { padding: 10px 16px; font-size: 14px; }
+    .like-btn { padding: 10px 12px; font-size: 18px; }
+    .player-section { padding: 20px; }
+    #audioPlayer { height: 48px; }
+    .now-playing { font-size: 15px; }
+    .lyrics-section { padding: 18px; }
+    .lyrics-content { font-size: 14px; max-height: 350px; }
+}
+
+@media (max-width: 600px) {
+    .result-item { padding: 14px; }
+    .song-image { width: 75px; height: 75px; }
+    .play-btn, .download-btn { padding: 9px 14px; font-size: 13px; }
+    .player-section { padding: 18px; }
+    #audioPlayer { height: 46px; }
+    .now-playing { font-size: 14px; }
+}
+
+@media (max-width: 480px) {
+    body { padding: 12px; }
+    .support-plus-btn { width: 52px; height: 52px; font-size: 28px; }
+    .theme-toggle-btn { font-size: 20px; padding: 6px 10px; }
+    h1 { font-size: 48px; }
+    .beta-badge { font-size: 36px; }
+    .lang-btn { padding: 9px 18px; font-size: 15px; }
+    .search-input { padding: 12px 14px; font-size: 15px; }
+    .result-item { padding: 12px; }
+    .song-image { width: 70px; height: 70px; }
+    .play-btn, .download-btn { padding: 8px 12px; font-size: 12px; }
+    .like-btn { padding: 8px 10px; font-size: 16px; }
+    .player-section { padding: 16px; }
+    #audioPlayer { height: 44px; }
+    .now-playing { font-size: 13px; }
+    .lyrics-section { padding: 14px; }
+    .lyrics-content { font-size: 12px; max-height: 280px; }
 }
