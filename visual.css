@@ -616,7 +616,7 @@ p {
     box-shadow: 0 6px 12px rgba(76, 175, 80, 0.3);
 }
  
-/* ========== АДАПТИВНІСТЬ ========== */
+/* ========== АДАПТИВНІСТЬ ДЛЯ ТЕЛЕФОНІВ (ЗБІЛЬШЕНІ ЕЛЕМЕНТИ) ========== */
 @media (max-width: 1024px) {
     .top-controls {
         max-width: 700px;
@@ -638,42 +638,35 @@ p {
  
 @media (max-width: 768px) {
     body {
-        padding: 12px;
+        padding: 16px;
     }
  
     .top-controls {
         flex-direction: column;
         align-items: center;
-        gap: 10px;
-        margin-bottom: 14px;
+        gap: 15px;
+        margin-bottom: 20px;
     }
  
     .top-buttons {
         display: flex;
-        gap: 8px;
+        gap: 12px;
     }
  
     .support-plus-btn {
-        width: 48px;
-        height: 48px;
-        font-size: 26px;
-    }
- 
-    .language-buttons {
-        position: static;
-        margin-bottom: 0;
+        width: 56px;
+        height: 56px;
+        font-size: 30px;
     }
  
     .lang-buttons-row {
-        flex-wrap: wrap;
-        gap: 6px;
-        justify-content: center;
+        gap: 12px;
     }
  
     .lang-btn {
-        padding: 8px 14px;
-        font-size: 13px;
-        min-height: 38px;
+        padding: 10px 20px;
+        font-size: 16px;
+        min-height: 44px;
     }
  
     .content {
@@ -681,37 +674,38 @@ p {
     }
  
     h1 {
-        font-size: 46px;
-        margin-bottom: 6px;
+        font-size: 56px;
+        margin-bottom: 10px;
     }
  
     .beta-badge {
-        font-size: 34px;
-        margin: 0 0 8px 0;
+        font-size: 42px;
+        margin: 0 0 12px 0;
     }
  
     p#pageDescription {
-        font-size: 16px;
-        margin-bottom: 14px;
+        font-size: 20px;
+        margin-bottom: 20px;
     }
  
     .tutorial-btn {
-        margin-bottom: 14px;
-        padding: 9px 18px;
-        font-size: 12px;
+        margin-bottom: 20px;
+        padding: 12px 28px;
+        font-size: 16px;
     }
  
     .search-input {
         max-width: 100%;
-        font-size: 14px;
-        padding: 11px 12px;
-        margin-bottom: 12px;
+        font-size: 16px;
+        padding: 14px 16px;
+        margin-bottom: 16px;
     }
  
     .playlists-container {
         grid-template-columns: 1fr;
-        margin-top: 20px;
-        margin-bottom: 20px;
+        margin-top: 25px;
+        margin-bottom: 25px;
+        gap: 20px;
     }
  
     .search-results {
@@ -719,76 +713,270 @@ p {
     }
  
     .result-item {
-        flex-direction: row;
-        align-items: center;
-        gap: 10px;
-        padding: 12px;
-        margin: 8px 0;
+        gap: 14px;
+        padding: 16px;
+        margin: 12px 0;
     }
  
     .song-image {
-        width: 65px;
-        height: 65px;
-        flex-shrink: 0;
-    }
- 
-    .result-info {
-        flex: 1;
+        width: 80px;
+        height: 80px;
     }
  
     .result-info h3 {
-        font-size: 14px;
-        margin: 0 0 2px 0;
-        font-weight: bold;
+        font-size: 18px;
+        margin: 0 0 4px 0;
     }
  
     .result-info p {
-        font-size: 11px;
-        margin: 0;
-        color: #a4c2f4;
+        font-size: 14px;
     }
  
     .result-buttons {
-        flex-shrink: 0;
-        flex-direction: column;
-        gap: 5px;
-        margin-left: auto;
-        width: auto;
+        gap: 8px;
     }
  
     .play-btn,
     .download-btn {
-        width: auto;
-        padding: 7px 10px;
-        font-size: 11px;
-        min-height: auto;
-        font-weight: bold;
-    }
- 
-    .like-btn {
-        padding: 7px 8px;
+        padding: 10px 16px;
         font-size: 14px;
     }
  
+    .like-btn {
+        padding: 10px 12px;
+        font-size: 18px;
+    }
+ 
     .player-section {
-        margin: 14px auto 0 auto;
-        padding: 14px;
+        margin: 20px auto 0 auto;
+        padding: 20px;
     }
  
     #audioPlayer {
         width: 100%;
         max-width: 100%;
-        height: 45px;
-        border-radius: 10px;
+        height: 48px;
     }
  
     .now-playing {
-        font-size: 12px;
-        margin-top: 12px;
-        padding: 9px;
+        font-size: 15px;
+        margin-top: 16px;
+        padding: 12px 16px;
+        gap: 10px;
+    }
+ 
+    .player-image {
+        width: 44px;
+        height: 44px;
+    }
+ 
+    .lyrics-section {
+        margin-top: 20px;
+        padding: 18px;
+    }
+ 
+    .lyrics-section h2 {
+        font-size: 20px;
+        margin: 0 0 12px 0;
+    }
+ 
+    .lyrics-buttons {
         gap: 8px;
-        flex-wrap: wrap;
-        line-height: 1.3;
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+    }
+ 
+    .lyrics-tab-btn {
+        padding: 10px 16px;
+        font-size: 14px;
+        padding-bottom: 12px;
+    }
+ 
+    .lyrics-content {
+        padding: 14px;
+        font-size: 14px;
+        line-height: 1.6;
+        max-height: 350px;
+    }
+ 
+    .lrc-line {
+        padding: 8px 0;
+    }
+ 
+    .lrc-line.active {
+        font-size: 15px;
+    }
+}
+ 
+@media (max-width: 600px) {
+    .result-item {
+        gap: 12px;
+        padding: 14px;
+    }
+ 
+    .song-image {
+        width: 75px;
+        height: 75px;
+    }
+ 
+    .result-info h3 {
+        font-size: 17px;
+    }
+ 
+    .result-info p {
+        font-size: 13px;
+    }
+ 
+    .play-btn,
+    .download-btn {
+        padding: 9px 14px;
+        font-size: 13px;
+    }
+ 
+    .player-section {
+        padding: 18px;
+    }
+ 
+    #audioPlayer {
+        height: 46px;
+    }
+ 
+    .now-playing {
+        font-size: 14px;
+        padding: 10px 14px;
+    }
+ 
+    .player-image {
+        width: 40px;
+        height: 40px;
+    }
+ 
+    .lyrics-section {
+        padding: 16px;
+    }
+ 
+    .lyrics-section h2 {
+        font-size: 18px;
+    }
+ 
+    .lyrics-tab-btn {
+        padding: 8px 14px;
+        font-size: 13px;
+        padding-bottom: 10px;
+    }
+ 
+    .lyrics-content {
+        padding: 12px;
+        font-size: 13px;
+        line-height: 1.5;
+        max-height: 320px;
+    }
+ 
+    .lrc-line {
+        padding: 6px 0;
+    }
+ 
+    .lrc-line.active {
+        font-size: 14px;
+    }
+}
+ 
+@media (max-width: 480px) {
+    body {
+        padding: 12px;
+    }
+ 
+    .top-controls {
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+ 
+    .top-buttons {
+        gap: 10px;
+    }
+ 
+    .support-plus-btn {
+        width: 52px;
+        height: 52px;
+        font-size: 28px;
+    }
+ 
+    h1 {
+        font-size: 48px;
+        margin-bottom: 8px;
+    }
+ 
+    .beta-badge {
+        font-size: 36px;
+        margin: 0 0 10px 0;
+    }
+ 
+    p#pageDescription {
+        font-size: 18px;
+        margin-bottom: 18px;
+    }
+ 
+    .tutorial-btn {
+        margin-bottom: 18px;
+        padding: 10px 24px;
+        font-size: 15px;
+    }
+ 
+    .lang-btn {
+        padding: 9px 18px;
+        font-size: 15px;
+        min-height: 42px;
+    }
+ 
+    .search-input {
+        padding: 12px 14px;
+        font-size: 15px;
+    }
+ 
+    .result-item {
+        gap: 10px;
+        padding: 12px;
+        margin: 10px 0;
+    }
+ 
+    .song-image {
+        width: 70px;
+        height: 70px;
+    }
+ 
+    .result-info h3 {
+        font-size: 16px;
+    }
+ 
+    .result-info p {
+        font-size: 12px;
+    }
+ 
+    .play-btn,
+    .download-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+ 
+    .like-btn {
+        padding: 8px 10px;
+        font-size: 16px;
+    }
+ 
+    .player-section {
+        margin: 16px auto 0 auto;
+        padding: 16px;
+    }
+ 
+    #audioPlayer {
+        height: 44px;
+    }
+ 
+    .now-playing {
+        font-size: 13px;
+        padding: 10px 12px;
+        margin-top: 14px;
+        gap: 8px;
     }
  
     .player-image {
@@ -797,33 +985,32 @@ p {
     }
  
     .lyrics-section {
-        margin-top: 14px;
-        padding: 12px;
+        margin-top: 16px;
+        padding: 14px;
     }
  
     .lyrics-section h2 {
-        font-size: 16px;
+        font-size: 17px;
         margin: 0 0 10px 0;
     }
  
     .lyrics-buttons {
-        gap: 5px;
+        gap: 6px;
         margin-bottom: 10px;
-        padding-bottom: 6px;
+        padding-bottom: 8px;
     }
  
     .lyrics-tab-btn {
-        padding: 7px 10px;
-        font-size: 11px;
-        flex: 1;
-        padding-bottom: 8px;
+        padding: 7px 12px;
+        font-size: 12px;
+        padding-bottom: 9px;
     }
  
     .lyrics-content {
         padding: 10px;
         font-size: 12px;
         line-height: 1.5;
-        max-height: 300px;
+        max-height: 280px;
     }
  
     .lrc-line {
@@ -832,254 +1019,5 @@ p {
  
     .lrc-line.active {
         font-size: 13px;
-    }
-}
- 
-@media (max-width: 600px) {
-    .result-item {
-        gap: 8px;
-        padding: 10px;
-        margin: 6px 0;
-    }
- 
-    .song-image {
-        width: 60px;
-        height: 60px;
-    }
- 
-    .result-info h3 {
-        font-size: 13px;
-    }
- 
-    .result-info p {
-        font-size: 10px;
-    }
- 
-    .result-buttons {
-        gap: 4px;
-    }
- 
-    .play-btn,
-    .download-btn {
-        padding: 6px 9px;
-        font-size: 10px;
-    }
- 
-    .player-section {
-        margin: 12px auto 0 auto;
-        padding: 12px;
-    }
- 
-    #audioPlayer {
-        width: 100%;
-        max-width: 100%;
-        height: 42px;
-        border-radius: 10px;
-        margin: 0 auto;
-        display: block;
-        background: linear-gradient(135deg, #a4c2f4 0%, #5d9cec 100%);
-        accent-color: white;
-    }
- 
-    .now-playing {
-        font-size: 11px;
-        padding: 8px;
-        margin-top: 10px;
-    }
- 
-    .player-image {
-        width: 32px;
-        height: 32px;
-    }
- 
-    .lyrics-buttons {
-        gap: 4px;
-        padding-bottom: 5px;
-        margin-bottom: 8px;
-    }
- 
-    .lyrics-tab-btn {
-        padding: 6px 8px;
-        font-size: 10px;
-        padding-bottom: 7px;
-    }
- 
-    .lyrics-content {
-        padding: 8px;
-        font-size: 11px;
-        line-height: 1.4;
-        max-height: 280px;
-    }
- 
-    .lrc-line {
-        padding: 4px 0;
-    }
- 
-    .lrc-line.active {
-        font-size: 12px;
-    }
-}
- 
-@media (max-width: 480px) {
-    body {
-        padding: 10px;
-    }
- 
-    .top-controls {
-        gap: 8px;
-        margin-bottom: 12px;
-    }
- 
-    .top-buttons {
-        gap: 6px;
-    }
- 
-    .support-plus-btn {
-        width: 44px;
-        height: 44px;
-        font-size: 24px;
-    }
- 
-    h1 {
-        font-size: 40px;
-        margin-bottom: 4px;
-    }
- 
-    .beta-badge {
-        font-size: 30px;
-        margin: 0 0 6px 0;
-    }
- 
-    p#pageDescription {
-        font-size: 14px;
-        margin-bottom: 10px;
-    }
- 
-    .tutorial-btn {
-        margin-bottom: 10px;
-        padding: 8px 16px;
-        font-size: 11px;
-    }
- 
-    .lang-btn {
-        width: auto;
-        max-width: 90px;
-        padding: 8px 12px;
-        font-size: 12px;
-        min-height: 36px;
-    }
- 
-    .lang-buttons-row {
-        flex-direction: row;
-        width: 100%;
-        align-items: center;
-        gap: 4px;
-    }
- 
-    .search-section {
-        margin-top: 10px;
-    }
- 
-    .search-input {
-        width: 100%;
-        max-width: 100%;
-        padding: 10px 11px;
-        font-size: 13px;
-        margin-bottom: 10px;
-    }
- 
-    .result-item {
-        gap: 8px;
-        padding: 9px;
-        margin: 6px 0;
-    }
- 
-    .song-image {
-        width: 55px;
-        height: 55px;
-    }
- 
-    .result-info h3 {
-        font-size: 12px;
-        margin: 0 0 2px 0;
-    }
- 
-    .result-info p {
-        font-size: 9px;
-    }
- 
-    .result-buttons {
-        gap: 3px;
-    }
- 
-    .play-btn,
-    .download-btn {
-        padding: 5px 8px;
-        font-size: 9px;
-    }
- 
-    .player-section {
-        margin: 10px auto 0 auto;
-        padding: 10px;
-    }
- 
-    #audioPlayer {
-        width: 100%;
-        max-width: 100%;
-        height: 38px;
-        border-radius: 8px;
-        margin: 0 auto;
-        display: block;
-        background: linear-gradient(135deg, #a4c2f4 0%, #5d9cec 100%);
-        accent-color: white;
-    }
- 
-    .now-playing {
-        font-size: 10px;
-        padding: 7px;
-        margin-top: 8px;
-        gap: 6px;
-    }
- 
-    .player-image {
-        width: 30px;
-        height: 30px;
-    }
- 
-    .lyrics-section {
-        margin-top: 10px;
-        padding: 10px;
-    }
- 
-    .lyrics-section h2 {
-        font-size: 14px;
-        margin: 0 0 8px 0;
-    }
- 
-    .lyrics-buttons {
-        gap: 3px;
-        padding-bottom: 4px;
-        margin-bottom: 8px;
-    }
- 
-    .lyrics-tab-btn {
-        padding: 5px 8px;
-        font-size: 9px;
-        padding-bottom: 6px;
-    }
- 
-    .lyrics-content {
-        padding: 8px;
-        font-size: 10px;
-        line-height: 1.4;
-        max-height: 250px;
-    }
- 
-    .lrc-line {
-        padding: 3px 0;
-    }
- 
-    .lrc-line.active {
-        font-size: 11px;
     }
 }
