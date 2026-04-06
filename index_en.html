@@ -38,13 +38,32 @@
         
         <div class="player-section">
             <canvas id="visualizer" class="equalizer" width="300" height="60"></canvas>
+            
+            <!-- Equalizer -->
             <div id="eqControls" class="equalizer-sliders" style="display: none;">
                 <label>🔊 Bass <input type="range" id="bassSlider" min="-20" max="20" value="0" step="1"></label>
                 <label>🎵 Mid <input type="range" id="midSlider" min="-20" max="20" value="0" step="1"></label>
                 <label>🎶 Treble <input type="range" id="trebleSlider" min="-20" max="20" value="0" step="1"></label>
                 <button id="resetEqBtn" class="reset-eq-btn" title="Reset equalizer">⟳ Reset</button>
             </div>
-            <audio id="audioPlayer" controls><source src="" type="audio/mpeg"></audio>
+
+            <audio id="audioPlayer"></audio>
+
+            <!-- CUSTOM PLAYER -->
+            <div class="custom-player">
+                <div class="progress-container">
+                    <span id="currentTime" class="time-label">0:00</span>
+                    <input type="range" id="seekBar" class="seek-bar" value="0" max="100">
+                    <span id="durationTime" class="time-label">0:00</span>
+                </div>
+                <div class="player-controls">
+                    <button id="prevBtn" class="control-btn" title="Previous">⏮</button>
+                    <button id="playPauseBtn" class="control-btn play-btn" title="Play/Pause">▶</button>
+                    <button id="nextBtn" class="control-btn" title="Next">⏭</button>
+                    <button id="loopBtn" class="control-btn loop-control-btn" title="Loop playlist">🔁</button>
+                </div>
+            </div>
+ 
             <div id="nowPlaying" class="now-playing">▶ Now playing:</div>
         </div>
  
@@ -54,6 +73,7 @@
         </div>
     </div>
  
+    <!-- Modals -->
     <div id="tutorial-modal" class="modal" style="display:none; position:fixed; z-index:10000; left:0; top:0; width:100%; height:100%; background-color: rgba(0,0,0,0.8);">
         <div class="modal-content" style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: 15px; text-align: center; color: black; position: relative;">
             <span class="close" onclick="closeModal()" style="color: #aaa; position: absolute; right: 20px; top: 10px; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>

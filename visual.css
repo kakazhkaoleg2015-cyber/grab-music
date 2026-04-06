@@ -1,13 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Comfortaa:wght@300;400;700&display=swap');
 
-/* ========== СВІТЛА ТЕМА ========== */
+/* ========== СВІТЛА ТЕМА (м'які кольори) ========== */
 :root {
     --bg-gradient-start: #f8f9fa;
     --bg-gradient-end: #e9ecef;
-    --text-primary: #333;
-    --text-secondary: #a4c2f4;
-    --text-muted: #666;
-    --card-bg: white;
+    --text-primary: #333333;
+    --text-secondary: #5d9cec;
+    --text-muted: #6c757d;
+    --card-bg: #ffffff;
     --card-border: #a4c2f4;
     --player-bg: linear-gradient(135deg, #ffffff 0%, #f0f4ff 100%);
     --lyrics-bg: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
@@ -16,22 +16,23 @@
     --btn-play: linear-gradient(135deg, #a4c2f4 0%, #5d9cec 100%);
     --btn-download: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
     --like-border: #e74c3c;
-    --search-bg: white;
-    --search-text: #333;
+    --search-bg: #ffffff;
+    --search-text: #333333;
     --search-placeholder: #a4c2f4;
     --shadow: rgba(0, 0, 0, 0.08);
     --modal-bg: #fefefe;
-    --modal-text: black;
+    --modal-text: #333333;
     --border-light: #e0e0e0;
-    --icon-color: #333;
+    --icon-color: #333333;
     --results-bg: transparent;
+    --playlist-title-color: #1e2f3e;
 }
 
 /* ========== ТЕМНА ТЕМА ========== */
 body.dark-theme {
     --bg-gradient-start: #1a2a3a;
     --bg-gradient-end: #0f1a24;
-    --text-primary: #ffffff;
+    --text-primary: #f0f0f0;
     --text-secondary: #c0e0ff;
     --text-muted: #d0e0f0;
     --card-bg: #1e2f3e;
@@ -52,6 +53,7 @@ body.dark-theme {
     --border-light: #2c3e44;
     --icon-color: #ffffff;
     --results-bg: rgba(30, 47, 62, 0.7);
+    --playlist-title-color: #ffffff;
 }
 
 body {
@@ -61,6 +63,7 @@ body {
     background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
     min-height: 100vh;
     color: var(--text-primary);
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
     transition: background 0.3s ease, color 0.2s ease;
 }
 
@@ -83,8 +86,8 @@ body.dark-theme .modal-content p {
     max-width: 400px;
     height: 60px;
     margin: 0 auto 10px auto;
-    border-radius: 8px;
-    background: rgba(0,0,0,0.1);
+    border-radius: 6px;
+    background: rgba(0,0,0,0.05);
 }
 body.dark-theme .equalizer {
     background: rgba(0,0,0,0.3);
@@ -98,14 +101,14 @@ body.dark-theme .equalizer {
     margin: 10px auto;
     padding: 8px 12px;
     background: var(--card-bg);
-    border-radius: 20px;
+    border-radius: 6px;
     width: fit-content;
     max-width: 100%;
     flex-wrap: wrap;
     border: 1px solid var(--border-light);
+    font-family: 'Segoe UI', Roboto, sans-serif;
 }
 .equalizer-sliders label {
-    font-family: 'Comfortaa', cursive;
     font-size: 13px;
     color: var(--text-primary);
     display: inline-flex;
@@ -118,11 +121,11 @@ body.dark-theme .equalizer {
     accent-color: var(--accent-color);
 }
 .reset-eq-btn {
-    font-family: 'Comfortaa', cursive;
+    font-family: 'Segoe UI', Roboto, sans-serif;
     background: var(--accent-color);
     color: #1a2a3a;
     border: none;
-    border-radius: 20px;
+    border-radius: 6px;
     padding: 5px 12px;
     cursor: pointer;
     font-size: 13px;
@@ -145,7 +148,215 @@ body.dark-theme .reset-eq-btn:hover {
     background: #5d8bb8;
 }
 
-/* ========== ІНШІ СТИЛІ ========== */
+/* ========== КАСТОМНИЙ ПЛЕЄР ========== */
+.custom-player {
+    width: 100%;
+    max-width: 400px;
+    margin: 15px auto 0;
+    background: rgba(0,0,0,0.04);
+    border-radius: 6px;
+    padding: 12px 20px;
+    box-sizing: border-box;
+    backdrop-filter: blur(4px);
+    transition: all 0.2s;
+}
+body.dark-theme .custom-player {
+    background: rgba(0,0,0,0.3);
+}
+
+.progress-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.time-label {
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--text-primary);
+    min-width: 40px;
+    text-align: center;
+}
+.seek-bar {
+    flex: 1;
+    height: 4px;
+    -webkit-appearance: none;
+    background: var(--accent-color);
+    border-radius: 5px;
+    outline: none;
+    cursor: pointer;
+}
+.seek-bar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--accent-dark);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+.player-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+.control-btn {
+    background: transparent;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: var(--accent-dark);
+    transition: transform 0.1s, color 0.2s;
+    padding: 5px 10px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.control-btn:hover {
+    transform: scale(1.05);
+    color: var(--accent-color);
+}
+.play-btn {
+    font-size: 36px;
+    background: var(--accent-color);
+    color: #1a2a3a;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.play-btn:hover {
+    transform: scale(1.08);
+}
+body.dark-theme .play-btn {
+    background: #4a7aa0;
+    color: white;
+}
+body.dark-theme .control-btn {
+    color: #c0e0ff;
+}
+.loop-control-btn.active {
+    background: var(--accent-color);
+    color: #1a2a3a;
+    border-radius: 6px;
+    box-shadow: 0 0 6px var(--accent-color);
+}
+body.dark-theme .loop-control-btn.active {
+    background: #4a7aa0;
+    color: white;
+}
+
+/* ========== ПОКРАЩЕНІ ЗАГОЛОВКИ ПЛЕЙЛИСТІВ ========== */
+.playlist-item h3 {
+    font-family: 'Comfortaa', cursive;
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin: 0 0 8px 0;
+    color: var(--playlist-title-color);
+    text-shadow: 0 1px 1px rgba(0,0,0,0.05);
+}
+.playlist-item p {
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    opacity: 0.85;
+    margin-bottom: 6px;
+}
+body.dark-theme .playlist-item p {
+    color: rgba(255,255,255,0.85);
+}
+:root .playlist-item p {
+    color: #2c3e50;
+}
+.playlist-item small {
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+/* ========== БІЛИЙ ТЕКСТ НА БЛАКИТНИХ КАРТКАХ ПЛЕЙЛИСТІВ ========== */
+.playlist-item h3,
+.playlist-item p,
+.playlist-item small {
+    color: #ffffff !important;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.15);
+}
+.playlist-item .view-btn {
+    color: #1a2a3a !important;
+    background: white !important;
+    border-radius: 6px !important;
+}
+
+/* ========== КНОПКИ (без зайвих пробілів, легке заокруглення) ========== */
+.result-buttons .play-btn,
+.result-buttons .download-btn,
+.result-buttons .like-btn,
+.playlist-item .view-btn,
+.back-btn,
+.tutorial-btn,
+.support-plus-btn,
+.theme-toggle-btn,
+.lang-btn,
+.control-btn,
+.play-all-btn,
+.reset-eq-btn {
+    border-radius: 6px !important;
+    white-space: nowrap;
+}
+
+/* Збільшені кнопки у світлій темі */
+.result-buttons .play-btn,
+.result-buttons .download-btn {
+    padding: 12px 24px !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+    min-width: 110px;
+}
+.result-buttons .like-btn {
+    padding: 12px 18px !important;
+    font-size: 20px !important;
+}
+
+/* Контраст для світлої теми */
+body:not(.dark-theme) .result-buttons .play-btn {
+    background: linear-gradient(135deg, #5d9cec, #3a7bc8);
+    box-shadow: 0 4px 12px rgba(93, 156, 236, 0.4);
+    color: white;
+}
+body:not(.dark-theme) .result-buttons .download-btn {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+    color: white;
+}
+body:not(.dark-theme) .result-buttons .like-btn {
+    border: 2px solid #e74c3c;
+    background-color: transparent;
+    color: #e74c3c;
+}
+body:not(.dark-theme) .result-buttons .like-btn.liked {
+    background-color: #e74c3c;
+    color: white;
+}
+
+/* Адаптація для мобільних */
+@media (max-width: 600px) {
+    .result-buttons .play-btn,
+    .result-buttons .download-btn {
+        padding: 10px 18px !important;
+        font-size: 14px !important;
+        min-width: 90px;
+    }
+    .result-buttons .like-btn {
+        padding: 10px 14px !important;
+        font-size: 18px !important;
+    }
+}
+
+/* ========== ІНШІ СТИЛІ (збережені) ========== */
 .top-controls {
     display: flex;
     justify-content: space-between;
@@ -174,7 +385,7 @@ body.dark-theme .reset-eq-btn:hover {
     border: 2px solid var(--accent-color);
     background-color: transparent;
     color: var(--accent-color);
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     transition: all 0.3s ease;
     font-weight: bold;
@@ -197,7 +408,7 @@ body.dark-theme .reset-eq-btn:hover {
     border: 2px solid var(--accent-color);
     background-color: transparent;
     color: var(--icon-color);
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     transition: all 0.3s ease;
     font-weight: bold;
@@ -269,13 +480,13 @@ p {
     margin-right: auto;
 }
 .search-input {
-    font-family: 'Comfortaa', cursive;
+    font-family: 'Segoe UI', Roboto, sans-serif;
     width: 100%;
     max-width: 400px;
     padding: 14px 18px;
     font-size: 16px;
     border: 2px solid var(--accent-color);
-    border-radius: 10px;
+    border-radius: 6px;
     background-color: var(--search-bg);
     color: var(--search-text);
     transition: all 0.3s ease;
@@ -298,7 +509,7 @@ p {
     margin-left: auto;
     margin-right: auto;
     background: var(--results-bg);
-    border-radius: 16px;
+    border-radius: 6px;
     padding: 8px;
     transition: background 0.3s;
 }
@@ -310,7 +521,7 @@ p {
     margin: 16px 0;
     background-color: var(--card-bg);
     border-left: 5px solid var(--card-border);
-    border-radius: 12px;
+    border-radius: 6px;
     box-shadow: 0 6px 12px var(--shadow);
     transition: all 0.3s ease;
 }
@@ -318,7 +529,7 @@ p {
     flex-shrink: 0;
     width: 80px;
     height: 80px;
-    border-radius: 12px;
+    border-radius: 6px;
     object-fit: cover;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
@@ -340,7 +551,7 @@ p {
     padding: 20px;
     margin: 16px 0;
     background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-dark) 100%);
-    border-radius: 12px;
+    border-radius: 6px;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
 }
@@ -349,31 +560,13 @@ p {
     text-align: left;
     color: white;
 }
-.playlist-item h3 {
-    font-family: 'Comfortaa', cursive;
-    font-size: 18px;
-    color: white;
-    margin: 0 0 5px 0;
-    font-weight: bold;
-}
-.playlist-item p {
-    font-family: 'Comfortaa', cursive;
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.9);
-    margin: 0 0 5px 0;
-}
-.playlist-item small {
-    font-family: 'Comfortaa', cursive;
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.8);
-}
 .view-btn {
-    font-family: 'Comfortaa', cursive;
+    font-family: 'Segoe UI', Roboto, sans-serif;
     padding: 10px 18px;
     background-color: white;
     color: var(--accent-dark);
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     font-size: 14px;
     font-weight: bold;
@@ -384,11 +577,11 @@ p {
     transform: translateY(-3px) scale(1.05);
 }
 .back-btn {
-    font-family: 'Comfortaa', cursive;
+    font-family: 'Segoe UI', Roboto, sans-serif;
     background-color: var(--accent-color);
     color: #1a2a3a;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     font-weight: bold;
     transition: all 0.3s ease;
@@ -405,14 +598,14 @@ p {
     border-left-color: var(--accent-dark);
 }
 .result-info h3 {
-    font-family: 'Comfortaa', cursive;
+    font-family: 'Segoe UI', Roboto, sans-serif;
     font-size: 18px;
     color: var(--text-primary);
     margin: 0 0 5px 0;
     font-weight: bold;
 }
 .result-info p {
-    font-family: 'Comfortaa', cursive;
+    font-family: 'Segoe UI', Roboto, sans-serif;
     font-size: 14px;
     color: var(--text-secondary);
     margin: 0;
@@ -425,11 +618,11 @@ p {
 }
 .play-btn,
 .download-btn {
-    font-family: 'Comfortaa', cursive;
+    font-family: 'Segoe UI', Roboto, sans-serif;
     padding: 10px 18px;
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     font-size: 14px;
     transition: all 0.3s ease;
@@ -437,11 +630,11 @@ p {
     box-shadow: 0 4px 8px var(--shadow);
 }
 .like-btn {
-    font-family: 'Comfortaa', cursive;
+    font-family: 'Segoe UI', Roboto, sans-serif;
     padding: 10px 12px;
     background-color: transparent;
     border: 2px solid var(--like-border);
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     font-size: 16px;
     transition: all 0.3s ease;
@@ -472,7 +665,7 @@ p {
     transform: translateY(-3px) scale(1.05);
 }
 .no-results {
-    font-family: 'Comfortaa', cursive;
+    font-family: 'Segoe UI', Roboto, sans-serif;
     color: var(--text-secondary);
     font-size: 16px;
     margin: 20px 0;
@@ -484,7 +677,7 @@ p {
     margin-top: 50px;
     padding: 30px;
     background: var(--player-bg);
-    border-radius: 15px;
+    border-radius: 6px;
     box-shadow: 0 8px 20px var(--shadow);
     border-top: 6px solid var(--accent-color);
     border-bottom: 3px solid var(--accent-dark);
@@ -499,21 +692,6 @@ p {
     font-size: 24px;
     opacity: 0.1;
 }
-#audioPlayer {
-    width: 100%;
-    max-width: 400px;
-    margin: 0 auto;
-    display: block;
-    border-radius: 12px;
-    padding: 14px;
-    background: var(--btn-play);
-    accent-color: #fff;
-    height: 35px;
-    box-shadow: 0 4px 12px var(--shadow);
-}
-#audioPlayer::-webkit-media-controls-panel {
-    border-radius: 8px;
-}
 .tutorial-btn {
     position: relative;
     display: inline-block;
@@ -521,8 +699,8 @@ p {
     color: white;
     border: none;
     padding: 10px 24px;
-    border-radius: 25px;
-    font-family: 'Comfortaa', cursive;
+    border-radius: 6px;
+    font-family: 'Segoe UI', Roboto, sans-serif;
     font-weight: bold;
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
@@ -534,7 +712,7 @@ p {
     transform: translateY(-2px);
 }
 .now-playing {
-    font-family: 'Comfortaa', cursive;
+    font-family: 'Segoe UI', Roboto, sans-serif;
     color: var(--text-primary);
     font-size: 16px;
     margin-top: 18px;
@@ -543,7 +721,7 @@ p {
     text-align: center;
     padding: 12px 20px;
     background: rgba(0, 0, 0, 0.05);
-    border-radius: 12px;
+    border-radius: 6px;
     border-left: 4px solid var(--accent-color);
     display: flex;
     align-items: center;
@@ -553,23 +731,6 @@ p {
     line-height: 1.4;
     max-width: 100%;
     box-sizing: border-box;
-}
-.now-playing .loop-btn {
-    background: transparent;
-    border: 2px solid var(--accent-color);
-    border-radius: 30px;
-    padding: 5px 12px;
-    font-size: 18px;
-    cursor: pointer;
-    transition: all 0.2s;
-    color: var(--accent-color);
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-.now-playing .loop-btn.active {
-    background: var(--accent-color);
-    color: #1a2a3a;
 }
 .player-image {
     width: 48px;
@@ -582,7 +743,7 @@ p {
     margin-top: 28px;
     padding: 24px;
     background: var(--lyrics-bg);
-    border-radius: 15px;
+    border-radius: 6px;
     box-shadow: 0 8px 20px var(--shadow);
     text-align: left;
     border-left: 5px solid var(--accent-color);
@@ -604,7 +765,7 @@ p {
     padding-bottom: 12px;
 }
 .lyrics-tab-btn {
-    font-family: 'Comfortaa', cursive;
+    font-family: 'Segoe UI', Roboto, sans-serif;
     padding: 10px 18px;
     border: none;
     background-color: transparent;
@@ -639,7 +800,7 @@ p {
     transform: scaleX(1);
 }
 .lyrics-content {
-    font-family: 'Comfortaa', cursive;
+    font-family: 'Segoe UI', Roboto, sans-serif;
     font-size: 15px;
     line-height: 2;
     color: var(--text-primary);
@@ -647,7 +808,7 @@ p {
     white-space: pre-wrap;
     word-break: break-word;
     background: rgba(0, 0, 0, 0.05);
-    border-radius: 10px;
+    border-radius: 6px;
     padding: 16px;
     border: 1px solid var(--border-light);
     max-height: 400px;
@@ -666,12 +827,12 @@ p {
     text-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 .play-all-btn {
-    font-family: 'Comfortaa', cursive;
+    font-family: 'Segoe UI', Roboto, sans-serif;
     padding: 8px 16px;
     background: var(--btn-download);
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     font-weight: bold;
     transition: all 0.3s ease;
@@ -706,17 +867,19 @@ p {
     .play-btn, .download-btn { padding: 10px 16px; font-size: 14px; }
     .like-btn { padding: 10px 12px; font-size: 18px; }
     .player-section { padding: 20px; }
-    #audioPlayer { height: 48px; }
     .now-playing { font-size: 15px; }
     .lyrics-section { padding: 18px; }
     .lyrics-content { font-size: 14px; max-height: 350px; }
+    .custom-player { padding: 10px 12px; }
+    .control-btn { font-size: 24px; }
+    .play-btn { font-size: 30px; width: 44px; height: 44px; }
+    .time-label { font-size: 11px; min-width: 35px; }
 }
 @media (max-width: 600px) {
     .result-item { padding: 14px; }
     .song-image { width: 75px; height: 75px; }
     .play-btn, .download-btn { padding: 9px 14px; font-size: 13px; }
     .player-section { padding: 18px; }
-    #audioPlayer { height: 46px; }
     .now-playing { font-size: 14px; }
 }
 @media (max-width: 480px) {
@@ -732,7 +895,6 @@ p {
     .play-btn, .download-btn { padding: 8px 12px; font-size: 12px; }
     .like-btn { padding: 8px 10px; font-size: 16px; }
     .player-section { padding: 16px; }
-    #audioPlayer { height: 44px; }
     .now-playing { font-size: 13px; }
     .lyrics-section { padding: 14px; }
     .lyrics-content { font-size: 12px; max-height: 280px; }
@@ -744,7 +906,7 @@ p {
         background: rgba(30, 47, 62, 0.9);
         padding: 12px;
         margin-top: 16px;
-        border-radius: 20px;
+        border-radius: 6px;
     }
     body.dark-theme .now-playing,
     body.dark-theme .lyrics-section h2,

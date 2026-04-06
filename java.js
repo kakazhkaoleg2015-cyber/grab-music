@@ -6,13 +6,11 @@ let lrcSyncInterval = null;
 let isUserInteracting = false;
 let currentPlaylist = null;
 
-// For auto-playing playlist
 let currentQueue = [];
 let currentQueueIndex = -1;
 let playlistEndedHandler = null;
 let isPlaylistLoopEnabled = false;
 
-// Audio context and equalizer
 let audioContext = null;
 let sourceNode = null;
 let analyserNode = null;
@@ -22,10 +20,11 @@ let trebleFilter = null;
 let visualizerAnimationId = null;
 let isEqInitialized = false;
 
-// ==================== LANGUAGE DETECTION ====================
+// Елементи кастомного плеєра
+let playPauseBtn, nextBtn, prevBtn, loopBtn, seekBar, currentTimeLabel, durationTimeLabel;
+
 let currentLanguage = window.location.pathname.includes('_en.html') ? 'en' : 'uk';
 
-// ==================== TRANSLATIONS ====================
 const translations = {
     uk: {
         errorLoadingDB: 'Помилка завантаження бази пісень.',
@@ -73,11 +72,9 @@ const translations = {
     }
 };
 
-function t(key) {
-    return translations[currentLanguage][key] || key;
-}
+function t(key) { return translations[currentLanguage][key] || key; }
 
-// ==================== THEME MANAGEMENT ====================
+// ==================== THEME ====================
 function loadThemePreference() {
     const savedTheme = localStorage.getItem('grab_music_theme');
     if (savedTheme === 'dark') {
@@ -98,11 +95,10 @@ function toggleTheme() {
     if (toggleBtn) toggleBtn.innerHTML = isDark ? '☀️' : '🌙';
 }
 
-// ==================== UPDATE EQUALIZER LABELS ON LANGUAGE CHANGE ====================
+// ==================== EQUALIZER ====================
 function updateEqualizerLabels() {
     const eqDiv = document.getElementById('eqControls');
     if (!eqDiv) return;
-    // Save current slider values before rebuilding
     const bassVal = document.getElementById('bassSlider')?.value || 0;
     const midVal = document.getElementById('midSlider')?.value || 0;
     const trebleVal = document.getElementById('trebleSlider')?.value || 0;
@@ -112,7 +108,6 @@ function updateEqualizerLabels() {
         <label>${t('eqTreble')} <input type="range" id="trebleSlider" min="-20" max="20" value="${trebleVal}" step="1"></label>
         <button id="resetEqBtn" class="reset-eq-btn" title="${t('resetEq')}">${t('resetEq')}</button>
     `;
-    // Reattach event listeners if filters exist
     if (bassFilter && midFilter && trebleFilter) {
         const bassSlider = document.getElementById('bassSlider');
         const midSlider = document.getElementById('midSlider');
@@ -123,12 +118,9 @@ function updateEqualizerLabels() {
         if (trebleSlider) trebleSlider.addEventListener('input', (e) => { trebleFilter.gain.value = e.target.value; });
         if (resetBtn) {
             resetBtn.addEventListener('click', () => {
-                const bs = document.getElementById('bassSlider');
-                const ms = document.getElementById('midSlider');
-                const ts = document.getElementById('trebleSlider');
-                if (bs) bs.value = 0;
-                if (ms) ms.value = 0;
-                if (ts) ts.value = 0;
+                if (bassSlider) bassSlider.value = 0;
+                if (midSlider) midSlider.value = 0;
+                if (trebleSlider) trebleSlider.value = 0;
                 if (bassFilter) bassFilter.gain.value = 0;
                 if (midFilter) midFilter.gain.value = 0;
                 if (trebleFilter) trebleFilter.gain.value = 0;
@@ -137,46 +129,34 @@ function updateEqualizerLabels() {
     }
 }
 
-// ==================== EQUALIZER SETUP ====================
 function initEqualizer() {
     const audio = document.getElementById('audioPlayer');
     if (!audio || isEqInitialized) return;
-
     try {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
         sourceNode = audioContext.createMediaElementSource(audio);
-        
-        // Create filters
         bassFilter = audioContext.createBiquadFilter();
         bassFilter.type = 'lowshelf';
         bassFilter.frequency.value = 200;
         bassFilter.gain.value = 0;
-        
         midFilter = audioContext.createBiquadFilter();
         midFilter.type = 'peaking';
         midFilter.frequency.value = 1000;
         midFilter.Q.value = 1;
         midFilter.gain.value = 0;
-        
         trebleFilter = audioContext.createBiquadFilter();
         trebleFilter.type = 'highshelf';
         trebleFilter.frequency.value = 4000;
         trebleFilter.gain.value = 0;
-        
-        // Analyser for visualizer
         analyserNode = audioContext.createAnalyser();
         analyserNode.fftSize = 256;
         const bufferLength = analyserNode.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
-        
-        // Connect: source -> filters -> analyser -> destination
         sourceNode.connect(bassFilter);
         bassFilter.connect(midFilter);
         midFilter.connect(trebleFilter);
         trebleFilter.connect(analyserNode);
         analyserNode.connect(audioContext.destination);
-        
-        // Visualizer canvas
         const canvas = document.getElementById('visualizer');
         if (canvas) {
             const ctx = canvas.getContext('2d');
@@ -196,58 +176,21 @@ function initEqualizer() {
             }
             draw();
         }
-        
-        // Connect sliders and reset button
-        const bassSlider = document.getElementById('bassSlider');
-        const midSlider = document.getElementById('midSlider');
-        const trebleSlider = document.getElementById('trebleSlider');
-        const resetBtn = document.getElementById('resetEqBtn');
-        if (bassSlider) bassSlider.addEventListener('input', (e) => { bassFilter.gain.value = e.target.value; });
-        if (midSlider) midSlider.addEventListener('input', (e) => { midFilter.gain.value = e.target.value; });
-        if (trebleSlider) trebleSlider.addEventListener('input', (e) => { trebleFilter.gain.value = e.target.value; });
-        if (resetBtn) {
-            resetBtn.addEventListener('click', () => {
-                if (bassSlider) bassSlider.value = 0;
-                if (midSlider) midSlider.value = 0;
-                if (trebleSlider) trebleSlider.value = 0;
-                bassFilter.gain.value = 0;
-                midFilter.gain.value = 0;
-                trebleFilter.gain.value = 0;
-            });
-        }
-        
         isEqInitialized = true;
-        
         audio.addEventListener('play', () => {
             if (audioContext.state === 'suspended') audioContext.resume();
             const eqDiv = document.getElementById('eqControls');
             if (eqDiv) eqDiv.style.display = 'flex';
         });
-    } catch (e) {
-        console.error('Equalizer init error:', e);
-    }
+    } catch (e) { console.error('Equalizer init error:', e); }
 }
 
-// ==================== LOCALSTORAGE PERSISTENCE ====================
+// ==================== LOCALSTORAGE ====================
 const STORAGE_KEY = 'grab_music_playlists';
-
-function savePlaylistsToLocalStorage() {
-    try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(playlistsDatabase));
-    } catch (e) {}
-}
-
+function savePlaylistsToLocalStorage() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(playlistsDatabase)); } catch (e) {} }
 function loadPlaylistsFromLocalStorage() {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-        try {
-            const parsed = JSON.parse(stored);
-            if (Array.isArray(parsed)) {
-                playlistsDatabase = parsed;
-                return true;
-            }
-        } catch (e) {}
-    }
+    if (stored) { try { const parsed = JSON.parse(stored); if (Array.isArray(parsed)) { playlistsDatabase = parsed; return true; } } catch (e) {} }
     return false;
 }
 
@@ -262,35 +205,23 @@ async function loadDatabase() {
         const lyricsContent = document.getElementById('lyricsContent');
         if (lyricsContent) lyricsContent.textContent = t('errorLoadingDB');
     }
-
     if (!loadPlaylistsFromLocalStorage()) {
         try {
             const response = await fetch('./playlists.json');
             if (response.ok) playlistsDatabase = await response.json();
         } catch (e) { playlistsDatabase = []; }
     }
-
     if (!playlistsDatabase.find(p => p.id === 'favorites')) {
-        playlistsDatabase.push({
-            id: 'favorites',
-            name: 'Улюблене',
-            name_en: 'Favorites',
-            description: 'Твої улюблені пісні',
-            description_en: 'Your favorite songs',
-            songs: []
-        });
+        playlistsDatabase.push({ id: 'favorites', name: 'Улюблене', name_en: 'Favorites', description: 'Твої улюблені пісні', description_en: 'Your favorite songs', songs: [] });
         savePlaylistsToLocalStorage();
     }
-
     displayPlaylists();
     const searchInput = document.getElementById('searchInput');
     if (searchInput && searchInput.value.trim() !== '') searchSongs();
-    
-    // Update equalizer labels after page load
     updateEqualizerLabels();
 }
 
-// ==================== LRC PARSING & SYNC ====================
+// ==================== LRC ====================
 function parseLRC(lrcText) {
     const lines = [];
     const regex = /\[(\d{2}):(\d{2})\.(\d{2})\]/;
@@ -317,12 +248,14 @@ function syncLRC() {
         if (currentLrcLines[i].time <= currentTime) activeIndex = i;
         else break;
     }
+    if (activeIndex === -1) return;
     const lines = document.querySelectorAll('.lrc-line');
     const currentActive = document.querySelector('.lrc-line.active');
-    if (currentActive && lines && activeIndex >= 0 && lines[activeIndex] && currentActive !== lines[activeIndex]) {
-        currentActive.classList.remove('active');
-        lines[activeIndex].classList.add('active');
-        lines[activeIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const targetLine = lines[activeIndex];
+    if (targetLine && currentActive !== targetLine) {
+        if (currentActive) currentActive.classList.remove('active');
+        targetLine.classList.add('active');
+        targetLine.scrollIntoView({ behavior: 'auto', block: 'center' });
     }
 }
 
@@ -350,17 +283,11 @@ async function showLyricsTab(filename, type) {
                 syncLRC();
                 document.querySelector('.lyrics-tab-btn:last-child')?.classList.add('active');
             } else lyricsContent.textContent = t('invalidLrc');
-        } catch (err) {
-            lyricsContent.textContent = t('lrcNotAvailable');
-        }
-    } else {
-        lyricsContent.textContent = t('lrcNotAvailable');
-    }
+        } catch (err) { lyricsContent.textContent = t('lrcNotAvailable'); }
+    } else { lyricsContent.textContent = t('lrcNotAvailable'); }
 }
 
-function escapeHtml(str) {
-    return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
-}
+function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
 
 function showLyrics(song) {
     const lyricsSection = document.getElementById('lyricsSection');
@@ -383,10 +310,40 @@ function showLyrics(song) {
     lrcSyncInterval = null;
 }
 
+// ==================== УПРАВЛІННЯ ВИДИМІСТЮ КНОПОК ====================
+function updateNavigationButtonsVisibility() {
+    if (!prevBtn || !nextBtn || !loopBtn) return;
+    const hasPlaylist = currentQueue.length > 1;
+    if (!hasPlaylist) {
+        prevBtn.style.display = 'none';
+        nextBtn.style.display = 'none';
+        loopBtn.style.display = 'none';
+        return;
+    }
+    prevBtn.style.display = 'inline-flex';
+    nextBtn.style.display = 'inline-flex';
+    loopBtn.style.display = 'inline-flex';
+    
+    if (!isPlaylistLoopEnabled) {
+        if (currentQueueIndex === 0) {
+            prevBtn.style.display = 'none';
+        } else {
+            prevBtn.style.display = 'inline-flex';
+        }
+        if (currentQueueIndex === currentQueue.length - 1) {
+            nextBtn.style.display = 'none';
+        } else {
+            nextBtn.style.display = 'inline-flex';
+        }
+    } else {
+        prevBtn.style.display = 'inline-flex';
+        nextBtn.style.display = 'inline-flex';
+    }
+}
+
 // ==================== PLAY SONG ====================
 function playSong(filename, fromQueue = false) {
     if (!fromQueue) clearQueue();
-
     const audio = document.getElementById('audioPlayer');
     const nowPlayingDiv = document.getElementById('nowPlaying');
     const song = songsDatabase.find(s => s.file === filename);
@@ -402,9 +359,19 @@ function playSong(filename, fromQueue = false) {
     }
     nowPlayingDiv.innerHTML = `<img src="${escapeHtml(song.image)}" alt="${escapeHtml(song.name)}" class="player-image" onerror="this.src='./fotomusic/no-photo.jpg'">▶ ${label} <strong>${escapeHtml(song.name)}</strong> - ${escapeHtml(song.artist)} ${loopBtnHtml}`;
     showLyrics(song);
-    audio.play().catch(e => console.log('Autoplay blocked', e));
+    
+    if (seekBar) seekBar.value = 0;
+    if (currentTimeLabel) currentTimeLabel.textContent = '0:00';
+    if (durationTimeLabel) durationTimeLabel.textContent = '0:00';
+    
+    audio.play().then(() => {
+        if (currentLrcLines.length > 0 && !lrcSyncInterval) {
+            lrcSyncInterval = setInterval(syncLRC, 100);
+        }
+    }).catch(e => console.log('Autoplay blocked', e));
     
     if (!isEqInitialized) initEqualizer();
+    updateNavigationButtonsVisibility();
 }
 
 // ==================== PLAYLIST AUTO-PLAY ====================
@@ -416,26 +383,33 @@ function clearQueue() {
     }
     currentQueue = [];
     currentQueueIndex = -1;
-    const nowPlayingDiv = document.getElementById('nowPlaying');
-    if (nowPlayingDiv && !nowPlayingDiv.innerHTML.includes('loop-btn')) {
-        const loopBtn = nowPlayingDiv.querySelector('.loop-btn');
-        if (loopBtn) loopBtn.remove();
-    }
     isPlaylistLoopEnabled = false;
+    if (loopBtn) loopBtn.classList.remove('active');
+    updateNavigationButtonsVisibility();
 }
 
 function playNextInQueue() {
-    if (currentQueueIndex + 1 < currentQueue.length) {
-        currentQueueIndex++;
-        playSong(currentQueue[currentQueueIndex], true);
-    } else if (isPlaylistLoopEnabled && currentQueue.length > 0) {
-        currentQueueIndex = 0;
-        playSong(currentQueue[currentQueueIndex], true);
-    } else {
-        clearQueue();
-        const nowPlayingDiv = document.getElementById('nowPlaying');
-        if (nowPlayingDiv) nowPlayingDiv.innerHTML = t('playlistEnded');
+    if (currentQueue.length <= 1) return;
+    if (!isPlaylistLoopEnabled && currentQueueIndex === currentQueue.length - 1) return;
+    let nextIndex = currentQueueIndex + 1;
+    if (nextIndex >= currentQueue.length) {
+        if (isPlaylistLoopEnabled) nextIndex = 0;
+        else return;
     }
+    currentQueueIndex = nextIndex;
+    playSong(currentQueue[currentQueueIndex], true);
+}
+
+function playPrevInQueue() {
+    if (currentQueue.length <= 1) return;
+    if (!isPlaylistLoopEnabled && currentQueueIndex === 0) return;
+    let prevIndex = currentQueueIndex - 1;
+    if (prevIndex < 0) {
+        if (isPlaylistLoopEnabled) prevIndex = currentQueue.length - 1;
+        else return;
+    }
+    currentQueueIndex = prevIndex;
+    playSong(currentQueue[currentQueueIndex], true);
 }
 
 function playPlaylist(songFiles) {
@@ -449,22 +423,20 @@ function playPlaylist(songFiles) {
         audio.addEventListener('ended', playlistEndedHandler);
     }
     playSong(currentQueue[0], true);
+    updateNavigationButtonsVisibility();
 }
 
 function togglePlaylistLoop() {
-    if (currentQueue.length === 0) return;
+    if (currentQueue.length <= 1) return;
     isPlaylistLoopEnabled = !isPlaylistLoopEnabled;
-    const loopBtn = document.querySelector('#nowPlaying .loop-btn');
     if (loopBtn) {
-        if (isPlaylistLoopEnabled) {
-            loopBtn.classList.add('active');
-        } else {
-            loopBtn.classList.remove('active');
-        }
+        if (isPlaylistLoopEnabled) loopBtn.classList.add('active');
+        else loopBtn.classList.remove('active');
     }
+    updateNavigationButtonsVisibility();
 }
 
-// ==================== DOWNLOAD SONG ====================
+// ==================== DOWNLOAD ====================
 function downloadSong(filename) {
     const link = document.createElement('a');
     link.href = './music/' + filename;
@@ -491,15 +463,15 @@ function searchSongs() {
                 <p>${escapeHtml(song.artist)}</p>
             </div>
             <div class="result-buttons">
-                <button class="play-btn" onclick="playSong('${escapeHtml(song.file)}', false)">▶ ${t('playBtn')}</button>
-                <button class="download-btn" onclick="downloadSong('${escapeHtml(song.file)}')">⬇ ${t('downloadBtn')}</button>
+                <button class="play-btn" onclick="playSong('${escapeHtml(song.file)}', false)">▶${t('playBtn')}</button>
+                <button class="download-btn" onclick="downloadSong('${escapeHtml(song.file)}')">⬇${t('downloadBtn')}</button>
                 <button class="like-btn ${isFavorite(song.file) ? 'liked' : ''}" data-filename="${escapeHtml(song.file)}" onclick="toggleFavorite('${escapeHtml(song.file)}')">❤️</button>
             </div>
         </div>
     `).join('');
 }
 
-// ==================== SWITCH LANGUAGE ====================
+// ==================== LANGUAGE SWITCH ====================
 function switchLanguage(lang) {
     if (lang === 'uk') window.location.href = './index.html';
     else window.location.href = './index_en.html';
@@ -515,21 +487,57 @@ window.onclick = function(e) {
     if (e.target === document.getElementById('premium-modal')) closePremiumModal();
 };
 
-// ==================== AUDIO LISTENERS ====================
+// ==================== CUSTOM PLAYER SETUP ====================
 function setupAudioListeners() {
     const audio = document.getElementById('audioPlayer');
     if (!audio || audio.hasAttribute('data-listener')) return;
     audio.setAttribute('data-listener', 'true');
+    
+    playPauseBtn = document.getElementById('playPauseBtn');
+    nextBtn = document.getElementById('nextBtn');
+    prevBtn = document.getElementById('prevBtn');
+    loopBtn = document.getElementById('loopBtn');
+    seekBar = document.getElementById('seekBar');
+    currentTimeLabel = document.getElementById('currentTime');
+    durationTimeLabel = document.getElementById('durationTime');
+
+    if (playPauseBtn) {
+        playPauseBtn.addEventListener('click', () => {
+            if (audio.paused) audio.play(); else audio.pause();
+        });
+    }
+    if (nextBtn) nextBtn.addEventListener('click', playNextInQueue);
+    if (prevBtn) prevBtn.addEventListener('click', playPrevInQueue);
+    if (loopBtn) loopBtn.addEventListener('click', togglePlaylistLoop);
+    if (seekBar) {
+        seekBar.addEventListener('input', () => {
+            const seekTo = audio.duration * (seekBar.value / 100);
+            audio.currentTime = seekTo;
+        });
+    }
+
+    audio.addEventListener('timeupdate', () => {
+        if (!isNaN(audio.duration) && isFinite(audio.duration) && audio.duration > 0) {
+            const progress = (audio.currentTime / audio.duration) * 100;
+            if (seekBar) seekBar.value = progress;
+            if (currentTimeLabel) currentTimeLabel.textContent = formatTime(audio.currentTime);
+            if (durationTimeLabel) durationTimeLabel.textContent = formatTime(audio.duration);
+        }
+    });
+
     audio.addEventListener('play', () => {
+        if (playPauseBtn) playPauseBtn.textContent = '⏸';
         if (currentLrcLines.length && !lrcSyncInterval) {
             lrcSyncInterval = setInterval(syncLRC, 100);
             syncLRC();
         }
     });
     audio.addEventListener('pause', () => {
+        if (playPauseBtn) playPauseBtn.textContent = '▶';
         if (lrcSyncInterval) clearInterval(lrcSyncInterval);
         lrcSyncInterval = null;
     });
+
     ['scroll', 'wheel', 'touchmove'].forEach(ev => {
         document.addEventListener(ev, () => {
             isUserInteracting = true;
@@ -538,11 +546,19 @@ function setupAudioListeners() {
     });
 }
 
+function formatTime(seconds) {
+    if (isNaN(seconds)) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10 ? '0' + secs : secs}`;
+}
+
 // ==================== START ====================
 window.addEventListener('DOMContentLoaded', async () => {
     await loadDatabase();
     setupAudioListeners();
     loadThemePreference();
+    updateNavigationButtonsVisibility();
 });
 
 // ==================== PLAYLISTS DISPLAY ====================
@@ -573,7 +589,7 @@ function viewPlaylist(playlistId) {
     const playAllButton = songs.length ? `<button class="play-all-btn" onclick="playPlaylist(${JSON.stringify(currentPlaylist.songs).replace(/"/g, '&quot;')})">▶ ${t('playAllBtn')}</button>` : '';
     resultsDiv.innerHTML = `
         <div style="margin-bottom:20px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-            <button class="back-btn" onclick="backToPlaylists()" style="padding:8px 16px; background:var(--accent-color); color:#1a2a3a; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">← ${t('backBtn')}</button>
+            <button class="back-btn" onclick="backToPlaylists()" style="padding:8px 16px; background:var(--accent-color); color:#1a2a3a; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">← ${t('backBtn')}</button>
             ${playAllButton}
         </div>
         <h2 style="color:var(--accent-color); margin-top:0;">📋 ${escapeHtml(playlistName)}</h2>
@@ -585,8 +601,8 @@ function viewPlaylist(playlistId) {
                     <p>${escapeHtml(song.artist)}</p>
                 </div>
                 <div class="result-buttons">
-                    <button class="play-btn" onclick="playSong('${escapeHtml(song.file)}', false)">▶ ${t('playBtn')}</button>
-                    <button class="download-btn" onclick="downloadSong('${escapeHtml(song.file)}')">⬇ ${t('downloadBtn')}</button>
+                    <button class="play-btn" onclick="playSong('${escapeHtml(song.file)}', false)">▶${t('playBtn')}</button>
+                    <button class="download-btn" onclick="downloadSong('${escapeHtml(song.file)}')">⬇${t('downloadBtn')}</button>
                     <button class="like-btn ${isFavorite(song.file) ? 'liked' : ''}" data-filename="${escapeHtml(song.file)}" onclick="toggleFavorite('${escapeHtml(song.file)}')">❤️</button>
                 </div>
             </div>
