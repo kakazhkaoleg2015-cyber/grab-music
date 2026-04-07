@@ -12,7 +12,7 @@
         <div class="top-buttons">
             <a href="mailto:oleguhexa@proton.me?subject=Додати%20пісню" class="support-plus-btn" title="Підтримка">+</a>
             <a href="#" onclick="openPremiumModal(); return false;" class="support-plus-btn premium-btn" title="Premium">⭐</a>
-            <button id="themeToggle" class="theme-toggle-btn" onclick="toggleTheme()" title="Змінити тему">🌙</button>
+            <button id="settingsBtn" class="theme-toggle-btn" onclick="openSettings()" title="Налаштування">⚙️</button>
         </div>
         <div class="language-buttons">
             <div class="lang-buttons-row">
@@ -37,20 +37,13 @@
         </div>
         
         <div class="player-section">
-            <canvas id="visualizer" class="equalizer" width="300" height="60"></canvas>
-            
-            <!-- Еквалайзер -->
             <div id="eqControls" class="equalizer-sliders" style="display: none;">
                 <label>🔊 Низькі <input type="range" id="bassSlider" min="-20" max="20" value="0" step="1"></label>
                 <label>🎵 Середні <input type="range" id="midSlider" min="-20" max="20" value="0" step="1"></label>
                 <label>🎶 Високі <input type="range" id="trebleSlider" min="-20" max="20" value="0" step="1"></label>
-                <button id="resetEqBtn" class="reset-eq-btn" title="Скинути еквалайзер">⟳ Скинути</button>
+                <button id="resetEqBtn" class="reset-eq-btn" title="Скинути">⟳ Скинути</button>
             </div>
-
-            <!-- Прихований аудіоелемент -->
             <audio id="audioPlayer"></audio>
-
-            <!-- КАСТОМНИЙ ПЛЕЄР -->
             <div class="custom-player">
                 <div class="progress-container">
                     <span id="currentTime" class="time-label">0:00</span>
@@ -64,7 +57,6 @@
                     <button id="loopBtn" class="control-btn loop-control-btn" title="Повтор плейлиста">🔁</button>
                 </div>
             </div>
-
             <div id="nowPlaying" class="now-playing">▶ Програється:</div>
         </div>
  
@@ -74,20 +66,34 @@
         </div>
     </div>
     
-    <!-- Модальні вікна -->
-    <div id="tutorial-modal" class="modal" style="display:none; position:fixed; z-index:10000; left:0; top:0; width:100%; height:100%; background-color: rgba(0,0,0,0.8);">
-        <div class="modal-content" style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: 15px; text-align: center; color: black; position: relative;">
-            <span class="close" onclick="closeModal()" style="color: #aaa; position: absolute; right: 20px; top: 10px; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
-            <h2 style="color: #a4c2f4;">🎵 Туторіал</h2>
-            <p style="font-size: 18px; margin-top: 20px;">Я ТАКИЙ ЛІНИВИЙ, ЩО НЕ НАПИСАВ СПИСОК ПІСЕНЬ. ПРОСТО ПИШІТЬ БУДЬ-ЯКІ БУКВИ У ПОШУКУ, І САЙТ ВСЕ ЗНАЙДЕ!</p>
+    <div id="tutorial-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>🎵 Туторіал</h2>
+            <p>Я ТАКИЙ ЛІНИВИЙ, ЩО НЕ НАПИСАВ СПИСОК ПІСЕНЬ. ПРОСТО ПИШІТЬ БУДЬ-ЯКІ БУКВИ У ПОШУКУ, І САЙТ ВСЕ ЗНАЙДЕ!</p>
         </div>
     </div>
  
-    <div id="premium-modal" class="modal" style="display:none; position:fixed; z-index:10000; left:0; top:0; width:100%; height:100%; background-color: rgba(0,0,0,0.8);">
-        <div class="modal-content" style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: 15px; text-align: center; color: black; position: relative;">
-            <span class="close" onclick="closePremiumModal()" style="color: #aaa; position: absolute; right: 20px; top: 10px; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
-            <h2 style="color: #a4c2f4;">⭐ Premium</h2>
-            <p style="font-size: 20px; margin-top: 20px; font-weight: bold; color: #5d9cec;">У нас все безкоштовно 🎉<br>Преміум не потрібен!</p>
+    <div id="premium-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closePremiumModal()">&times;</span>
+            <h2>⭐ Premium</h2>
+            <p>У нас все безкоштовно 🎉<br>Преміум не потрібен!</p>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSettings()">&times;</span>
+            <h2>⚙️ Налаштування</h2>
+            <div style="display: flex; flex-direction: column; gap: 15px; margin: 20px 0; text-align: left;">
+                <label>
+                    <input type="checkbox" id="darkThemeToggle" onchange="toggleTheme(this.checked)"> Темна тема
+                </label>
+                <label>
+                    <input type="checkbox" id="eqToggleCheck" onchange="toggleEq(this.checked)"> Еквалайзер
+                </label>
+            </div>
         </div>
     </div>
  

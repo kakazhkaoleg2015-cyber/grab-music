@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Comfortaa:wght@300;400;700&display=swap');
 
-/* ========== СВІТЛА ТЕМА (м'які кольори) ========== */
+/* ========== СВІТЛА ТЕМА ========== */
 :root {
     --bg-gradient-start: #f8f9fa;
     --bg-gradient-end: #e9ecef;
@@ -59,40 +59,56 @@ body.dark-theme {
 body {
     margin: 0;
     padding: 20px;
-    position: relative;
     background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
     min-height: 100vh;
     color: var(--text-primary);
     font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-    transition: background 0.3s ease, color 0.2s ease;
+    transition: background 0.3s, color 0.2s;
 }
 
-/* ========== МОДАЛЬНІ ВІКНА В ТЕМНІЙ ТЕМІ ========== */
-body.dark-theme .modal-content {
-    background-color: var(--modal-bg) !important;
-    color: var(--modal-text) !important;
+/* ========== МОДАЛЬНІ ВІКНА (ЦЕНТР) ========== */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.8);
+    align-items: center;
+    justify-content: center;
 }
-body.dark-theme .modal-content h2 {
-    color: var(--accent-color) !important;
+.modal-content {
+    background-color: var(--modal-bg);
+    padding: 20px;
+    border: 1px solid var(--border-light);
+    width: 80%;
+    max-width: 500px;
+    border-radius: 15px;
+    text-align: center;
+    color: var(--modal-text);
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
-body.dark-theme .modal-content p {
-    color: var(--modal-text) !important;
+.modal-content h2 {
+    color: var(--accent-color);
+    margin-top: 0;
+}
+.modal-content .close {
+    color: var(--text-muted);
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.modal-content .close:hover {
+    color: var(--accent-color);
 }
 
 /* ========== ЕКВАЛАЙЗЕР ========== */
-.equalizer {
-    display: block;
-    width: 100%;
-    max-width: 400px;
-    height: 60px;
-    margin: 0 auto 10px auto;
-    border-radius: 6px;
-    background: rgba(0,0,0,0.05);
-}
-body.dark-theme .equalizer {
-    background: rgba(0,0,0,0.3);
-}
-
 .equalizer-sliders {
     display: flex;
     justify-content: center;
@@ -106,7 +122,6 @@ body.dark-theme .equalizer {
     max-width: 100%;
     flex-wrap: wrap;
     border: 1px solid var(--border-light);
-    font-family: 'Segoe UI', Roboto, sans-serif;
 }
 .equalizer-sliders label {
     font-size: 13px;
@@ -121,7 +136,6 @@ body.dark-theme .equalizer {
     accent-color: var(--accent-color);
 }
 .reset-eq-btn {
-    font-family: 'Segoe UI', Roboto, sans-serif;
     background: var(--accent-color);
     color: #1a2a3a;
     border: none;
@@ -130,10 +144,6 @@ body.dark-theme .equalizer {
     cursor: pointer;
     font-size: 13px;
     font-weight: bold;
-    transition: all 0.2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
 }
 .reset-eq-btn:hover {
     transform: scale(1.02);
@@ -143,9 +153,6 @@ body.dark-theme .equalizer {
 body.dark-theme .reset-eq-btn {
     background: #4a7aa0;
     color: white;
-}
-body.dark-theme .reset-eq-btn:hover {
-    background: #5d8bb8;
 }
 
 /* ========== КАСТОМНИЙ ПЛЕЄР ========== */
@@ -157,13 +164,10 @@ body.dark-theme .reset-eq-btn:hover {
     border-radius: 6px;
     padding: 12px 20px;
     box-sizing: border-box;
-    backdrop-filter: blur(4px);
-    transition: all 0.2s;
 }
 body.dark-theme .custom-player {
     background: rgba(0,0,0,0.3);
 }
-
 .progress-container {
     display: flex;
     align-items: center;
@@ -171,7 +175,6 @@ body.dark-theme .custom-player {
     margin-bottom: 12px;
 }
 .time-label {
-    font-family: 'Segoe UI', Roboto, sans-serif;
     font-size: 13px;
     font-weight: bold;
     color: var(--text-primary);
@@ -184,7 +187,6 @@ body.dark-theme .custom-player {
     -webkit-appearance: none;
     background: var(--accent-color);
     border-radius: 5px;
-    outline: none;
     cursor: pointer;
 }
 .seek-bar::-webkit-slider-thumb {
@@ -194,7 +196,6 @@ body.dark-theme .custom-player {
     background: var(--accent-dark);
     border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
 }
 .player-controls {
     display: flex;
@@ -208,12 +209,9 @@ body.dark-theme .custom-player {
     font-size: 28px;
     cursor: pointer;
     color: var(--accent-dark);
-    transition: transform 0.1s, color 0.2s;
+    transition: transform 0.1s;
     padding: 5px 10px;
     border-radius: 6px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
 }
 .control-btn:hover {
     transform: scale(1.05);
@@ -235,128 +233,220 @@ body.dark-theme .play-btn {
     background: #4a7aa0;
     color: white;
 }
-body.dark-theme .control-btn {
-    color: #c0e0ff;
-}
 .loop-control-btn.active {
     background: var(--accent-color);
     color: #1a2a3a;
     border-radius: 6px;
-    box-shadow: 0 0 6px var(--accent-color);
 }
 body.dark-theme .loop-control-btn.active {
     background: #4a7aa0;
     color: white;
 }
 
-/* ========== ПОКРАЩЕНІ ЗАГОЛОВКИ ПЛЕЙЛИСТІВ ========== */
+/* ========== ПЛЕЙЛИСТИ ========== */
+.playlist-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    margin: 16px 0;
+    background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-dark) 100%);
+    border-radius: 6px;
+}
+.playlist-info {
+    flex: 1;
+    text-align: left;
+    color: white;
+}
 .playlist-item h3 {
     font-family: 'Comfortaa', cursive;
     font-size: 1.6rem;
     font-weight: 700;
-    letter-spacing: -0.5px;
     margin: 0 0 8px 0;
-    color: var(--playlist-title-color);
-    text-shadow: 0 1px 1px rgba(0,0,0,0.05);
 }
 .playlist-item p {
-    font-family: 'Segoe UI', Roboto, sans-serif;
     font-size: 0.9rem;
-    font-weight: 500;
-    opacity: 0.85;
     margin-bottom: 6px;
 }
-body.dark-theme .playlist-item p {
-    color: rgba(255,255,255,0.85);
-}
-:root .playlist-item p {
-    color: #2c3e50;
-}
-.playlist-item small {
-    font-family: 'Segoe UI', Roboto, sans-serif;
-    font-size: 0.75rem;
-    opacity: 0.7;
-}
-
-/* ========== БІЛИЙ ТЕКСТ НА БЛАКИТНИХ КАРТКАХ ПЛЕЙЛИСТІВ ========== */
-.playlist-item h3,
-.playlist-item p,
-.playlist-item small {
+.playlist-item h3, .playlist-item p, .playlist-item small {
     color: #ffffff !important;
     text-shadow: 0 1px 1px rgba(0,0,0,0.15);
 }
-.playlist-item .view-btn {
-    color: #1a2a3a !important;
-    background: white !important;
-    border-radius: 6px !important;
+.view-btn, .back-btn, .play-all-btn {
+    padding: 8px 16px;
+    background: white;
+    color: var(--accent-dark);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.back-btn {
+    background: var(--accent-color);
+    color: #1a2a3a;
+}
+.play-all-btn {
+    background: var(--btn-download);
+    color: white;
 }
 
-/* ========== КНОПКИ (без зайвих пробілів, легке заокруглення) ========== */
+/* ========== РЕЗУЛЬТАТИ ПОШУКУ ========== */
+.result-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+    margin: 16px 0;
+    background: var(--card-bg);
+    border-left: 5px solid var(--card-border);
+    border-radius: 6px;
+    box-shadow: 0 6px 12px var(--shadow);
+}
+.song-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 6px;
+    object-fit: cover;
+}
+.result-info {
+    flex: 1;
+    text-align: left;
+}
+.result-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 130px;
+}
+
+/* ========== КНОПКИ: ПРОГРАВАТИ, СКАЧАТИ, ЛАЙК ========== */
 .result-buttons .play-btn,
 .result-buttons .download-btn,
-.result-buttons .like-btn,
-.playlist-item .view-btn,
-.back-btn,
-.tutorial-btn,
-.support-plus-btn,
-.theme-toggle-btn,
-.lang-btn,
-.control-btn,
-.play-all-btn,
-.reset-eq-btn {
-    border-radius: 6px !important;
-    white-space: nowrap;
-}
-
-/* Збільшені кнопки у світлій темі */
-.result-buttons .play-btn,
-.result-buttons .download-btn {
-    padding: 12px 24px !important;
-    font-size: 16px !important;
-    font-weight: bold !important;
-    min-width: 110px;
-}
 .result-buttons .like-btn {
-    padding: 12px 18px !important;
-    font-size: 20px !important;
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
 }
 
-/* Контраст для світлої теми */
-body:not(.dark-theme) .result-buttons .play-btn {
-    background: linear-gradient(135deg, #5d9cec, #3a7bc8);
-    box-shadow: 0 4px 12px rgba(93, 156, 236, 0.4);
-    color: white;
+/* --- Програвати --- */
+.result-buttons .play-btn {
+    background: linear-gradient(135deg, #43c95a 0%, #1e8c35 100%);
+    color: #ffffff;
+    border: none;
+    padding: 11px 14px;
+    box-shadow: 0 3px 10px rgba(30, 140, 53, 0.35);
+    /* Скидаємо стилі кастомного плеєра */
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    font-size: 14px;
 }
-body:not(.dark-theme) .result-buttons .download-btn {
-    background: linear-gradient(135deg, #4caf50, #2e7d32);
-    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
-    color: white;
+.result-buttons .play-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(30, 140, 53, 0.45);
+    filter: brightness(1.07);
 }
-body:not(.dark-theme) .result-buttons .like-btn {
+.result-buttons .play-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 4px rgba(30, 140, 53, 0.3);
+    filter: brightness(0.97);
+}
+
+/* --- Скачати --- */
+.result-buttons .download-btn {
+    background: linear-gradient(135deg, #3b9fef 0%, #1260b5 100%);
+    color: #ffffff;
+    border: none;
+    padding: 11px 14px;
+    box-shadow: 0 3px 10px rgba(18, 96, 181, 0.35);
+}
+.result-buttons .download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(18, 96, 181, 0.45);
+    filter: brightness(1.07);
+}
+.result-buttons .download-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 4px rgba(18, 96, 181, 0.3);
+    filter: brightness(0.97);
+}
+
+/* --- Лайк --- */
+.result-buttons .like-btn {
+    background: transparent;
     border: 2px solid #e74c3c;
-    background-color: transparent;
     color: #e74c3c;
+    padding: 9px 14px;
+    font-size: 16px;
+    border-radius: 10px;
+    /* скидаємо стилі .play-btn */
+    width: 100%;
+    height: auto;
 }
-body:not(.dark-theme) .result-buttons .like-btn.liked {
-    background-color: #e74c3c;
-    color: white;
+.result-buttons .like-btn:hover {
+    background: rgba(231, 76, 60, 0.08);
+    border-color: #c0392b;
+    transform: scale(1.03);
+    box-shadow: 0 3px 10px rgba(231, 76, 60, 0.2);
+}
+.result-buttons .like-btn:active {
+    transform: scale(0.97);
+}
+.result-buttons .like-btn.liked {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: #ffffff;
+    border-color: transparent;
+    box-shadow: 0 3px 10px rgba(231, 76, 60, 0.45);
+}
+.result-buttons .like-btn.liked:hover {
+    filter: brightness(1.08);
+    box-shadow: 0 6px 16px rgba(231, 76, 60, 0.5);
 }
 
-/* Адаптація для мобільних */
-@media (max-width: 600px) {
-    .result-buttons .play-btn,
-    .result-buttons .download-btn {
-        padding: 10px 18px !important;
-        font-size: 14px !important;
-        min-width: 90px;
-    }
-    .result-buttons .like-btn {
-        padding: 10px 14px !important;
-        font-size: 18px !important;
-    }
+/* --- Темна тема: кнопки --- */
+body.dark-theme .result-buttons .play-btn {
+    background: linear-gradient(135deg, #3ab854 0%, #176b2a 100%);
+    box-shadow: 0 3px 10px rgba(30, 140, 53, 0.5);
+}
+body.dark-theme .result-buttons .download-btn {
+    background: linear-gradient(135deg, #2e8de0 0%, #0d4f9e 100%);
+    box-shadow: 0 3px 10px rgba(18, 96, 181, 0.5);
+}
+body.dark-theme .result-buttons .like-btn {
+    border-color: #ff7070;
+    color: #ff7070;
+}
+body.dark-theme .result-buttons .like-btn.liked {
+    background: linear-gradient(135deg, #e74c3c 0%, #a93226 100%);
+    border-color: transparent;
+    color: #ffffff;
 }
 
-/* ========== ІНШІ СТИЛІ (збережені) ========== */
+/* --- Заблоковані кнопки --- */
+.result-buttons .play-btn.disabled,
+.result-buttons .download-btn.disabled,
+.result-buttons .like-btn.disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+    transform: none !important;
+    filter: none !important;
+    box-shadow: none !important;
+}
+
+/* ========== ІНШІ СТИЛІ ========== */
 .top-controls {
     display: flex;
     justify-content: space-between;
@@ -369,10 +459,6 @@ body:not(.dark-theme) .result-buttons .like-btn.liked {
     gap: 10px;
     align-items: center;
 }
-.language-buttons {
-    position: static;
-    text-align: center;
-}
 .lang-buttons-row {
     display: flex;
     gap: 10px;
@@ -383,43 +469,24 @@ body:not(.dark-theme) .result-buttons .like-btn.liked {
     font-size: 16px;
     padding: 10px 18px;
     border: 2px solid var(--accent-color);
-    background-color: transparent;
+    background: transparent;
     color: var(--accent-color);
     border-radius: 6px;
     cursor: pointer;
-    transition: all 0.3s ease;
     font-weight: bold;
 }
-.lang-btn:hover {
-    background-color: var(--accent-color);
+.lang-btn:hover, .lang-btn.active {
+    background: var(--accent-color);
     color: #1a2a3a;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-.lang-btn.active {
-    background-color: var(--accent-color);
-    color: #1a2a3a;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 .theme-toggle-btn {
-    font-family: 'Comfortaa', cursive;
     font-size: 24px;
     padding: 10px 15px;
     border: 2px solid var(--accent-color);
-    background-color: transparent;
+    background: transparent;
     color: var(--icon-color);
     border-radius: 6px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    font-weight: bold;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-.theme-toggle-btn:hover {
-    background-color: var(--accent-color);
-    color: #1a2a3a;
-    transform: translateY(-2px);
 }
 .content {
     text-align: center;
@@ -427,9 +494,6 @@ body:not(.dark-theme) .result-buttons .like-btn.liked {
     margin: 0 auto;
 }
 .support-plus-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     width: 56px;
     height: 56px;
     border-radius: 50%;
@@ -437,20 +501,16 @@ body:not(.dark-theme) .result-buttons .like-btn.liked {
     color: white;
     text-decoration: none;
     font-size: 34px;
-    font-weight: bold;
-    font-family: 'Comfortaa', cursive;
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
-}
-.support-plus-btn:hover {
-    transform: translateY(-3px) scale(1.06);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.2);
 }
 .beta-badge {
     font-family: 'Caveat', cursive;
     font-size: 55px;
     color: #ff6b81;
     margin: 0 0 6px 0;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 }
 h1 {
     font-family: 'Caveat', cursive;
@@ -458,7 +518,6 @@ h1 {
     color: var(--accent-color);
     margin: 0;
     margin-bottom: 10px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 }
 p {
     font-family: 'Comfortaa', cursive;
@@ -471,7 +530,6 @@ p {
 }
 .playlists-container {
     margin-top: 30px;
-    margin-bottom: 30px;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 16px;
@@ -480,198 +538,20 @@ p {
     margin-right: auto;
 }
 .search-input {
-    font-family: 'Segoe UI', Roboto, sans-serif;
     width: 100%;
     max-width: 400px;
     padding: 14px 18px;
     font-size: 16px;
     border: 2px solid var(--accent-color);
     border-radius: 6px;
-    background-color: var(--search-bg);
+    background: var(--search-bg);
     color: var(--search-text);
-    transition: all 0.3s ease;
-    box-sizing: border-box;
-    box-shadow: 0 2px 6px var(--shadow);
-}
-.search-input:focus {
-    outline: none;
-    border-color: var(--accent-dark);
-    box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
-    transform: translateY(-2px);
-}
-.search-input::placeholder {
-    color: var(--search-placeholder);
-    opacity: 0.9;
 }
 .search-results {
     margin-top: 20px;
     max-width: 500px;
     margin-left: auto;
     margin-right: auto;
-    background: var(--results-bg);
-    border-radius: 6px;
-    padding: 8px;
-    transition: background 0.3s;
-}
-.result-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    padding: 20px;
-    margin: 16px 0;
-    background-color: var(--card-bg);
-    border-left: 5px solid var(--card-border);
-    border-radius: 6px;
-    box-shadow: 0 6px 12px var(--shadow);
-    transition: all 0.3s ease;
-}
-.song-image {
-    flex-shrink: 0;
-    width: 80px;
-    height: 80px;
-    border-radius: 6px;
-    object-fit: cover;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
-.result-info {
-    flex: 1;
-    text-align: left;
-}
-.result-buttons {
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-left: auto;
-}
-.playlist-item {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 20px;
-    margin: 16px 0;
-    background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-dark) 100%);
-    border-radius: 6px;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
-}
-.playlist-info {
-    flex: 1;
-    text-align: left;
-    color: white;
-}
-.view-btn {
-    font-family: 'Segoe UI', Roboto, sans-serif;
-    padding: 10px 18px;
-    background-color: white;
-    color: var(--accent-dark);
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-.view-btn:hover {
-    transform: translateY(-3px) scale(1.05);
-}
-.back-btn {
-    font-family: 'Segoe UI', Roboto, sans-serif;
-    background-color: var(--accent-color);
-    color: #1a2a3a;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    padding: 8px 16px;
-}
-.back-btn:hover {
-    transform: translateY(-2px);
-    background-color: var(--accent-dark);
-    color: white;
-}
-.result-item:hover {
-    transform: translateX(8px);
-    box-shadow: 0 8px 16px var(--shadow);
-    border-left-color: var(--accent-dark);
-}
-.result-info h3 {
-    font-family: 'Segoe UI', Roboto, sans-serif;
-    font-size: 18px;
-    color: var(--text-primary);
-    margin: 0 0 5px 0;
-    font-weight: bold;
-}
-.result-info p {
-    font-family: 'Segoe UI', Roboto, sans-serif;
-    font-size: 14px;
-    color: var(--text-secondary);
-    margin: 0;
-    font-weight: 500;
-}
-.result-buttons {
-    display: flex;
-    gap: 8px;
-    margin-left: 15px;
-}
-.play-btn,
-.download-btn {
-    font-family: 'Segoe UI', Roboto, sans-serif;
-    padding: 10px 18px;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.3s ease;
-    font-weight: bold;
-    box-shadow: 0 4px 8px var(--shadow);
-}
-.like-btn {
-    font-family: 'Segoe UI', Roboto, sans-serif;
-    padding: 10px 12px;
-    background-color: transparent;
-    border: 2px solid var(--like-border);
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    color: var(--icon-color);
-}
-.like-btn:hover {
-    background-color: rgba(231, 76, 60, 0.2);
-    transform: scale(1.1);
-}
-.like-btn.liked {
-    background-color: var(--like-border);
-    border-color: var(--like-border);
-    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
-    transform: scale(1.15);
-    color: white;
-}
-.play-btn {
-    background: var(--btn-play);
-}
-.play-btn:hover {
-    transform: translateY(-3px) scale(1.05);
-}
-.download-btn {
-    background: var(--btn-download);
-}
-.download-btn:hover {
-    transform: translateY(-3px) scale(1.05);
-}
-.no-results {
-    font-family: 'Segoe UI', Roboto, sans-serif;
-    color: var(--text-secondary);
-    font-size: 16px;
-    margin: 20px 0;
-    font-weight: bold;
-    text-align: center;
-    padding: 20px;
 }
 .player-section {
     margin-top: 50px;
@@ -681,46 +561,21 @@ p {
     box-shadow: 0 8px 20px var(--shadow);
     border-top: 6px solid var(--accent-color);
     border-bottom: 3px solid var(--accent-dark);
-    position: relative;
-    overflow: hidden;
-}
-.player-section::before {
-    content: '🎵';
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 24px;
-    opacity: 0.1;
 }
 .tutorial-btn {
-    position: relative;
-    display: inline-block;
     background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
     color: white;
     border: none;
     padding: 10px 24px;
     border-radius: 6px;
-    font-family: 'Segoe UI', Roboto, sans-serif;
     font-weight: bold;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
-    font-size: 14px;
-    transition: all 0.3s ease;
     margin-bottom: 20px;
 }
-.tutorial-btn:hover {
-    transform: translateY(-2px);
-}
 .now-playing {
-    font-family: 'Segoe UI', Roboto, sans-serif;
-    color: var(--text-primary);
-    font-size: 16px;
     margin-top: 18px;
-    font-weight: bold;
-    animation: fadeIn 0.5s ease;
-    text-align: center;
     padding: 12px 20px;
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(0,0,0,0.05);
     border-radius: 6px;
     border-left: 4px solid var(--accent-color);
     display: flex;
@@ -728,57 +583,49 @@ p {
     justify-content: center;
     gap: 12px;
     flex-wrap: wrap;
-    line-height: 1.4;
-    max-width: 100%;
-    box-sizing: border-box;
 }
 .player-image {
     width: 48px;
     height: 48px;
     border-radius: 6px;
     object-fit: cover;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 .lyrics-section {
     margin-top: 28px;
     padding: 24px;
     background: var(--lyrics-bg);
     border-radius: 6px;
-    box-shadow: 0 8px 20px var(--shadow);
     text-align: left;
     border-left: 5px solid var(--accent-color);
 }
 .lyrics-section h2 {
     font-family: 'Comfortaa', cursive;
     font-size: 22px;
-    color: var(--text-primary);
-    margin: 0 0 16px 0;
     text-align: center;
+    margin-bottom: 16px;
+    color: var(--text-primary);
 }
 .lyrics-buttons {
     display: flex;
     gap: 10px;
     justify-content: center;
     margin-bottom: 16px;
-    flex-wrap: wrap;
     border-bottom: 2px solid var(--border-light);
     padding-bottom: 12px;
 }
 .lyrics-tab-btn {
-    font-family: 'Segoe UI', Roboto, sans-serif;
     padding: 10px 18px;
     border: none;
-    background-color: transparent;
+    background: transparent;
     color: var(--text-muted);
-    border-radius: 0;
-    cursor: pointer;
-    font-size: 14px;
     font-weight: bold;
-    transition: all 0.3s ease;
+    cursor: pointer;
     position: relative;
-    padding-bottom: 14px;
 }
-.lyrics-tab-btn::after {
+.lyrics-tab-btn.active {
+    color: var(--accent-color);
+}
+.lyrics-tab-btn.active::after {
     content: '';
     position: absolute;
     bottom: -12px;
@@ -786,153 +633,194 @@ p {
     right: 0;
     height: 3px;
     background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-dark) 100%);
-    border-radius: 2px;
-    transform: scaleX(0);
-    transition: transform 0.3s ease;
-}
-.lyrics-tab-btn:hover {
-    color: var(--text-primary);
-}
-.lyrics-tab-btn.active {
-    color: var(--accent-color);
-}
-.lyrics-tab-btn.active::after {
-    transform: scaleX(1);
 }
 .lyrics-content {
-    font-family: 'Segoe UI', Roboto, sans-serif;
     font-size: 15px;
     line-height: 2;
-    color: var(--text-primary);
-    margin: 0;
-    white-space: pre-wrap;
-    word-break: break-word;
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(0,0,0,0.05);
     border-radius: 6px;
     padding: 16px;
-    border: 1px solid var(--border-light);
     max-height: 400px;
     overflow-y: auto;
+    white-space: pre-wrap;
 }
 .lrc-line {
     padding: 8px 0;
     color: var(--text-muted);
-    transition: all 0.2s ease;
-    cursor: default;
 }
 .lrc-line.active {
     color: var(--accent-color);
     font-weight: bold;
     font-size: 16px;
-    text-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-}
-.play-all-btn {
-    font-family: 'Segoe UI', Roboto, sans-serif;
-    padding: 8px 16px;
-    background: var(--btn-download);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 8px var(--shadow);
-}
-.play-all-btn:hover {
-    transform: translateY(-3px);
 }
 
-/* ========== АДАПТИВНІСТЬ ========== */
-@media (max-width: 1024px) {
-    .top-controls { max-width: 700px; padding: 0 10px; }
-    .content { max-width: 680px; }
-    h1 { font-size: 64px; }
-    .beta-badge { font-size: 48px; }
-}
+/* ========== АДАПТИВНІСТЬ — ПЛАНШЕТ (до 768px) ========== */
 @media (max-width: 768px) {
-    body { padding: 16px; }
-    .top-controls { flex-direction: column; align-items: center; gap: 15px; }
-    .top-buttons { gap: 12px; }
-    .support-plus-btn { width: 56px; height: 56px; font-size: 30px; }
-    .theme-toggle-btn { font-size: 22px; padding: 8px 12px; }
-    .lang-buttons-row { gap: 12px; }
-    .lang-btn { padding: 10px 20px; font-size: 16px; min-height: 44px; }
-    h1 { font-size: 56px; }
-    .beta-badge { font-size: 42px; }
-    p#pageDescription { font-size: 20px; }
-    .search-input { font-size: 16px; padding: 14px 16px; }
-    .result-item { padding: 16px; }
-    .song-image { width: 80px; height: 80px; }
-    .result-info h3 { font-size: 18px; }
-    .play-btn, .download-btn { padding: 10px 16px; font-size: 14px; }
-    .like-btn { padding: 10px 12px; font-size: 18px; }
-    .player-section { padding: 20px; }
-    .now-playing { font-size: 15px; }
-    .lyrics-section { padding: 18px; }
-    .lyrics-content { font-size: 14px; max-height: 350px; }
-    .custom-player { padding: 10px 12px; }
-    .control-btn { font-size: 24px; }
-    .play-btn { font-size: 30px; width: 44px; height: 44px; }
-    .time-label { font-size: 11px; min-width: 35px; }
-}
-@media (max-width: 600px) {
-    .result-item { padding: 14px; }
-    .song-image { width: 75px; height: 75px; }
-    .play-btn, .download-btn { padding: 9px 14px; font-size: 13px; }
-    .player-section { padding: 18px; }
-    .now-playing { font-size: 14px; }
-}
-@media (max-width: 480px) {
-    body { padding: 12px; }
-    .support-plus-btn { width: 52px; height: 52px; font-size: 28px; }
-    .theme-toggle-btn { font-size: 20px; padding: 6px 10px; }
-    h1 { font-size: 48px; }
-    .beta-badge { font-size: 36px; }
-    .lang-btn { padding: 9px 18px; font-size: 15px; }
-    .search-input { padding: 12px 14px; font-size: 15px; }
-    .result-item { padding: 12px; }
-    .song-image { width: 70px; height: 70px; }
-    .play-btn, .download-btn { padding: 8px 12px; font-size: 12px; }
-    .like-btn { padding: 8px 10px; font-size: 16px; }
-    .player-section { padding: 16px; }
-    .now-playing { font-size: 13px; }
-    .lyrics-section { padding: 14px; }
-    .lyrics-content { font-size: 12px; max-height: 280px; }
-}
-
-/* Додатковий контраст для темної теми на телефонах */
-@media (max-width: 768px) {
-    body.dark-theme .search-results {
-        background: rgba(30, 47, 62, 0.9);
+    body {
         padding: 12px;
-        margin-top: 16px;
+    }
+
+    /* Заголовок */
+    h1 { font-size: 44px; margin-bottom: 4px; }
+    .beta-badge { font-size: 32px; margin-bottom: 2px; }
+    p { font-size: 18px; margin: 0 0 20px 0; }
+
+    /* Верхня панель */
+    .top-controls { margin-bottom: 8px; }
+    .support-plus-btn { width: 42px; height: 42px; font-size: 24px; }
+    .theme-toggle-btn { font-size: 18px; padding: 7px 10px; }
+    .lang-btn { font-size: 13px; padding: 7px 12px; }
+    .top-buttons { gap: 6px; }
+    .lang-buttons-row { gap: 6px; }
+
+    /* Кнопка туторіалу */
+    .tutorial-btn { font-size: 13px; padding: 8px 16px; margin-bottom: 12px; }
+
+    /* Пошук */
+    .search-section { margin-top: 20px; }
+    .search-input { padding: 11px 14px; font-size: 15px; }
+
+    /* Картка пісні */
+    .result-item {
+        padding: 12px;
+        gap: 10px;
+        margin: 10px 0;
+    }
+    .song-image { width: 60px; height: 60px; }
+    .result-info h3 { font-size: 14px; margin: 0 0 3px 0; }
+    .result-info p { font-size: 12px; margin: 0; }
+
+    /* Кнопки результатів */
+    .result-buttons { gap: 6px; min-width: 110px; }
+    .result-buttons .play-btn,
+    .result-buttons .download-btn {
+        font-size: 13px;
+        padding: 9px 10px;
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+    }
+    .result-buttons .like-btn {
+        font-size: 14px;
+        padding: 7px 10px;
+        border-radius: 8px;
+    }
+
+    /* Плейлисти */
+    .playlists-container { gap: 10px; margin-top: 16px; }
+    .playlist-item { padding: 12px; gap: 10px; margin: 8px 0; }
+    .playlist-item h3 { font-size: 1.1rem; margin-bottom: 4px; }
+    .playlist-item p { font-size: 0.8rem; margin-bottom: 3px; }
+    .view-btn, .back-btn, .play-all-btn { padding: 6px 12px; font-size: 13px; }
+
+    /* Плеєр */
+    .player-section { margin-top: 20px; padding: 16px 12px; }
+    .custom-player { padding: 8px 10px; max-width: 100%; }
+    .player-controls { gap: 12px; }
+    .control-btn { font-size: 22px; padding: 4px 8px; }
+    .play-btn { font-size: 26px; width: 40px; height: 40px; }
+    .time-label { font-size: 11px; min-width: 32px; }
+    .progress-container { gap: 8px; margin-bottom: 8px; }
+
+    /* Зараз грає */
+    .now-playing { padding: 8px 12px; gap: 8px; margin-top: 10px; font-size: 13px; }
+    .player-image { width: 36px; height: 36px; }
+
+    /* Еквалайзер */
+    .equalizer-sliders { gap: 8px; padding: 6px 10px; }
+    .equalizer-sliders label { font-size: 11px; gap: 5px; }
+    .equalizer-sliders input { width: 70px; }
+    .reset-eq-btn { font-size: 11px; padding: 4px 8px; }
+
+    /* Текст пісні */
+    .lyrics-section { padding: 14px; margin-top: 16px; }
+    .lyrics-section h2 { font-size: 16px; margin-bottom: 10px; }
+    .lyrics-content { font-size: 13px; line-height: 1.8; padding: 10px; max-height: 280px; }
+    .lyrics-tab-btn { padding: 7px 12px; font-size: 13px; }
+    .lrc-line { padding: 5px 0; }
+    .lrc-line.active { font-size: 14px; }
+
+    /* Темна тема на мобільних */
+    body.dark-theme .search-results {
+        background: rgba(30,47,62,0.9);
+        padding: 10px;
         border-radius: 6px;
     }
     body.dark-theme .now-playing,
     body.dark-theme .lyrics-section h2,
     body.dark-theme .lyrics-content,
-    body.dark-theme .no-results,
     body.dark-theme .result-info h3,
     body.dark-theme .result-info p {
         color: #ffffff !important;
         text-shadow: 0 1px 2px rgba(0,0,0,0.3);
     }
-    body.dark-theme .lyrics-tab-btn {
-        color: #c0c0c0;
-    }
-    body.dark-theme .lyrics-tab-btn.active {
-        color: var(--accent-color);
-    }
 }
+
+/* ========== АДАПТИВНІСТЬ — ТЕЛЕФОН (до 480px) ========== */
 @media (max-width: 480px) {
-    body.dark-theme .search-results {
-        background: rgba(30, 47, 62, 0.95);
-        padding: 8px;
+    body { padding: 8px; }
+
+    /* Заголовок */
+    h1 { font-size: 36px; }
+    .beta-badge { font-size: 26px; }
+    p { font-size: 15px; margin: 0 0 14px 0; }
+
+    /* Верхня панель */
+    .support-plus-btn { width: 36px; height: 36px; font-size: 20px; }
+    .theme-toggle-btn { font-size: 16px; padding: 6px 8px; }
+    .lang-btn { font-size: 12px; padding: 6px 10px; }
+
+    /* Пошук */
+    .search-input { padding: 10px 12px; font-size: 14px; }
+    .search-section { margin-top: 14px; }
+
+    /* Картка пісні — вертикальне розташування на дуже малих екранах */
+    .result-item {
+        flex-wrap: wrap;
+        padding: 10px;
+        gap: 8px;
     }
-    body.dark-theme .now-playing,
-    body.dark-theme .lyrics-section h2,
-    body.dark-theme .lyrics-content {
-        font-weight: bold;
-        letter-spacing: 0.3px;
+    .song-image { width: 50px; height: 50px; }
+    .result-info { min-width: 0; }
+    .result-info h3 { font-size: 13px; }
+    .result-info p { font-size: 11px; }
+
+    /* Кнопки — горизонтально на маленьких екранах */
+    .result-buttons {
+        flex-direction: row;
+        flex-wrap: wrap;
+        width: 100%;
+        min-width: unset;
+        gap: 5px;
     }
+    .result-buttons .play-btn,
+    .result-buttons .download-btn {
+        flex: 1;
+        font-size: 12px;
+        padding: 8px 6px;
+        border-radius: 7px;
+        min-width: 80px;
+    }
+    .result-buttons .like-btn {
+        font-size: 14px;
+        padding: 7px 10px;
+        border-radius: 7px;
+        flex: 0 0 auto;
+    }
+
+    /* Плейлисти */
+    .playlist-item { padding: 10px; }
+    .playlist-item h3 { font-size: 1rem; }
+
+    /* Плеєр */
+    .player-section { padding: 12px 8px; margin-top: 14px; }
+    .player-controls { gap: 8px; }
+    .control-btn { font-size: 20px; padding: 3px 6px; }
+    .play-btn { font-size: 22px; width: 36px; height: 36px; }
+
+    /* Текст пісні */
+    .lyrics-section { padding: 10px; }
+    .lyrics-section h2 { font-size: 14px; }
+    .lyrics-content { font-size: 12px; max-height: 220px; padding: 8px; }
+    .lyrics-tab-btn { padding: 6px 10px; font-size: 12px; }
 }
