@@ -26,16 +26,16 @@
         <h1>Grab music</h1>
         <p class="beta-badge">Beta test</p>
         <p id="pageDescription">Take music and lyrics</p>
-        
+ 
         <button onclick="openModal()" class="tutorial-btn">📖 Tutorial</button>
-        
+ 
         <div id="playlistsContainer" class="playlists-container"></div>
-        
+ 
         <div class="search-section">
             <input type="text" id="searchInput" placeholder="Search songs..." class="search-input" onkeyup="searchSongs()">
             <div id="searchResults" class="search-results"></div>
         </div>
-        
+ 
         <div class="player-section">
             <div id="eqControls" class="equalizer-sliders" style="display: none;">
                 <label>🔊 Bass <input type="range" id="bassSlider" min="-20" max="20" value="0" step="1"></label>
@@ -52,7 +52,7 @@
                 </div>
                 <div class="player-controls">
                     <button id="prevBtn" class="control-btn" title="Previous">⏮</button>
-                    <button id="playPauseBtn" class="control-btn play-btn" title="Play/Pause">▶</button>
+                    <button id="playPauseBtn" class="control-btn play-btn" title="Play/Pause"></button>
                     <button id="nextBtn" class="control-btn" title="Next">⏭</button>
                     <button id="loopBtn" class="control-btn loop-control-btn" title="Playlist loop">🔁</button>
                 </div>
@@ -65,6 +65,28 @@
             <pre id="lyricsContent" class="lyrics-content">Select a song to see lyrics.</pre>
         </div>
     </div>
+ 
+    <!-- ========== CONTACTS ========== -->
+    <footer class="contact-footer">
+        <div class="contact-block">
+            <h3 class="contact-title">📬 Contact us</h3>
+            <div class="contact-links">
+                <a href="https://t.me/ANDREW21812" target="_blank" class="contact-item contact-telegram">
+                    <span class="contact-icon">✈️</span>
+                    <span>Telegram: <strong>@ANDREW21812</strong></span>
+                </a>
+                <a href="tel:+380953898152" class="contact-item contact-phone">
+                    <span class="contact-icon">📞</span>
+                    <span>Phone: <strong>+380 095 389 8152</strong></span>
+                </a>
+            </div>
+        </div>
+        <div class="copyright-block">
+            <span class="copyright-icon">©</span>
+            <span>2025–2026 <strong>Grab Music</strong>. All rights reserved.<br>
+            Unauthorized copying and distribution is prohibited.</span>
+        </div>
+    </footer>
  
     <div id="tutorial-modal" class="modal">
         <div class="modal-content">
@@ -81,7 +103,7 @@
             <p>Everything is FREE 🎉<br>Premium is not needed!</p>
         </div>
     </div>
-
+ 
     <div id="settings-modal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeSettings()">&times;</span>
@@ -100,3 +122,4 @@
     <script src="./java.js"></script>
 </body>
 </html>
+ 

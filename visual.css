@@ -64,6 +64,8 @@ body {
     color: var(--text-primary);
     font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
     transition: background 0.3s, color 0.2s;
+    display: flex;
+    flex-direction: column;
 }
 
 /* ========== МОДАЛЬНІ ВІКНА (ЦЕНТР) ========== */
@@ -218,13 +220,22 @@ body.dark-theme .custom-player {
     color: var(--accent-color);
 }
 .play-btn {
-    font-size: 36px;
+    font-size: 24px;
+    line-height: 1;
     background: var(--accent-color);
     color: #1a2a3a;
-    width: 50px;
-    height: 50px;
+    width: 58px;
+    height: 58px;
     border-radius: 50%;
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    cursor: pointer;
+    /* ▶ оптично зміщений вправо — компенсуємо */
+    padding-left: 3px;
 }
 .play-btn:hover {
     transform: scale(1.08);
@@ -245,13 +256,18 @@ body.dark-theme .loop-control-btn.active {
 
 /* ========== ПЛЕЙЛИСТИ ========== */
 .playlist-item {
+    margin: 12px 0;
+    background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-dark) 100%);
+    border-radius: 12px;
+    overflow: hidden;
+}
+.playlist-header {
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 20px;
-    margin: 16px 0;
-    background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-dark) 100%);
-    border-radius: 6px;
+    padding: 18px 20px;
+    cursor: pointer;
+    user-select: none;
 }
 .playlist-info {
     flex: 1;
@@ -260,34 +276,77 @@ body.dark-theme .loop-control-btn.active {
 }
 .playlist-item h3 {
     font-family: 'Comfortaa', cursive;
-    font-size: 1.6rem;
+    font-size: 1.3rem;
     font-weight: 700;
-    margin: 0 0 8px 0;
+    margin: 0 0 4px 0;
 }
 .playlist-item p {
-    font-size: 0.9rem;
-    margin-bottom: 6px;
+    font-size: 0.85rem;
+    margin-bottom: 4px;
 }
 .playlist-item h3, .playlist-item p, .playlist-item small {
     color: #ffffff !important;
     text-shadow: 0 1px 1px rgba(0,0,0,0.15);
 }
+.playlist-header-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+    flex-shrink: 0;
+}
 .view-btn, .back-btn, .play-all-btn {
-    padding: 8px 16px;
+    padding: 8px 14px;
     background: white;
     color: var(--accent-dark);
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
+    font-size: 13px;
+    white-space: nowrap;
 }
 .back-btn {
     background: var(--accent-color);
     color: #1a2a3a;
 }
 .play-all-btn {
-    background: var(--btn-download);
-    color: white;
+    background: rgba(255,255,255,0.2);
+    color: #ffffff;
+    border: 1px solid rgba(255,255,255,0.5);
+}
+.play-all-btn:hover {
+    background: rgba(255,255,255,0.35);
+}
+.playlist-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s;
+}
+.playlist-toggle-btn.active {
+    background: rgba(255,255,255,0.15);
+    color: #ffffff;
+}
+.toggle-arrow {
+    font-size: 11px;
+    transition: transform 0.2s;
+    display: inline-block;
+}
+
+/* Випадаючий список пісень */
+.playlist-dropdown {
+    background: var(--card-bg);
+    border-top: 2px solid rgba(255,255,255,0.2);
+    padding: 8px 12px 12px;
+    animation: dropdownOpen 0.2s ease;
+}
+@keyframes dropdownOpen {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.playlist-dropdown .result-item {
+    margin: 8px 0;
 }
 
 /* ========== РЕЗУЛЬТАТИ ПОШУКУ ========== */
@@ -452,7 +511,10 @@ body.dark-theme .result-buttons .like-btn.liked {
     justify-content: space-between;
     align-items: flex-start;
     max-width: 900px;
+    width: 100%;
     margin: 0 auto 10px auto;
+    box-sizing: border-box;
+    flex-shrink: 0;
 }
 .top-buttons {
     display: flex;
@@ -492,6 +554,9 @@ body.dark-theme .result-buttons .like-btn.liked {
     text-align: center;
     max-width: 600px;
     margin: 0 auto;
+    flex: 1;
+    width: 100%;
+    box-sizing: border-box;
 }
 .support-plus-btn {
     width: 56px;
@@ -654,6 +719,96 @@ p {
     font-size: 16px;
 }
 
+/* ========== ФУТЕР: КОНТАКТИ І КОПІРАЙТ ========== */
+.contact-footer {
+    max-width: 600px;
+    width: 100%;
+    margin: auto auto 0;
+    padding: 60px 0 0 0;
+    text-align: center;
+    box-sizing: border-box;
+}
+.contact-block {
+    background: var(--card-bg);
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 16px var(--shadow);
+}
+.contact-title {
+    font-family: 'Comfortaa', cursive;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent-dark);
+    margin: 0 0 20px 0;
+}
+.contact-links {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+}
+.contact-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 24px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+    width: 100%;
+    max-width: 320px;
+    box-sizing: border-box;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+    color: #ffffff;
+}
+.contact-item:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.08);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+.contact-item:active {
+    transform: translateY(1px);
+}
+.contact-telegram {
+    background: linear-gradient(135deg, #2aabee 0%, #1a85c0 100%);
+    box-shadow: 0 3px 10px rgba(42, 171, 238, 0.35);
+}
+.contact-phone {
+    background: linear-gradient(135deg, #43c95a 0%, #1e8c35 100%);
+    box-shadow: 0 3px 10px rgba(30, 140, 53, 0.35);
+}
+.contact-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+.copyright-block {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 10px;
+    padding: 18px 24px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    text-align: left;
+}
+.copyright-icon {
+    font-size: 22px;
+    font-weight: bold;
+    color: var(--accent-color);
+    flex-shrink: 0;
+    line-height: 1.4;
+}
+.copyright-block strong {
+    color: var(--accent-dark);
+}
+
 /* ========== АДАПТИВНІСТЬ — ПЛАНШЕТ (до 768px) ========== */
 @media (max-width: 768px) {
     body {
@@ -708,10 +863,13 @@ p {
 
     /* Плейлисти */
     .playlists-container { gap: 10px; margin-top: 16px; }
-    .playlist-item { padding: 12px; gap: 10px; margin: 8px 0; }
-    .playlist-item h3 { font-size: 1.1rem; margin-bottom: 4px; }
-    .playlist-item p { font-size: 0.8rem; margin-bottom: 3px; }
-    .view-btn, .back-btn, .play-all-btn { padding: 6px 12px; font-size: 13px; }
+    .playlist-item { margin: 6px 0; border-radius: 10px; }
+    .playlist-header { padding: 12px 14px; gap: 8px; }
+    .playlist-item h3 { font-size: 1rem; margin-bottom: 2px; }
+    .playlist-item p { font-size: 0.78rem; margin-bottom: 2px; }
+    .playlist-header-btns { gap: 6px; }
+    .view-btn, .back-btn, .play-all-btn { padding: 6px 10px; font-size: 12px; }
+    .playlist-dropdown { padding: 6px 8px 10px; }
 
     /* Плеєр */
     .player-section { margin-top: 20px; padding: 16px 12px; }
@@ -740,8 +898,14 @@ p {
     .lrc-line { padding: 5px 0; }
     .lrc-line.active { font-size: 14px; }
 
-    /* Темна тема на мобільних */
-    body.dark-theme .search-results {
+    /* Футер */
+    .contact-footer { margin-top: 40px; padding: 0 0 24px 0; }
+    .contact-block { padding: 20px 18px; border-radius: 12px; }
+    .contact-title { font-size: 16px; margin-bottom: 14px; }
+    .contact-item { font-size: 13px; padding: 10px 16px; border-radius: 10px; }
+    .contact-icon { font-size: 16px; }
+    .copyright-block { font-size: 12px; padding: 14px 16px; border-radius: 10px; }
+    .copyright-icon { font-size: 18px; }
         background: rgba(30,47,62,0.9);
         padding: 10px;
         border-radius: 6px;
@@ -822,5 +986,17 @@ p {
     .lyrics-section { padding: 10px; }
     .lyrics-section h2 { font-size: 14px; }
     .lyrics-content { font-size: 12px; max-height: 220px; padding: 8px; }
-    .lyrics-tab-btn { padding: 6px 10px; font-size: 12px; }
+    /* Футер */
+    .contact-footer { margin-top: 28px; }
+    .contact-block { padding: 16px 12px; }
+    .contact-title { font-size: 14px; }
+    .contact-item { font-size: 12px; padding: 9px 12px; max-width: 100%; }
+    .copyright-block { font-size: 11px; padding: 12px; gap: 7px; }
+    .copyright-icon { font-size: 16px; }
+
+    /* Плейлисти */
+    .playlist-header { padding: 10px 12px; }
+    .playlist-item h3 { font-size: 0.95rem; }
+    .playlist-header-btns { flex-direction: row; align-items: center; }
+    .view-btn, .play-all-btn { padding: 5px 9px; font-size: 11px; }
 }
