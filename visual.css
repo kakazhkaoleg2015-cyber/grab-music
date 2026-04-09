@@ -336,9 +336,9 @@ body.dark-theme .loop-control-btn.active {
 
 /* Випадаючий список пісень */
 .playlist-dropdown {
-    background: var(--card-bg);
-    border-top: 2px solid rgba(255,255,255,0.2);
-    padding: 8px 12px 12px;
+    background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-dark) 100%);
+    border-top: 2px solid rgba(255,255,255,0.25);
+    padding: 10px 14px 14px;
     animation: dropdownOpen 0.2s ease;
 }
 @keyframes dropdownOpen {
@@ -347,6 +347,23 @@ body.dark-theme .loop-control-btn.active {
 }
 .playlist-dropdown .result-item {
     margin: 8px 0;
+    background: rgba(255,255,255,0.15);
+    border-left-color: rgba(255,255,255,0.6);
+    box-shadow: none;
+}
+.playlist-dropdown .result-info h3 {
+    color: #ffffff !important;
+    font-size: 15px;
+    margin: 0 0 4px 0;
+}
+.playlist-dropdown .result-info p {
+    color: rgba(255,255,255,0.85) !important;
+    font-size: 13px;
+    margin: 0;
+}
+body.dark-theme .playlist-dropdown .result-item {
+    background: rgba(0,0,0,0.2);
+    border-left-color: rgba(255,255,255,0.3);
 }
 
 /* ========== РЕЗУЛЬТАТИ ПОШУКУ ========== */
@@ -719,6 +736,16 @@ p {
     font-size: 16px;
 }
 
+/* ========== ПОВІДОМЛЕННЯ "НЕ ЗНАЙДЕНО" ========== */
+.no-results {
+    font-family: 'Comfortaa', cursive;
+    font-size: 15px;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 20px;
+    margin: 0;
+}
+
 /* ========== ФУТЕР: КОНТАКТИ І КОПІРАЙТ ========== */
 .contact-footer {
     max-width: 600px;
@@ -906,6 +933,9 @@ p {
     .contact-icon { font-size: 16px; }
     .copyright-block { font-size: 12px; padding: 14px 16px; border-radius: 10px; }
     .copyright-icon { font-size: 18px; }
+
+    /* Темна тема на мобільних */
+    body.dark-theme .search-results {
         background: rgba(30,47,62,0.9);
         padding: 10px;
         border-radius: 6px;

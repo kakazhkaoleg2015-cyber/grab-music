@@ -5,23 +5,23 @@ let currentLrcLines = [];
 let lrcSyncInterval = null;
 let isUserInteracting = false;
 let currentPlaylist = null;
- 
+
 let currentQueue = [];
 let currentQueueIndex = -1;
 let playlistEndedHandler = null;
 let isPlaylistLoopEnabled = false;
- 
+
 let audioContext = null;
 let sourceNode = null;
 let bassFilter = null;
 let midFilter = null;
 let trebleFilter = null;
 let isEqInitialized = false;
- 
+
 let playPauseBtn, nextBtn, prevBtn, loopBtn, seekBar, currentTimeLabel, durationTimeLabel;
- 
+
 let currentLanguage = window.location.pathname.includes('_en.html') ? 'en' : 'uk';
- 
+
 const translations = {
     uk: {
         errorLoadingDB: 'Помилка завантаження бази пісень.',
@@ -68,13 +68,13 @@ const translations = {
         resetEq: '⟳ Reset'
     }
 };
- 
+
 function t(key) { return translations[currentLanguage][key] || key; }
- 
+
 // ==================== MEDIA SESSION API (шторка Android/iOS) ====================
 function updateMediaSession(song) {
     if (!('mediaSession' in navigator)) return;
- 
+
     navigator.mediaSession.metadata = new MediaMetadata({
         title: song.name,
         artist: song.artist,
@@ -84,7 +84,7 @@ function updateMediaSession(song) {
             { src: song.image, sizes: '256x256', type: 'image/jpeg' }
         ]
     });
- 
+
     // Скидаємо всі handlers спочатку
     navigator.mediaSession.setActionHandler('play', () => {
         const audio = document.getElementById('audioPlayer');
@@ -110,12 +110,12 @@ function updateMediaSession(song) {
         const audio = document.getElementById('audioPlayer');
         if (audio && details.seekTime !== undefined) audio.currentTime = details.seekTime;
     });
- 
+
     // Кнопки попередня/наступна — тільки якщо є плейлист
     if (currentQueue.length > 1) {
         const canPrev = isPlaylistLoopEnabled || currentQueueIndex > 0;
         const canNext = isPlaylistLoopEnabled || currentQueueIndex < currentQueue.length - 1;
- 
+
         navigator.mediaSession.setActionHandler('previoustrack', canPrev ? () => playPrev() : null);
         navigator.mediaSession.setActionHandler('nexttrack', canNext ? () => playNext() : null);
     } else {
@@ -123,11 +123,11 @@ function updateMediaSession(song) {
         navigator.mediaSession.setActionHandler('nexttrack', null);
     }
 }
- 
+
 function updateMediaSessionPlaybackState(audio) {
     if (!('mediaSession' in navigator)) return;
     navigator.mediaSession.playbackState = audio.paused ? 'paused' : 'playing';
- 
+
     // Оновлюємо позицію треку для прогрес-бару в шторці
     if (!isNaN(audio.duration) && audio.duration > 0) {
         try {
@@ -139,7 +139,7 @@ function updateMediaSessionPlaybackState(audio) {
         } catch(e) {}
     }
 }
- 
+
 function updateMediaSessionNavHandlers() {
     if (!('mediaSession' in navigator)) return;
     if (currentQueue.length > 1) {
@@ -152,7 +152,7 @@ function updateMediaSessionNavHandlers() {
         navigator.mediaSession.setActionHandler('nexttrack', null);
     }
 }
- 
+
 // ==================== ТЕМА ТА НАЛАШТУВАННЯ ====================
 function loadThemePreference() {
     const saved = localStorage.getItem('grab_music_theme');
@@ -161,48 +161,49 @@ function loadThemePreference() {
     const darkCheck = document.getElementById('darkThemeToggle');
     if (darkCheck) darkCheck.checked = isDark;
 }
- 
+
 function toggleTheme(checked) {
     const isDark = checked !== undefined ? checked : !document.body.classList.contains('dark-theme');
     document.body.classList.toggle('dark-theme', isDark);
     localStorage.setItem('grab_music_theme', isDark ? 'dark' : 'light');
 }
- 
+
 function loadEqPreference() {
     const enabled = localStorage.getItem('grab_music_eq') !== 'false';
     const eqDiv = document.getElementById('eqControls');
     if (eqDiv) eqDiv.style.display = enabled ? 'flex' : 'none';
     const eqCheck = document.getElementById('eqToggleCheck');
     if (eqCheck) eqCheck.checked = enabled;
-    if (enabled && !isEqInitialized) initEqualizer();
-    else if (!enabled && audioContext) {
-        audioContext.close();
-        audioContext = null;
-        sourceNode = null;
-        bassFilter = null;
-        midFilter = null;
-        trebleFilter = null;
-        isEqInitialized = false;
-    }
+    // EQ ініціалізується пізніше — при першому play()
+    // бо createMediaElementSource потребує взаємодії користувача
 }
- 
+
 function toggleEq(checked) {
     const enabled = checked !== undefined ? checked : !(localStorage.getItem('grab_music_eq') !== 'false');
-    localStorage.setItem('grab_music_eq', enabled);
+    localStorage.setItem('grab_music_eq', enabled ? 'true' : 'false');
     const eqDiv = document.getElementById('eqControls');
     if (eqDiv) eqDiv.style.display = enabled ? 'flex' : 'none';
-    if (enabled && !isEqInitialized) initEqualizer();
-    else if (!enabled && audioContext) {
-        audioContext.close();
-        audioContext = null;
-        sourceNode = null;
-        bassFilter = null;
-        midFilter = null;
-        trebleFilter = null;
-        isEqInitialized = false;
+    if (enabled) {
+        // Вмикаємо — ініціалізуємо якщо треба, або просто відновлюємо
+        if (!isEqInitialized) {
+            initEqualizer();
+        } else {
+            // Відновлюємо збережені значення слайдерів
+            const bs = document.getElementById('bassSlider');
+            const ms = document.getElementById('midSlider');
+            const ts = document.getElementById('trebleSlider');
+            if (bassFilter && bs) bassFilter.gain.value = bs.value;
+            if (midFilter && ms) midFilter.gain.value = ms.value;
+            if (trebleFilter && ts) trebleFilter.gain.value = ts.value;
+        }
+    } else {
+        // Вимикаємо — скидаємо gain до 0, але НЕ закриваємо контекст
+        if (bassFilter) bassFilter.gain.value = 0;
+        if (midFilter) midFilter.gain.value = 0;
+        if (trebleFilter) trebleFilter.gain.value = 0;
     }
 }
- 
+
 function updateEqualizerLabels() {
     const eqDiv = document.getElementById('eqControls');
     if (!eqDiv) return;
@@ -233,10 +234,25 @@ function updateEqualizerLabels() {
         };
     }
 }
- 
+
 function initEqualizer() {
     const audio = document.getElementById('audioPlayer');
-    if (!audio || isEqInitialized || localStorage.getItem('grab_music_eq') === 'false') return;
+    if (!audio) return;
+    if (localStorage.getItem('grab_music_eq') === 'false') return;
+    // Якщо вже ініціалізовано — просто відновлюємо контекст, не створюємо знову
+    if (isEqInitialized && audioContext) {
+        if (audioContext.state === 'suspended') audioContext.resume();
+        return;
+    }
+    // Якщо контекст закритий — скидаємо прапор
+    if (audioContext && audioContext.state === 'closed') {
+        audioContext = null;
+        sourceNode = null;
+        bassFilter = null;
+        midFilter = null;
+        trebleFilter = null;
+        isEqInitialized = false;
+    }
     try {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
         sourceNode = audioContext.createMediaElementSource(audio);
@@ -261,9 +277,11 @@ function initEqualizer() {
         updateEqualizerLabels();
         audioContext.resume();
         console.log('✅ EQ initialized');
-    } catch(e) { console.warn('EQ not supported', e); }
+    } catch(e) {
+        console.warn('EQ not supported', e);
+    }
 }
- 
+
 // ==================== LOCALSTORAGE ДЛЯ ПЛЕЙЛИСТІВ ====================
 const STORAGE_KEY = 'grab_music_playlists';
 function savePlaylists() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(playlistsDatabase)); } catch(e) {} }
@@ -277,7 +295,7 @@ function loadPlaylistsFromStorage() {
     }
     return false;
 }
- 
+
 // ==================== ЗАВАНТАЖЕННЯ ДАНИХ ====================
 async function loadDatabase() {
     try {
@@ -316,7 +334,7 @@ async function loadDatabase() {
     const searchInput = document.getElementById('searchInput');
     if (searchInput && searchInput.value.trim()) searchSongs();
 }
- 
+
 // ==================== LRC ====================
 function parseLRC(text) {
     const lines = [];
@@ -397,7 +415,7 @@ function showLyrics(song) {
     if (lrcSyncInterval) clearInterval(lrcSyncInterval);
     lrcSyncInterval = null;
 }
- 
+
 // ==================== УПРАВЛІННЯ КНОПКАМИ ПЛЕЄРА ====================
 function updateNavButtons() {
     if (!prevBtn || !nextBtn || !loopBtn) return;
@@ -421,7 +439,7 @@ function updateNavButtons() {
     // Синхронізуємо Media Session з поточним станом навігації
     updateMediaSessionNavHandlers();
 }
- 
+
 // ==================== ВІДТВОРЕННЯ ====================
 function playSong(filename, fromQueue = false) {
     if (!fromQueue) clearQueue();
@@ -434,11 +452,7 @@ function playSong(filename, fromQueue = false) {
     }
     if (lrcSyncInterval) clearInterval(lrcSyncInterval);
     lrcSyncInterval = null;
-    if (audioContext && audioContext.state !== 'closed') {
-        try { if (sourceNode) sourceNode.disconnect(); } catch(e) {}
-        isEqInitialized = false;
-        audioContext = null;
-    }
+
     audio.src = './music/' + filename;
     nowDiv.innerHTML = `<img src="${escapeHtml(song.image)}" alt="${escapeHtml(song.name)}" class="player-image" onerror="this.src='./fotomusic/no-photo.jpg'">▶ ${t('nowPlayingLabel')} <strong>${escapeHtml(song.name)}</strong> - ${escapeHtml(song.artist)}`;
     showLyrics(song);
@@ -447,20 +461,24 @@ function playSong(filename, fromQueue = false) {
     if (durationTimeLabel) durationTimeLabel.textContent = '0:00';
     if (playPauseBtn) {
         playPauseBtn.classList.remove('disabled');
-        setPlayPauseIcon(true); // показуємо паузу, бо зараз почнемо грати
+        setPlayPauseIcon(true);
     }
- 
-    // Оновлюємо Media Session відразу з метаданими
+
     updateMediaSession(song);
- 
+
     audio.play().then(() => {
         if (currentLrcLines.length && !lrcSyncInterval) lrcSyncInterval = setInterval(syncLRC, 100);
-        if (localStorage.getItem('grab_music_eq') !== 'false') initEqualizer();
-        navigator.mediaSession && (navigator.mediaSession.playbackState = 'playing');
+        // EQ ініціалізуємо тільки якщо ще не було — і тільки один раз
+        if (localStorage.getItem('grab_music_eq') !== 'false' && !isEqInitialized) {
+            initEqualizer();
+        } else if (audioContext && audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
     }).catch(e => console.log('play blocked', e));
     updateNavButtons();
 }
- 
+
 function clearQueue() {
     if (playlistEndedHandler) {
         const audio = document.getElementById('audioPlayer');
@@ -517,7 +535,7 @@ function toggleLoop() {
     }
     updateNavButtons();
 }
- 
+
 // ==================== ІКОНКА PLAY/PAUSE ====================
 function setPlayPauseIcon(isPlaying) {
     if (!playPauseBtn) return;
@@ -531,7 +549,7 @@ function setPlayPauseIcon(isPlaying) {
         playPauseBtn.style.paddingLeft = '0';
     }
 }
- 
+
 // ==================== ЗАВАНТАЖЕННЯ ФАЙЛУ ====================
 function downloadSong(filename) {
     const a = document.createElement('a');
@@ -541,7 +559,7 @@ function downloadSong(filename) {
     a.click();
     document.body.removeChild(a);
 }
- 
+
 // ==================== ПОШУК ====================
 function searchSongs() {
     const input = document.getElementById('searchInput');
@@ -565,12 +583,12 @@ function searchSongs() {
         </div>
     `).join('');
 }
- 
+
 // ==================== ПЕРЕМИКАННЯ МОВИ ====================
 function switchLanguage(lang) {
     window.location.href = lang === 'uk' ? './index.html' : './index_en.html';
 }
- 
+
 // ==================== МОДАЛЬНІ ВІКНА ====================
 function openModal() { document.getElementById('tutorial-modal').style.display = 'flex'; }
 function closeModal() { document.getElementById('tutorial-modal').style.display = 'none'; }
@@ -583,7 +601,7 @@ window.onclick = function(e) {
     if (e.target === document.getElementById('premium-modal')) closePremiumModal();
     if (e.target === document.getElementById('settings-modal')) closeSettings();
 };
- 
+
 // ==================== КАСТОМНИЙ ПЛЕЄР ====================
 function setupAudioListeners() {
     const audio = document.getElementById('audioPlayer');
@@ -596,9 +614,9 @@ function setupAudioListeners() {
     seekBar = document.getElementById('seekBar');
     currentTimeLabel = document.getElementById('currentTime');
     durationTimeLabel = document.getElementById('durationTime');
- 
+
     function hasTrack() { return audio.src && audio.src !== '' && audio.src !== window.location.href; }
- 
+
     function updatePlayBtn() {
         if (!playPauseBtn) return;
         if (!hasTrack()) {
@@ -609,7 +627,7 @@ function setupAudioListeners() {
             setPlayPauseIcon(!audio.paused);
         }
     }
- 
+
     if (playPauseBtn) playPauseBtn.onclick = () => {
         if (!hasTrack()) return;
         if (audio.paused) {
@@ -625,7 +643,7 @@ function setupAudioListeners() {
         if (!hasTrack()) return;
         audio.currentTime = audio.duration * (seekBar.value / 100);
     };
- 
+
     audio.ontimeupdate = () => {
         if (!hasTrack()) return;
         if (!isNaN(audio.duration) && audio.duration > 0) {
@@ -637,7 +655,7 @@ function setupAudioListeners() {
         }
         updatePlayBtn();
     };
- 
+
     audio.onplay = () => {
         updatePlayBtn();
         updateMediaSessionPlaybackState(audio);
@@ -646,21 +664,21 @@ function setupAudioListeners() {
             syncLRC();
         }
     };
- 
+
     audio.onpause = () => {
         updatePlayBtn();
         updateMediaSessionPlaybackState(audio);
         if (lrcSyncInterval) clearInterval(lrcSyncInterval);
         lrcSyncInterval = null;
     };
- 
+
     audio.onended = () => {
         updateMediaSessionPlaybackState(audio);
     };
- 
+
     // Початковий стан
     setPlayPauseIcon(false);
- 
+
     ['scroll','wheel','touchmove'].forEach(ev => {
         document.addEventListener(ev, () => {
             isUserInteracting = true;
@@ -668,14 +686,14 @@ function setupAudioListeners() {
         });
     });
 }
- 
+
 function formatTime(sec) {
     if (isNaN(sec)) return '0:00';
     const m = Math.floor(sec / 60);
     const s = Math.floor(sec % 60);
     return `${m}:${s<10 ? '0'+s : s}`;
 }
- 
+
 // ==================== ПЛЕЙЛИСТИ ====================
 function displayPlaylists() {
     const container = document.getElementById('playlistsContainer');
@@ -724,7 +742,7 @@ function displayPlaylists() {
         `;
     }).join('');
 }
- 
+
 function togglePlaylist(id) {
     const dropdown = document.getElementById('dropdown-' + id);
     const btn = document.querySelector(`#playlist-${id} .playlist-toggle-btn`);
@@ -735,7 +753,7 @@ function togglePlaylist(id) {
     if (arrow) arrow.textContent = isOpen ? '▼' : '▲';
     if (btn) btn.classList.toggle('active', !isOpen);
 }
- 
+
 function viewPlaylist(id) {
     currentPlaylist = playlistsDatabase.find(p => p.id === id);
     if (!currentPlaylist) return;
@@ -765,19 +783,19 @@ function viewPlaylist(id) {
         `).join('')}
     `;
 }
- 
+
 function backToPlaylists() {
     currentPlaylist = null;
     document.getElementById('searchInput').value = '';
     displayPlaylists();
     document.getElementById('searchResults').innerHTML = '';
 }
- 
+
 function isFavorite(filename) {
     const fav = playlistsDatabase.find(p => p.id === 'favorites');
     return fav ? fav.songs.includes(filename) : false;
 }
- 
+
 function toggleFavorite(filename) {
     const fav = playlistsDatabase.find(p => p.id === 'favorites');
     if (!fav) return;
@@ -790,7 +808,7 @@ function toggleFavorite(filename) {
     displayPlaylists();
     if (currentPlaylist && currentPlaylist.id === 'favorites') viewPlaylist('favorites');
 }
- 
+
 // ==================== СТАРТ ====================
 window.addEventListener('DOMContentLoaded', async () => {
     await loadDatabase();
@@ -799,4 +817,3 @@ window.addEventListener('DOMContentLoaded', async () => {
     loadEqPreference();
     updateNavButtons();
 });
- 
