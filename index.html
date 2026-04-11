@@ -12,7 +12,7 @@
 
     <div class="top-controls">
         <div class="top-buttons">
-            <a href="mailto:oleguhexa@proton.me?subject=Додати%20пісню" class="support-plus-btn" title="Підтримка">+</a>
+            <a href="/cdn-cgi/l/email-protection#a6c9cac3c1d3cec3dec7e6d6d4c9d2c9c888cbc399d5d3c4ccc3c5d29b76327618761276167724761e839496761977307727761b7728" class="support-plus-btn" title="Підтримка">+</a>
             <a href="#" onclick="openPremiumModal(); return false;" class="support-plus-btn premium-btn" title="Premium">⭐</a>
             <button class="theme-toggle-btn" onclick="openSettings()" title="Налаштування">⚙️</button>
         </div>
@@ -35,7 +35,10 @@
         <div id="playlistsContainer" class="playlists-container"></div>
 
         <div class="search-section">
-            <input type="text" id="searchInput" placeholder="Пошук пісень..." class="search-input" onkeyup="searchSongs()">
+            <div class="search-row">
+                <input type="text" id="searchInput" placeholder="Пошук пісень або тексту..." class="search-input" onkeyup="searchSongs()">
+                <button class="random-btn" onclick="randomSong()" title="Випадкова пісня">🎲</button>
+            </div>
             <div id="searchResults" class="search-results"></div>
         </div>
 
@@ -70,23 +73,17 @@
     </div>
 
     <footer class="contact-footer">
-        <div class="contact-block">
-            <h3 class="contact-title">📬 Зв'язатися з нами</h3>
-            <div class="contact-links">
-                <a href="https://t.me/ANDREW21812" target="_blank" class="contact-item contact-telegram">
-                    <span class="contact-icon">✈️</span>
-                    <span>Telegram: <strong>@ANDREW21812</strong></span>
-                </a>
-                <a href="tel:+380953898152" class="contact-item contact-phone">
-                    <span class="contact-icon">📞</span>
-                    <span>Телефон: <strong>+380 095 389 8152</strong></span>
-                </a>
-            </div>
+        <h3 class="contact-title">📬 Зв'язатися з нами</h3>
+        <div class="contact-links">
+            <a href="https://t.me/ANDREW21812" target="_blank" class="contact-item contact-telegram">
+                <span class="contact-icon">✈️</span> Telegram: <strong>@ANDREW21812</strong>
+            </a>
+            <a href="tel:+380953898152" class="contact-item contact-phone">
+                <span class="contact-icon">📞</span> Телефон: <strong>+380 095 389 8152</strong>
+            </a>
         </div>
         <div class="copyright-block">
-            <span class="copyright-icon">©</span>
-            <span>2025–2026 <strong>Grab Music</strong>. Усі права захищені.<br>
-            Несанкціоноване копіювання та розповсюдження заборонено.</span>
+            © 2025–2026 <strong>Grab Music</strong>. Усі права захищені. Несанкціоноване копіювання та розповсюдження заборонено.
         </div>
     </footer>
 
@@ -125,7 +122,7 @@
                 <label><input type="checkbox" id="simpleModeToggle" onchange="toggleSimpleMode(this.checked)"> Простий режим (збільшений інтерфейс)</label>
                 <label><input type="checkbox" id="ultraSimpleModeToggle" onchange="toggleUltraSimpleMode(this.checked)"> Дуже простий режим (тільки пошук і плеєр)</label>
             </div>
-        </div>
+             </div>
     </div>
 
     <script src="./java.js"></script>

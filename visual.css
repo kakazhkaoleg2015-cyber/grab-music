@@ -629,6 +629,14 @@ p {
 .search-section {
     margin-top: 40px;
 }
+.search-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+    max-width: 460px;
+    margin: 0 auto;
+}
 .playlists-container {
     margin-top: 30px;
     display: grid;
@@ -789,6 +797,7 @@ body.ultra-simple-mode .content > h1,
 body.ultra-simple-mode .content > .beta-badge,
 body.ultra-simple-mode #pageDescription,
 body.ultra-simple-mode .tutorial-btn,
+body.ultra-simple-mode .news-btn,
 body.ultra-simple-mode #playlistsContainer,
 body.ultra-simple-mode #lyricsSection,
 body.ultra-simple-mode .contact-footer {
@@ -866,6 +875,39 @@ body.ultra-simple-mode .now-playing { font-size: 15px; }
 }
 body.ultra-simple-mode .ultra-simple-back-btn {
     display: flex;
+}
+
+.random-btn {
+    background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+    color: white;
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    font-size: 22px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 3px 10px rgba(124,58,237,0.35);
+    transition: transform 0.15s, filter 0.15s;
+    flex-shrink: 0;
+}
+.random-btn:hover {
+    transform: translateY(-2px) rotate(20deg);
+    filter: brightness(1.1);
+}
+.random-btn:active {
+    transform: scale(0.93);
+}
+.random-highlight {
+    border-left-color: #a855f7 !important;
+    animation: randomPop 0.35s ease;
+}
+@keyframes randomPop {
+    0%   { transform: scale(0.95); opacity: 0.5; }
+    60%  { transform: scale(1.03); }
+    100% { transform: scale(1);    opacity: 1; }
 }
 
 /* ========== НОВИНИ ========== */
@@ -988,89 +1030,53 @@ body.ultra-simple-mode .ultra-simple-back-btn {
     max-width: 600px;
     width: 100%;
     margin: auto auto 0;
-    padding: 60px 0 0 0;
+    padding: 50px 20px 30px;
     text-align: center;
     box-sizing: border-box;
+    border-top: 1px solid var(--border-light);
 }
-.contact-block {
-    background: var(--card-bg);
-    border: 1px solid var(--border-light);
-    border-radius: 16px;
-    padding: 28px 32px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 16px var(--shadow);
-}
+
 .contact-title {
     font-family: 'Comfortaa', cursive;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 700;
-    color: var(--accent-dark);
-    margin: 0 0 20px 0;
+    color: var(--text-muted);
+    margin: 0 0 14px 0;
 }
+
 .contact-links {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
     align-items: center;
+    margin-bottom: 20px;
 }
+
 .contact-item {
     display: inline-flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 24px;
-    border-radius: 12px;
+    gap: 8px;
     text-decoration: none;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 500;
-    width: 100%;
-    max-width: 320px;
-    box-sizing: border-box;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
-    color: #ffffff;
+    color: var(--accent-dark);
+    transition: opacity 0.15s;
 }
 .contact-item:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.08);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+    opacity: 0.75;
 }
-.contact-item:active {
-    transform: translateY(1px);
-}
-.contact-telegram {
-    background: linear-gradient(135deg, #2aabee 0%, #1a85c0 100%);
-    box-shadow: 0 3px 10px rgba(42, 171, 238, 0.35);
-}
-.contact-phone {
-    background: linear-gradient(135deg, #43c95a 0%, #1e8c35 100%);
-    box-shadow: 0 3px 10px rgba(30, 140, 53, 0.35);
-}
-.contact-icon {
-    font-size: 20px;
-    flex-shrink: 0;
-}
+.contact-telegram { color: #2aabee; }
+.contact-phone    { color: #43c95a; }
+
+.contact-icon { font-size: 16px; }
+
 .copyright-block {
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    gap: 10px;
-    padding: 18px 24px;
-    background: var(--card-bg);
-    border: 1px solid var(--border-light);
-    border-radius: 12px;
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-muted);
     line-height: 1.7;
-    text-align: left;
-}
-.copyright-icon {
-    font-size: 22px;
-    font-weight: bold;
-    color: var(--accent-color);
-    flex-shrink: 0;
-    line-height: 1.4;
 }
 .copyright-block strong {
-    color: var(--accent-dark);
+    color: var(--text-primary);
 }
 
 /* ========== АДАПТИВНІСТЬ — ПЛАНШЕТ (до 768px) ========== */
@@ -1164,12 +1170,9 @@ body.ultra-simple-mode .ultra-simple-back-btn {
 
     /* Футер */
     .contact-footer { margin-top: 40px; padding: 0 0 24px 0; }
-    .contact-block { padding: 20px 18px; border-radius: 12px; }
     .contact-title { font-size: 16px; margin-bottom: 14px; }
     .contact-item { font-size: 13px; padding: 10px 16px; border-radius: 10px; }
     .contact-icon { font-size: 16px; }
-    .copyright-block { font-size: 12px; padding: 14px 16px; border-radius: 10px; }
-    .copyright-icon { font-size: 18px; }
 
     /* Темна тема на мобільних */
     body.dark-theme .search-results {
@@ -1255,11 +1258,8 @@ body.ultra-simple-mode .ultra-simple-back-btn {
     .lyrics-content { font-size: 12px; max-height: 220px; padding: 8px; }
     /* Футер */
     .contact-footer { margin-top: 28px; }
-    .contact-block { padding: 16px 12px; }
     .contact-title { font-size: 14px; }
     .contact-item { font-size: 12px; padding: 9px 12px; max-width: 100%; }
-    .copyright-block { font-size: 11px; padding: 12px; gap: 7px; }
-    .copyright-icon { font-size: 16px; }
 
     /* Плейлисти */
     .playlist-header { padding: 10px 12px; }

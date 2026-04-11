@@ -12,7 +12,7 @@
 
     <div class="top-controls">
         <div class="top-buttons">
-            <a href="mailto:oleguhexa@proton.me?subject=Add%20song" class="support-plus-btn" title="Support">+</a>
+            <a href="/cdn-cgi/l/email-protection#b4dbd8d1d3c1dcd1ccd5f4c4c6dbc0dbda9ad9d18bc7c1d6ded1d7c089f5d0d0918684c7dbdad3" class="support-plus-btn" title="Support">+</a>
             <a href="#" onclick="openPremiumModal(); return false;" class="support-plus-btn premium-btn" title="Premium">⭐</a>
             <button class="theme-toggle-btn" onclick="openSettings()" title="Settings">⚙️</button>
         </div>
@@ -35,7 +35,10 @@
         <div id="playlistsContainer" class="playlists-container"></div>
 
         <div class="search-section">
-            <input type="text" id="searchInput" placeholder="Search songs..." class="search-input" onkeyup="searchSongs()">
+            <div class="search-row">
+                <input type="text" id="searchInput" placeholder="Search songs or lyrics..." class="search-input" onkeyup="searchSongs()">
+                <button class="random-btn" onclick="randomSong()" title="Random song">🎲</button>
+            </div>
             <div id="searchResults" class="search-results"></div>
         </div>
 
@@ -70,23 +73,17 @@
     </div>
 
     <footer class="contact-footer">
-        <div class="contact-block">
-            <h3 class="contact-title">📬 Contact us</h3>
-            <div class="contact-links">
-                <a href="https://t.me/ANDREW21812" target="_blank" class="contact-item contact-telegram">
-                    <span class="contact-icon">✈️</span>
-                    <span>Telegram: <strong>@ANDREW21812</strong></span>
-                </a>
-                <a href="tel:+380953898152" class="contact-item contact-phone">
-                    <span class="contact-icon">📞</span>
-                    <span>Phone: <strong>+380 095 389 8152</strong></span>
-                </a>
-            </div>
+        <h3 class="contact-title">📬 Contact us</h3>
+        <div class="contact-links">
+            <a href="https://t.me/ANDREW21812" target="_blank" class="contact-item contact-telegram">
+                <span class="contact-icon">✈️</span> Telegram: <strong>@ANDREW21812</strong>
+            </a>
+            <a href="tel:+380953898152" class="contact-item contact-phone">
+                <span class="contact-icon">📞</span> Phone: <strong>+380 095 389 8152</strong>
+            </a>
         </div>
         <div class="copyright-block">
-            <span class="copyright-icon">©</span>
-            <span>2025–2026 <strong>Grab Music</strong>. All rights reserved.<br>
-            Unauthorized copying and distribution is prohibited.</span>
+            © 2025–2026 <strong>Grab Music</strong>. All rights reserved. Unauthorized copying and distribution is prohibited.
         </div>
     </footer>
 
