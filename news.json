@@ -8,5 +8,15 @@
         "text_en": "Welcome! Grab Music has officially launched its first public beta version 1.0!\n\nWhat's in beta 1.0:\n• Search songs by title and artist\n• Built-in player with equalizer\n• Song lyrics sync (LRC)\n• Playlists and favorite songs\n• Support for Android, iOS and PC\n• Dark and light theme\n• Simple and ultra simple mode\n\nThank you to everyone who supports the project! 💙\nHave ideas or found a bug? Write to us on Telegram: @ANDREW21812",
         "tag_uk": "Реліз",
         "tag_en": "Release"
+    },
+    {
+        "id": 2,
+        "date":"2026-04-11",
+        "title_uk":"🔁 Нова версія оновлень (1.1.1.0)!",
+        "title_en":"🔁 New version for updetes (1.1.1.0)!",
+        "text_uk":"На нашому сайті вийшла нова версія назв для оновлень\nОсь як вона працює:\n1.Перша цифра (1):Єпоха (1=Бета 2=Пре-реліз 3=Реліз)\n2.Друга цифра (1):Номер оновлення\n3.Третя цифра (1): Кількість доданих функцій\n4.Четверта цифра (1):Кількість доданих пісень",
+        "text_en":"A new version of update names has been released on our website\nHere’s how it works:\n1. First digit (1): Era (1=Beta, 2=Pre-release, 3=Release)\n2. Second digit (1): Update number\n3. Third digit (1): Number of features added\n4. Fourth digit (1): Number of songs added",
+        "tag_uk":"Оновлення",
+        "tag_en":"Update"
     }
 ]
