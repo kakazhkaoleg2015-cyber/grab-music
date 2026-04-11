@@ -219,7 +219,7 @@ body.dark-theme .custom-player {
     transform: scale(1.05);
     color: var(--accent-color);
 }
-.play-btn {
+.player-play-btn {
     font-size: 24px;
     line-height: 1;
     background: var(--accent-color);
@@ -232,15 +232,14 @@ body.dark-theme .custom-player {
     align-items: center;
     justify-content: center;
     padding: 0;
+    padding-left: 3px;
     border: none;
     cursor: pointer;
-    /* ▶ оптично зміщений вправо — компенсуємо */
-    padding-left: 3px;
 }
-.play-btn:hover {
+.player-play-btn:hover {
     transform: scale(1.08);
 }
-body.dark-theme .play-btn {
+body.dark-theme .player-play-btn {
     background: #4a7aa0;
     color: white;
 }
@@ -387,6 +386,26 @@ body.dark-theme .playlist-dropdown .result-item {
 .result-info {
     flex: 1;
     text-align: left;
+    min-width: 0;
+    overflow: hidden;
+}
+.result-info h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 4px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.result-info p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: 'Segoe UI', Roboto, sans-serif;
 }
 .result-buttons {
     display: flex;
@@ -628,12 +647,15 @@ p {
     border-radius: 6px;
     background: var(--search-bg);
     color: var(--search-text);
+    box-sizing: border-box;
 }
 .search-results {
     margin-top: 20px;
     max-width: 500px;
     margin-left: auto;
     margin-right: auto;
+    width: 100%;
+    box-sizing: border-box;
 }
 .player-section {
     margin-top: 50px;
@@ -734,6 +756,221 @@ p {
     color: var(--accent-color);
     font-weight: bold;
     font-size: 16px;
+}
+
+/* ========== ПРОСТИЙ РЕЖИМ (збільшений інтерфейс) ========== */
+body.simple-mode {
+    font-size: 20px;
+}
+body.simple-mode h1 { font-size: 90px; }
+body.simple-mode .beta-badge { font-size: 65px; }
+body.simple-mode p { font-size: 36px; }
+body.simple-mode .search-input { font-size: 20px; padding: 18px 22px; max-width: 480px; }
+body.simple-mode .result-info h3 { font-size: 19px; }
+body.simple-mode .result-info p  { font-size: 16px; }
+body.simple-mode .result-buttons .play-btn,
+body.simple-mode .result-buttons .download-btn { font-size: 17px; padding: 14px 18px; }
+body.simple-mode .result-buttons .like-btn { font-size: 20px; padding: 13px 16px; }
+body.simple-mode .song-image { width: 90px; height: 90px; }
+body.simple-mode .player-play-btn { width: 66px; height: 66px; font-size: 28px; }
+body.simple-mode .control-btn { font-size: 34px; }
+body.simple-mode .time-label { font-size: 16px; }
+body.simple-mode .lang-btn { font-size: 19px; padding: 12px 22px; }
+body.simple-mode .theme-toggle-btn { font-size: 28px; padding: 12px 18px; }
+body.simple-mode .support-plus-btn { width: 64px; height: 64px; font-size: 40px; }
+body.simple-mode .tutorial-btn { font-size: 18px; padding: 14px 28px; }
+body.simple-mode .lyrics-content { font-size: 18px; line-height: 2.2; }
+body.simple-mode .lyrics-tab-btn { font-size: 17px; padding: 12px 22px; }
+body.simple-mode .now-playing { font-size: 17px; }
+
+/* ========== ДУЖЕ ПРОСТИЙ РЕЖИМ ========== */
+body.ultra-simple-mode .top-controls,
+body.ultra-simple-mode .content > h1,
+body.ultra-simple-mode .content > .beta-badge,
+body.ultra-simple-mode #pageDescription,
+body.ultra-simple-mode .tutorial-btn,
+body.ultra-simple-mode #playlistsContainer,
+body.ultra-simple-mode #lyricsSection,
+body.ultra-simple-mode .contact-footer {
+    display: none !important;
+}
+body.ultra-simple-mode {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+body.ultra-simple-mode .content {
+    max-width: 520px;
+    width: 100%;
+    padding: 20px 16px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+body.ultra-simple-mode .search-section {
+    margin-top: 0;
+    width: 100%;
+    text-align: center;
+}
+body.ultra-simple-mode .search-input {
+    max-width: 100%;
+    width: 100%;
+    font-size: 18px;
+    padding: 16px 18px;
+}
+body.ultra-simple-mode .search-results {
+    max-width: 100%;
+    width: 100%;
+}
+body.ultra-simple-mode .result-item {
+    padding: 14px;
+    gap: 12px;
+}
+body.ultra-simple-mode .result-info h3 { font-size: 17px; }
+body.ultra-simple-mode .result-info p  { font-size: 14px; }
+body.ultra-simple-mode .result-buttons .play-btn,
+body.ultra-simple-mode .result-buttons .download-btn { font-size: 16px; padding: 13px 14px; }
+body.ultra-simple-mode .result-buttons .like-btn { font-size: 18px; }
+body.ultra-simple-mode .player-section {
+    margin-top: 16px;
+    padding: 16px 12px;
+    width: 100%;
+    box-sizing: border-box;
+}
+body.ultra-simple-mode .player-play-btn { width: 62px; height: 62px; }
+body.ultra-simple-mode .control-btn { font-size: 30px; }
+body.ultra-simple-mode .now-playing { font-size: 15px; }
+
+/* Кнопка повернення у кутку */
+.ultra-simple-back-btn {
+    display: none;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 9999;
+    background: var(--accent-color);
+    color: #1a2a3a;
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    font-size: 22px;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    align-items: center;
+    justify-content: center;
+}
+body.ultra-simple-mode .ultra-simple-back-btn {
+    display: flex;
+}
+
+/* ========== НОВИНИ ========== */
+.news-btn {
+    background: linear-gradient(135deg, #ff6b81 0%, #c0392b 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 15px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    box-shadow: 0 3px 10px rgba(192,57,43,0.3);
+    transition: transform 0.15s, filter 0.15s;
+}
+.news-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.08);
+}
+.news-btn .news-badge {
+    background: white;
+    color: #c0392b;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Модальне вікно новин */
+#news-modal .modal-content {
+    max-width: 560px;
+    text-align: left;
+    padding: 24px;
+}
+#news-modal .modal-content h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+.news-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+.news-card {
+    background: var(--bg-gradient-end);
+    border-radius: 12px;
+    padding: 18px 20px;
+    border-left: 4px solid var(--accent-dark);
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+.news-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px var(--shadow);
+}
+.news-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+.news-tag {
+    background: var(--accent-color);
+    color: #1a2a3a;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 3px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+.news-date {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+.news-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 8px 0;
+    font-family: 'Comfortaa', cursive;
+}
+.news-card p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.6;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    white-space: pre-wrap;
+}
+.news-empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 30px;
+    font-size: 15px;
 }
 
 /* ========== ПОВІДОМЛЕННЯ "НЕ ЗНАЙДЕНО" ========== */
@@ -903,7 +1140,7 @@ p {
     .custom-player { padding: 8px 10px; max-width: 100%; }
     .player-controls { gap: 12px; }
     .control-btn { font-size: 22px; padding: 4px 8px; }
-    .play-btn { font-size: 26px; width: 40px; height: 40px; }
+    .player-play-btn { font-size: 26px; width: 40px; height: 40px; }
     .time-label { font-size: 11px; min-width: 32px; }
     .progress-container { gap: 8px; margin-bottom: 8px; }
 
@@ -1010,7 +1247,7 @@ p {
     .player-section { padding: 12px 8px; margin-top: 14px; }
     .player-controls { gap: 8px; }
     .control-btn { font-size: 20px; padding: 3px 6px; }
-    .play-btn { font-size: 22px; width: 36px; height: 36px; }
+    .player-play-btn { font-size: 22px; width: 36px; height: 36px; }
 
     /* Текст пісні */
     .lyrics-section { padding: 10px; }

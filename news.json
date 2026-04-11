@@ -1,0 +1,12 @@
+[
+    {
+        "id": 1,
+        "date": "2026-04-11",
+        "title_uk": "🎉 Вийшла Бета 1.0!",
+        "title_en": "🎉 Beta 1.0 Released!",
+        "text_uk": "Вітаємо! Grab Music офіційно запустив свою першу публічну бета-версію 1.0!\n\nЩо є в бета 1.0:\n• Пошук пісень по назві та виконавцю\n• Вбудований плеєр з еквалайзером\n• Синхронізація тексту пісні (LRC)\n• Плейлисти та улюблені пісні\n• Підтримка Android, iOS та ПК\n• Темна та світла тема\n• Простий і дуже простий режим\n\nДякуємо всім хто підтримує проєкт! 💙\nМаєш ідеї або знайшов баг? Пиши нам у Telegram: @ANDREW21812",
+        "text_en": "Welcome! Grab Music has officially launched its first public beta version 1.0!\n\nWhat's in beta 1.0:\n• Search songs by title and artist\n• Built-in player with equalizer\n• Song lyrics sync (LRC)\n• Playlists and favorite songs\n• Support for Android, iOS and PC\n• Dark and light theme\n• Simple and ultra simple mode\n\nThank you to everyone who supports the project! 💙\nHave ideas or found a bug? Write to us on Telegram: @ANDREW21812",
+        "tag_uk": "Реліз",
+        "tag_en": "Release"
+    }
+]

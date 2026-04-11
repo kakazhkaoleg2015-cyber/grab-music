@@ -8,11 +8,13 @@
     <link rel="stylesheet" href="./visual.css">
 </head>
 <body>
+    <button class="ultra-simple-back-btn" onclick="disableUltraSimpleMode()" title="Back">←</button>
+
     <div class="top-controls">
         <div class="top-buttons">
             <a href="mailto:oleguhexa@proton.me?subject=Add%20song" class="support-plus-btn" title="Support">+</a>
             <a href="#" onclick="openPremiumModal(); return false;" class="support-plus-btn premium-btn" title="Premium">⭐</a>
-            <button id="settingsBtn" class="theme-toggle-btn" onclick="openSettings()" title="Settings">⚙️</button>
+            <button class="theme-toggle-btn" onclick="openSettings()" title="Settings">⚙️</button>
         </div>
         <div class="language-buttons">
             <div class="lang-buttons-row">
@@ -21,27 +23,28 @@
             </div>
         </div>
     </div>
- 
+
     <div class="content">
         <h1>Grab music</h1>
-        <p class="beta-badge">Pre-release</p>
+        <p class="beta-badge">Beta test</p>
         <p id="pageDescription">Take music and lyrics</p>
- 
+
         <button onclick="openModal()" class="tutorial-btn">📖 Tutorial</button>
- 
+        <button onclick="openNews()" class="news-btn">📰 News <span class="news-badge" id="newsBadge">1</span></button>
+
         <div id="playlistsContainer" class="playlists-container"></div>
- 
+
         <div class="search-section">
             <input type="text" id="searchInput" placeholder="Search songs..." class="search-input" onkeyup="searchSongs()">
             <div id="searchResults" class="search-results"></div>
         </div>
- 
+
         <div class="player-section">
             <div id="eqControls" class="equalizer-sliders" style="display: none;">
                 <label>🔊 Bass <input type="range" id="bassSlider" min="-20" max="20" value="0" step="1"></label>
                 <label>🎵 Mid <input type="range" id="midSlider" min="-20" max="20" value="0" step="1"></label>
                 <label>🎶 Treble <input type="range" id="trebleSlider" min="-20" max="20" value="0" step="1"></label>
-                <button id="resetEqBtn" class="reset-eq-btn" title="Reset">⟳ Reset</button>
+                <button id="resetEqBtn" class="reset-eq-btn">⟳ Reset</button>
             </div>
             <audio id="audioPlayer"></audio>
             <div class="custom-player">
@@ -52,21 +55,20 @@
                 </div>
                 <div class="player-controls">
                     <button id="prevBtn" class="control-btn" title="Previous">⏮</button>
-                    <button id="playPauseBtn" class="control-btn play-btn" title="Play/Pause"></button>
+                    <button id="playPauseBtn" class="control-btn player-play-btn" title="Play/Pause"></button>
                     <button id="nextBtn" class="control-btn" title="Next">⏭</button>
-                    <button id="loopBtn" class="control-btn loop-control-btn" title="Playlist loop">🔁</button>
+                    <button id="loopBtn" class="control-btn loop-control-btn" title="Loop">🔁</button>
                 </div>
             </div>
             <div id="nowPlaying" class="now-playing">▶ Now playing:</div>
         </div>
- 
+
         <div id="lyricsSection" class="lyrics-section">
             <h2 id="lyricsTitle">Lyrics</h2>
             <pre id="lyricsContent" class="lyrics-content">Select a song to see lyrics.</pre>
         </div>
     </div>
- 
-    <!-- ========== CONTACTS ========== -->
+
     <footer class="contact-footer">
         <div class="contact-block">
             <h3 class="contact-title">📬 Contact us</h3>
@@ -87,15 +89,24 @@
             Unauthorized copying and distribution is prohibited.</span>
         </div>
     </footer>
- 
+
+    <!-- News modal -->
+    <div id="news-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeNews()">&times;</span>
+            <h2>📰 News</h2>
+            <div id="newsList" class="news-list"></div>
+        </div>
+    </div>
+
     <div id="tutorial-modal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
             <h2>🎵 Tutorial</h2>
-            <p>I'm so lazy that I didn't write a song list. Just type any letters in the search, and the site will find everything!</p>
+            <p>Just type any letters in the search and the site will find everything!</p>
         </div>
     </div>
- 
+
     <div id="premium-modal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closePremiumModal()">&times;</span>
@@ -103,23 +114,20 @@
             <p>Everything is FREE 🎉<br>Premium is not needed!</p>
         </div>
     </div>
- 
+
     <div id="settings-modal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeSettings()">&times;</span>
             <h2>⚙️ Settings</h2>
-            <div style="display: flex; flex-direction: column; gap: 15px; margin: 20px 0; text-align: left;">
-                <label>
-                    <input type="checkbox" id="darkThemeToggle" onchange="toggleTheme(this.checked)"> Dark theme
-                </label>
-                <label>
-                    <input type="checkbox" id="eqToggleCheck" onchange="toggleEq(this.checked)"> Equalizer
-                </label>
+            <div style="display:flex;flex-direction:column;gap:15px;margin:20px 0;text-align:left;">
+                <label><input type="checkbox" id="darkThemeToggle" onchange="toggleTheme(this.checked)"> Dark theme</label>
+                <label><input type="checkbox" id="eqToggleCheck" onchange="toggleEq(this.checked)"> Equalizer</label>
+                <label><input type="checkbox" id="simpleModeToggle" onchange="toggleSimpleMode(this.checked)"> Simple mode (larger interface)</label>
+                <label><input type="checkbox" id="ultraSimpleModeToggle" onchange="toggleUltraSimpleMode(this.checked)"> Ultra simple mode (search and player only)</label>
             </div>
         </div>
     </div>
- 
+
     <script src="./java.js"></script>
 </body>
 </html>
- 
