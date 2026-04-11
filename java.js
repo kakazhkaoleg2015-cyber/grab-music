@@ -530,16 +530,38 @@ function setPlayPauseIcon(isPlaying) {
     }
 }
 
+let isRandomMode = false;
+
 // ==================== НАВІГАЦІЯ ====================
 function updateNavButtons() {
     if (!prevBtn || !nextBtn || !loopBtn) return;
-    if (currentQueue.length <= 1) {
+
+    const randomBtn = document.getElementById('randomModeBtn');
+
+    // Кнопка рандомного режиму — завжди видима якщо є треки в БД
+    if (randomBtn) {
+        randomBtn.style.display = songsDatabase.length ? 'inline-flex' : 'none';
+        randomBtn.classList.toggle('active', isRandomMode);
+    }
+
+    if (currentQueue.length <= 1 && !isRandomMode) {
         prevBtn.style.display = 'none';
         nextBtn.style.display = 'none';
         loopBtn.style.display = 'none';
         return;
     }
+
+    // В рандомному режимі — ховаємо prev/loop, показуємо лише next
+    if (isRandomMode) {
+        prevBtn.style.display = 'none';
+        loopBtn.style.display = 'none';
+        nextBtn.style.display = 'inline-flex';
+        nextBtn.title = currentLanguage === 'uk' ? 'Наступна випадкова' : 'Next random';
+        return;
+    }
+
     loopBtn.style.display = 'inline-flex';
+    nextBtn.title = currentLanguage === 'uk' ? 'Далі' : 'Next';
     if (isPlaylistLoopEnabled) {
         prevBtn.style.display = 'inline-flex';
         nextBtn.style.display = 'inline-flex';
@@ -548,6 +570,36 @@ function updateNavButtons() {
         nextBtn.style.display = currentQueueIndex === currentQueue.length - 1 ? 'none' : 'inline-flex';
     }
     updateMediaSessionNavHandlers();
+}
+
+function toggleRandomMode() {
+    isRandomMode = !isRandomMode;
+    if (isRandomMode) {
+        // Вимикаємо loop якщо був
+        isPlaylistLoopEnabled = false;
+        if (loopBtn) loopBtn.classList.remove('active');
+        // Підключаємо ended → playNextRandom
+        const audio = document.getElementById('audioPlayer');
+        if (audio) {
+            if (playlistEndedHandler) audio.removeEventListener('ended', playlistEndedHandler);
+            playlistEndedHandler = () => playNextRandom();
+            audio.addEventListener('ended', playlistEndedHandler);
+        }
+    } else {
+        // Відключаємо ended → playNextRandom
+        const audio = document.getElementById('audioPlayer');
+        if (audio && playlistEndedHandler) {
+            audio.removeEventListener('ended', playlistEndedHandler);
+            playlistEndedHandler = null;
+        }
+    }
+    updateNavButtons();
+}
+
+function playNextRandom() {
+    if (!songsDatabase.length) return;
+    const song = songsDatabase[Math.floor(Math.random() * songsDatabase.length)];
+    playSong(song.file, true);
 }
 
 // ==================== ВІДТВОРЕННЯ ====================
@@ -575,11 +627,16 @@ function playSong(filename, fromQueue = false) {
     audio.play().then(() => {
         if (currentLrcLines.length && !lrcSyncInterval) lrcSyncInterval = setInterval(syncLRC, 100);
 
-        // EQ — ініціалізуємо тільки один раз
         if (localStorage.getItem('grab_music_eq') !== 'false' && !isEqInitialized) {
             initEqualizer();
         } else if (audioContext && audioContext.state === 'suspended') {
             audioContext.resume();
+        }
+
+        // Рандомний режим — підключаємо ended якщо ще не підключено
+        if (isRandomMode && !playlistEndedHandler) {
+            playlistEndedHandler = () => playNextRandom();
+            audio.addEventListener('ended', playlistEndedHandler);
         }
 
         if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
@@ -592,19 +649,22 @@ function playSong(filename, fromQueue = false) {
 }
 
 function clearQueue() {
-    if (playlistEndedHandler) {
-        const audio = document.getElementById('audioPlayer');
-        if (audio) audio.removeEventListener('ended', playlistEndedHandler);
+    const audio = document.getElementById('audioPlayer');
+    if (playlistEndedHandler && audio) {
+        audio.removeEventListener('ended', playlistEndedHandler);
         playlistEndedHandler = null;
     }
     currentQueue = [];
     currentQueueIndex = -1;
     isPlaylistLoopEnabled = false;
+    // Рандомний режим НЕ скидаємо — він незалежний
     if (loopBtn) loopBtn.classList.remove('active');
     updateNavButtons();
 }
 
 function playNext() {
+    // В рандомному режимі — грати рандомну
+    if (isRandomMode) { playNextRandom(); return; }
     if (currentQueue.length <= 1) return;
     let next = currentQueueIndex + 1;
     if (next >= currentQueue.length) {

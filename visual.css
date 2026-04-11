@@ -243,12 +243,14 @@ body.dark-theme .player-play-btn {
     background: #4a7aa0;
     color: white;
 }
-.loop-control-btn.active {
+.loop-control-btn.active,
+.random-mode-btn.active {
     background: var(--accent-color);
     color: #1a2a3a;
     border-radius: 6px;
 }
-body.dark-theme .loop-control-btn.active {
+body.dark-theme .loop-control-btn.active,
+body.dark-theme .random-mode-btn.active {
     background: #4a7aa0;
     color: white;
 }
