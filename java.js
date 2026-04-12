@@ -210,6 +210,7 @@ function initEqualizer() {
         startSilentOscillator();
         startKeepAlive();
         updateEqualizerLabels();
+        initBassAnalyser();
         console.log('✅ EQ initialized');
     } catch(e) {
         console.warn('EQ init failed:', e);
@@ -282,7 +283,107 @@ function toggleEq(checked) {
     }
 }
 
-// ==================== ТЕМА ====================
+// ==================== BASS SHAKE ЕФЕКТ ====================
+let analyser = null;
+let shakeInterval = null;
+let shakeAnimFrame = null;
+
+function initBassAnalyser() {
+    if (!audioContext || analyser) return;
+    try {
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        analyser.smoothingTimeConstant = 0.7;
+        // Підключаємо після trebleFilter щоб аналізувати фінальний сигнал
+        trebleFilter.connect(analyser);
+        startBassShake();
+        console.log('✅ Bass analyser initialized');
+    } catch(e) {
+        console.warn('Bass analyser failed:', e);
+    }
+}
+
+function startBassShake() {
+    if (shakeAnimFrame) cancelAnimationFrame(shakeAnimFrame);
+    if (localStorage.getItem('grab_music_shake') === 'false') return;
+
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    let lastShake = 0;
+
+    function tick() {
+        shakeAnimFrame = requestAnimationFrame(tick);
+        if (localStorage.getItem('grab_music_shake') === 'false') {
+            document.body.style.transform = '';
+            return;
+        }
+        // Не трясемо якщо відкрита модалка
+        const anyModalOpen = document.querySelector('.modal[style*="flex"]');
+        if (anyModalOpen) {
+            document.body.style.transform = '';
+            return;
+        }
+        analyser.getByteFrequencyData(data);
+
+        const bass = (data[0] + data[1] + data[2] + data[3]) / 4;
+        const now = Date.now();
+
+        // Поріг 185 — тільки дуже сильний бас
+        if (bass > 185 && now - lastShake > 110) {
+            lastShake = now;
+            // sliderVal 0..50 → px 0..10
+            const sliderVal = parseInt(localStorage.getItem('grab_music_shake_intensity') ?? '25');
+            const intensity = Math.min((bass - 178) / 77, 1);
+            const px = Math.round(intensity * (sliderVal / 5));
+            if (px >= 1) {
+                const dir = Math.random() > 0.5 ? 1 : -1;
+                document.body.style.transform = `translateX(${dir * px}px)`;
+                setTimeout(() => { document.body.style.transform = ''; }, 65);
+            }
+        }
+    }
+    tick();
+}
+
+function stopBassShake() {
+    if (shakeAnimFrame) { cancelAnimationFrame(shakeAnimFrame); shakeAnimFrame = null; }
+    document.body.style.transform = '';
+}
+
+function loadShakePreference() {
+    const enabled = localStorage.getItem('grab_music_shake') !== 'false';
+    const check = document.getElementById('shakeToggle');
+    if (check) check.checked = enabled;
+    const slider = document.getElementById('shakeIntensity');
+    if (slider) slider.value = localStorage.getItem('grab_music_shake_intensity') ?? '25';
+    updateShakeIntensityLabel();
+}
+
+function updateShakeIntensityLabel() {
+    const slider = document.getElementById('shakeIntensity');
+    const label  = document.getElementById('shakeIntensityLabel');
+    if (slider && label) label.textContent = slider.value;
+}
+
+function setShakeIntensity(val) {
+    localStorage.setItem('grab_music_shake_intensity', val);
+    updateShakeIntensityLabel();
+}
+
+function onShakeIntensityChange(val) {
+    localStorage.setItem('grab_music_shake_intensity', val);
+    updateShakeIntensityLabel();
+}
+
+function toggleShake(checked) {
+    const enabled = checked !== undefined ? checked : !(localStorage.getItem('grab_music_shake') !== 'false');
+    localStorage.setItem('grab_music_shake', enabled ? 'true' : 'false');
+    if (!enabled) {
+        document.body.style.transform = '';
+    } else if (analyser) {
+        startBassShake();
+    }
+}
+
 function loadThemePreference() {
     const isDark = localStorage.getItem('grab_music_theme') === 'dark';
     document.body.classList.toggle('dark-theme', isDark);
@@ -360,7 +461,13 @@ function updateMediaSession(song) {
     navigator.mediaSession.setActionHandler('seekbackward', d  => { if(audio) audio.currentTime = Math.max(0, audio.currentTime-(d.seekOffset||10)); });
     navigator.mediaSession.setActionHandler('seekforward',  d  => { if(audio) audio.currentTime = Math.min(audio.duration, audio.currentTime+(d.seekOffset||10)); });
     navigator.mediaSession.setActionHandler('seekto',       d  => { if(audio && d.seekTime!==undefined) audio.currentTime=d.seekTime; });
-    updateMediaSessionNavHandlers();
+
+    if (isRandomMode) {
+        navigator.mediaSession.setActionHandler('nexttrack', () => playNextRandom());
+        navigator.mediaSession.setActionHandler('previoustrack', null);
+    } else {
+        updateMediaSessionNavHandlers();
+    }
 }
 
 function updateMediaSessionNavHandlers() {
@@ -537,31 +644,39 @@ function updateNavButtons() {
     if (!prevBtn || !nextBtn || !loopBtn) return;
 
     const randomBtn = document.getElementById('randomModeBtn');
-
-    // Кнопка рандомного режиму — завжди видима якщо є треки в БД
     if (randomBtn) {
         randomBtn.style.display = songsDatabase.length ? 'inline-flex' : 'none';
         randomBtn.classList.toggle('active', isRandomMode);
     }
 
-    if (currentQueue.length <= 1 && !isRandomMode) {
-        prevBtn.style.display = 'none';
-        nextBtn.style.display = 'none';
-        loopBtn.style.display = 'none';
-        return;
-    }
-
-    // В рандомному режимі — ховаємо prev/loop, показуємо лише next
     if (isRandomMode) {
+        // Рандомний режим: тільки ⏭ видима
         prevBtn.style.display = 'none';
         loopBtn.style.display = 'none';
         nextBtn.style.display = 'inline-flex';
         nextBtn.title = currentLanguage === 'uk' ? 'Наступна випадкова' : 'Next random';
+        // Media Session — дозволяємо next, забороняємо prev
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.setActionHandler('nexttrack', () => playNextRandom());
+            navigator.mediaSession.setActionHandler('previoustrack', null);
+        }
+        return;
+    }
+
+    nextBtn.title = currentLanguage === 'uk' ? 'Далі' : 'Next';
+
+    if (currentQueue.length <= 1) {
+        prevBtn.style.display = 'none';
+        nextBtn.style.display = 'none';
+        loopBtn.style.display = 'none';
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.setActionHandler('nexttrack', null);
+            navigator.mediaSession.setActionHandler('previoustrack', null);
+        }
         return;
     }
 
     loopBtn.style.display = 'inline-flex';
-    nextBtn.title = currentLanguage === 'uk' ? 'Далі' : 'Next';
     if (isPlaylistLoopEnabled) {
         prevBtn.style.display = 'inline-flex';
         nextBtn.style.display = 'inline-flex';
@@ -574,24 +689,31 @@ function updateNavButtons() {
 
 function toggleRandomMode() {
     isRandomMode = !isRandomMode;
+    const audio = document.getElementById('audioPlayer');
+
     if (isRandomMode) {
-        // Вимикаємо loop якщо був
+        // Вимикаємо loop
         isPlaylistLoopEnabled = false;
         if (loopBtn) loopBtn.classList.remove('active');
         // Підключаємо ended → playNextRandom
-        const audio = document.getElementById('audioPlayer');
         if (audio) {
             if (playlistEndedHandler) audio.removeEventListener('ended', playlistEndedHandler);
             playlistEndedHandler = () => playNextRandom();
             audio.addEventListener('ended', playlistEndedHandler);
         }
+        // Одразу оновлюємо Media Session
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.setActionHandler('nexttrack', () => playNextRandom());
+            navigator.mediaSession.setActionHandler('previoustrack', null);
+        }
     } else {
         // Відключаємо ended → playNextRandom
-        const audio = document.getElementById('audioPlayer');
         if (audio && playlistEndedHandler) {
             audio.removeEventListener('ended', playlistEndedHandler);
             playlistEndedHandler = null;
         }
+        // Відновлюємо Media Session для черги
+        updateMediaSessionNavHandlers();
     }
     updateNavButtons();
 }
@@ -638,6 +760,20 @@ function playSong(filename, fromQueue = false) {
             playlistEndedHandler = () => playNextRandom();
             audio.addEventListener('ended', playlistEndedHandler);
         }
+
+        // Bass shake — ініціалізуємо якщо EQ є
+        if (isEqInitialized && !analyser) initBassAnalyser();
+        // Якщо EQ вимкнено але analyser потрібен — підключаємо напряму
+        if (!isEqInitialized && !analyser && audioContext) {
+            try {
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                analyser.smoothingTimeConstant = 0.7;
+                if (sourceNode) sourceNode.connect(analyser);
+                startBassShake();
+            } catch(e) {}
+        }
+        if (analyser) startBassShake();
 
         if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
         requestWakeLock();
@@ -942,6 +1078,7 @@ function setupAudioListeners() {
         startAudioKeepAlive(audio);
         startKeepAlive();
         startSwPing();
+        if (analyser) startBassShake();
         if (currentLrcLines.length && !lrcSyncInterval) {
             lrcSyncInterval = setInterval(syncLRC, 100);
             syncLRC();
@@ -955,6 +1092,7 @@ function setupAudioListeners() {
         stopAudioKeepAlive();
         stopKeepAlive();
         stopSwPing();
+        stopBassShake();
         if (lrcSyncInterval) { clearInterval(lrcSyncInterval); lrcSyncInterval = null; }
     };
 
@@ -1097,6 +1235,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     setupAudioListeners();
     loadThemePreference();
     loadEqPreference();
+    loadShakePreference();
     loadModePreferences();
     updateNavButtons();
     setupAudioUnlock();

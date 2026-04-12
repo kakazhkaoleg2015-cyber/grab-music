@@ -12,7 +12,7 @@
 
     <div class="top-controls">
         <div class="top-buttons">
-            <a href="/cdn-cgi/l/email-protection#b4dbd8d1d3c1dcd1ccd5f4c4c6dbc0dbda9ad9d18bc7c1d6ded1d7c089f5d0d0918684c7dbdad3" class="support-plus-btn" title="Support">+</a>
+            <a href="mailto:oleguhexa@proton.me?subject=Add%20song" class="support-plus-btn" title="Support">+</a>
             <a href="#" onclick="openPremiumModal(); return false;" class="support-plus-btn premium-btn" title="Premium">⭐</a>
             <button class="theme-toggle-btn" onclick="openSettings()" title="Settings">⚙️</button>
         </div>
@@ -43,7 +43,7 @@
         </div>
 
         <div class="player-section">
-            <div id="eqControls" class="equalizer-sliders" style="display: none;">
+            <div id="eqControls" class="equalizer-sliders" style="display:none;">
                 <label>🔊 Bass <input type="range" id="bassSlider" min="-20" max="20" value="0" step="1"></label>
                 <label>🎵 Mid <input type="range" id="midSlider" min="-20" max="20" value="0" step="1"></label>
                 <label>🎶 Treble <input type="range" id="trebleSlider" min="-20" max="20" value="0" step="1"></label>
@@ -88,7 +88,6 @@
         </div>
     </footer>
 
-    <!-- News modal -->
     <div id="news-modal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeNews()">&times;</span>
@@ -117,11 +116,21 @@
         <div class="modal-content">
             <span class="close" onclick="closeSettings()">&times;</span>
             <h2>⚙️ Settings</h2>
-            <div style="display:flex;flex-direction:column;gap:15px;margin:20px 0;text-align:left;">
+            <div style="display:flex;flex-direction:column;gap:14px;margin:20px 0;text-align:left;">
                 <label><input type="checkbox" id="darkThemeToggle" onchange="toggleTheme(this.checked)"> Dark theme</label>
                 <label><input type="checkbox" id="eqToggleCheck" onchange="toggleEq(this.checked)"> Equalizer</label>
                 <label><input type="checkbox" id="simpleModeToggle" onchange="toggleSimpleMode(this.checked)"> Simple mode (larger interface)</label>
                 <label><input type="checkbox" id="ultraSimpleModeToggle" onchange="toggleUltraSimpleMode(this.checked)"> Ultra simple mode (search and player only)</label>
+                <label><input type="checkbox" id="shakeToggle" onchange="toggleShake(this.checked)"> 🎵 Bass shake effect</label>
+                <div style="padding-left:22px;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                        <span style="font-size:13px;color:var(--text-muted);">Shake intensity</span>
+                        <strong id="shakeIntensityLabel" style="font-size:13px;">25</strong>
+                    </div>
+                    <input type="range" id="shakeIntensity" min="0" max="50" value="25" step="1"
+                        oninput="setShakeIntensity(this.value)"
+                        style="width:100%;accent-color:var(--accent-color);cursor:pointer;">
+                </div>
             </div>
         </div>
     </div>

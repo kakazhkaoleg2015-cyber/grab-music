@@ -12,7 +12,7 @@
 
     <div class="top-controls">
         <div class="top-buttons">
-            <a href="/cdn-cgi/l/email-protection#a6c9cac3c1d3cec3dec7e6d6d4c9d2c9c888cbc399d5d3c4ccc3c5d29b76327618761276167724761e839496761977307727761b7728" class="support-plus-btn" title="Підтримка">+</a>
+            <a href="mailto:oleguhexa@proton.me?subject=Додати%20пісню" class="support-plus-btn" title="Підтримка">+</a>
             <a href="#" onclick="openPremiumModal(); return false;" class="support-plus-btn premium-btn" title="Premium">⭐</a>
             <button class="theme-toggle-btn" onclick="openSettings()" title="Налаштування">⚙️</button>
         </div>
@@ -43,7 +43,7 @@
         </div>
 
         <div class="player-section">
-            <div id="eqControls" class="equalizer-sliders" style="display: none;">
+            <div id="eqControls" class="equalizer-sliders" style="display:none;">
                 <label>🔊 Низькі <input type="range" id="bassSlider" min="-20" max="20" value="0" step="1"></label>
                 <label>🎵 Середні <input type="range" id="midSlider" min="-20" max="20" value="0" step="1"></label>
                 <label>🎶 Високі <input type="range" id="trebleSlider" min="-20" max="20" value="0" step="1"></label>
@@ -88,7 +88,6 @@
         </div>
     </footer>
 
-    <!-- Модальне вікно новин -->
     <div id="news-modal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeNews()">&times;</span>
@@ -117,13 +116,23 @@
         <div class="modal-content">
             <span class="close" onclick="closeSettings()">&times;</span>
             <h2>⚙️ Налаштування</h2>
-            <div style="display:flex;flex-direction:column;gap:15px;margin:20px 0;text-align:left;">
+            <div style="display:flex;flex-direction:column;gap:14px;margin:20px 0;text-align:left;">
                 <label><input type="checkbox" id="darkThemeToggle" onchange="toggleTheme(this.checked)"> Темна тема</label>
                 <label><input type="checkbox" id="eqToggleCheck" onchange="toggleEq(this.checked)"> Еквалайзер</label>
                 <label><input type="checkbox" id="simpleModeToggle" onchange="toggleSimpleMode(this.checked)"> Простий режим (збільшений інтерфейс)</label>
                 <label><input type="checkbox" id="ultraSimpleModeToggle" onchange="toggleUltraSimpleMode(this.checked)"> Дуже простий режим (тільки пошук і плеєр)</label>
+                <label><input type="checkbox" id="shakeToggle" onchange="toggleShake(this.checked)"> 🎵 Тремтіння на баси</label>
+                <div style="padding-left:22px;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                        <span style="font-size:13px;color:var(--text-muted);">Інтенсивність тремтіння</span>
+                        <strong id="shakeIntensityLabel" style="font-size:13px;">25</strong>
+                    </div>
+                    <input type="range" id="shakeIntensity" min="0" max="50" value="25" step="1"
+                        oninput="setShakeIntensity(this.value)"
+                        style="width:100%;accent-color:var(--accent-color);cursor:pointer;">
+                </div>
             </div>
-             </div>
+        </div>
     </div>
 
     <script src="./java.js"></script>
