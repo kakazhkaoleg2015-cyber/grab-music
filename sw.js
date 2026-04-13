@@ -38,7 +38,6 @@ self.addEventListener('fetch', e => {
 // Keep-alive ping від сторінки
 self.addEventListener('message', e => {
     if (e.data === 'keepalive') {
-        // Відповідаємо щоб сторінка знала що SW живий
         e.source.postMessage('alive');
     }
 });

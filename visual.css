@@ -85,12 +85,21 @@ body {
     align-items: center !important;
     justify-content: center !important;
     box-sizing: border-box;
-    /* Скидаємо будь-які flex-item властивості від body */
     flex: none !important;
     transform: none !important;
 }
-.modal[style*="flex"] {
+.modal.open {
     display: flex !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: none !important;
+    transform: none !important;
 }
 .modal-content {
     background-color: var(--modal-bg);
@@ -1029,6 +1038,31 @@ body.ultra-simple-mode .ultra-simple-back-btn {
     color: var(--text-muted);
     padding: 30px;
     font-size: 15px;
+}
+
+/* --- Share --- */
+.result-buttons .share-btn {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    color: #ffffff;
+    border: none;
+    padding: 9px 14px;
+    font-size: 15px;
+    border-radius: 10px;
+    cursor: pointer;
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    box-shadow: 0 3px 10px rgba(230,126,34,0.35);
+    transition: transform 0.15s, filter 0.15s;
+}
+.result-buttons .share-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.08);
+}
+.result-buttons .share-btn:active {
+    transform: translateY(1px);
 }
 
 /* ========== ПОВІДОМЛЕННЯ "НЕ ЗНАЙДЕНО" ========== */
