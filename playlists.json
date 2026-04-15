@@ -11,13 +11,16 @@
     "id": "ukrainian",
     "name": "Українське",
     "name_en": "Ukrainian",
-    "description": "Найкращі українські пісні",
-    "description_en": "Best Ukrainian songs",
+    "description": "Українські треки та пісні українською мовою",
+    "description_en": "Ukrainian tracks and songs in Ukrainian",
     "songs": [
       "Скрябін — Кольорова.mp3",
       "Восьмий колір.mp3",
       "Памятай свій дім.mp3",
-      "Тут було місто.mp3"
+      "Тут було місто.mp3",
+      "Скрябін - Мам.mp3",
+      "Воїни світла.mp3",
+      "Касета.mp3"
     ]
   },
   {
@@ -29,20 +32,69 @@
     "songs": [
       "The Unknowing.mp3",
       "Tokyo.mp3",
-      "Valasy.mp3"
+      "Valasy.mp3",
+      "Execution Clap.mp3"
     ]
   },
   {
     "id": "melancholic",
     "name": "Меланхолія",
     "name_en": "Melancholic",
-    "description": "Сумні та глибокі пісні",
-    "description_en": "Sad and deep songs",
+    "description": "Сумні, глибокі та ностальгічні пісні",
+    "description_en": "Sad, deep and nostalgic songs",
     "songs": [
       "Снова - Беспокойник.mp3",
       "Valasy.mp3",
       "Памятай свій дім.mp3",
-      "Тут було місто.mp3"
+      "Тут було місто.mp3",
+      "Улицы.mp3",
+      "Этою весной.mp3",
+      "Sleeping city.mp3",
+      "Касета.mp3",
+      "Скрябін - Мам.mp3"
+    ]
+  },
+  {
+    "id": "energetic",
+    "name": "Енергійне",
+    "name_en": "Energetic",
+    "description": "Драйвові, гучні та ритмічні треки",
+    "description_en": "Driving, loud and rhythmic tracks",
+    "songs": [
+      "Execution Clap.mp3",
+      "Tokyo.mp3",
+      "Воїни світла.mp3",
+      "Восьмий колір.mp3"
+    ]
+  },
+  {
+    "id": "rock-alt",
+    "name": "Рок / Альтернатива",
+    "name_en": "Rock / Alternative",
+    "description": "Рокові та альтернативні композиції",
+    "description_en": "Rock and alternative tracks",
+    "songs": [
+      "Скрябін — Кольорова.mp3",
+      "The Unknowing.mp3",
+      "Valasy.mp3",
+      "Восьмий колір.mp3",
+      "Снова - Беспокойник.mp3",
+      "Воїни світла.mp3"
+    ]
+  },
+  {
+    "id": "night-city",
+    "name": "Ніч / Місто",
+    "name_en": "Night / City",
+    "description": "Атмосферні пісні про ніч, місто і самотність",
+    "description_en": "Atmospheric songs about night, the city and loneliness",
+    "songs": [
+      "Снова - Беспокойник.mp3",
+      "Tokyo.mp3",
+      "Тут було місто.mp3",
+      "Улицы.mp3",
+      "Sleeping city.mp3",
+      "Этою весной.mp3"
     ]
   }
 ]

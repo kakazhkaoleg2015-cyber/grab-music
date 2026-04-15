@@ -1317,3 +1317,31 @@ body.ultra-simple-mode .ultra-simple-back-btn {
     .playlist-header-btns { flex-direction: row; align-items: center; }
     .view-btn, .play-all-btn { padding: 5px 9px; font-size: 11px; }
 }
+.translate-btn {
+    background: linear-gradient(135deg, #34a853, #0f9d58);
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 30px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: 0.2s;
+}
+.translate-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+.original-lyrics, .translated-lyrics {
+    background: rgba(0,0,0,0.05);
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 12px;
+    white-space: pre-wrap;
+    font-size: 14px;
+    line-height: 1.6;
+}
+body.dark-theme .original-lyrics,
+body.dark-theme .translated-lyrics {
+    background: rgba(255,255,255,0.1);
+}
