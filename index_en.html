@@ -71,7 +71,21 @@
         <div id="lyricsSection" class="lyrics-section">
             <h2 id="lyricsTitle">Lyrics</h2>
             <pre id="lyricsContent" class="lyrics-content">Select a song to see lyrics.</pre>
-            <button id="translateButton" class="translate-btn" style="display: none;">🌐 Translate</button>
+            <div class="translate-controls">
+                <select id="translateLanguageSelect" class="translate-language-select">
+                    <option value="en">English</option>
+                    <option value="uk">Українська</option>
+                    <option value="pl">Polski</option>
+                    <option value="de">Deutsch</option>
+                    <option value="fr">Français</option>
+                    <option value="es">Español</option>
+                    <option value="it">Italiano</option>
+                    <option value="pt">Português</option>
+                    <option value="cs">Čeština</option>
+                    <option value="ja">日本語</option>
+                </select>
+                <button id="translateButton" class="translate-btn" style="display: inline-flex;">🌐 Translate</button>
+            </div>
             <div id="translatedResult" class="translated-lyrics" style="display: none;"></div>
         </div>
     </div>

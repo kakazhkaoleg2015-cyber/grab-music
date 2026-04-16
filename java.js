@@ -74,7 +74,6 @@ function t(key) { return translations[currentLanguage][key] || key; }
 
 // ==================== ФОНОВЕ ВІДТВОРЕННЯ ====================
 
-// 1. Wake Lock — не дає екрану засинати
 async function requestWakeLock() {
     if (!('wakeLock' in navigator)) return;
     try {
@@ -88,7 +87,6 @@ function releaseWakeLock() {
     if (wakeLock) { try { wakeLock.release(); } catch(e) {} wakeLock = null; }
 }
 
-// 2. Мовчазний осцилятор — не дає iOS вбивати AudioContext у фоні
 function startSilentOscillator() {
     if (!audioContext || silentOscillator) return;
     try {
@@ -110,13 +108,10 @@ function stopSilentOscillator() {
     }
 }
 
-// 3. Інтервал відновлення AudioContext кожні 15 сек
 function startKeepAlive() {
     stopKeepAlive();
     keepAliveInterval = setInterval(() => {
-        if (audioContext && audioContext.state === 'suspended') {
-            audioContext.resume();
-        }
+        if (audioContext && audioContext.state === 'suspended') audioContext.resume();
     }, 15000);
 }
 
@@ -124,13 +119,10 @@ function stopKeepAlive() {
     if (keepAliveInterval) { clearInterval(keepAliveInterval); keepAliveInterval = null; }
 }
 
-// 4. Audio ping кожні 25 сек — не дає браузеру заморозити потік
 function startAudioKeepAlive(audio) {
     stopAudioKeepAlive();
     audioKeepAliveInterval = setInterval(() => {
-        if (!audio.paused && !isNaN(audio.currentTime)) {
-            const _ = audio.currentTime; // читання достатньо
-        }
+        if (!audio.paused && !isNaN(audio.currentTime)) { const _ = audio.currentTime; }
     }, 25000);
 }
 
@@ -138,7 +130,6 @@ function stopAudioKeepAlive() {
     if (audioKeepAliveInterval) { clearInterval(audioKeepAliveInterval); audioKeepAliveInterval = null; }
 }
 
-// 5. Відновлення при поверненні на вкладку — БЕЗ авто-play
 let lastSrc = '';
 let lastTime = 0;
 
@@ -149,11 +140,9 @@ document.addEventListener('visibilitychange', async () => {
         try { await audioContext.resume(); } catch(e) {}
     }
     if (!audio) return;
-    // Тільки відновлюємо AudioContext — НЕ запускаємо play автоматично
     if (!audio.paused) requestWakeLock();
 });
 
-// 6. Розблокування AudioContext при будь-якому жесті
 function setupAudioUnlock() {
     const unlock = async () => {
         if (audioContext && audioContext.state === 'suspended') {
@@ -170,41 +159,32 @@ function initEqualizer() {
     const audio = document.getElementById('audioPlayer');
     if (!audio) return;
     if (localStorage.getItem('grab_music_eq') === 'false') return;
-
-    // Вже ініціалізовано — просто відновлюємо
     if (isEqInitialized && audioContext && audioContext.state !== 'closed') {
         if (audioContext.state === 'suspended') audioContext.resume();
         return;
     }
-
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return;
-
     try {
         audioContext = new AudioCtx();
         sourceNode = audioContext.createMediaElementSource(audio);
-
         bassFilter = audioContext.createBiquadFilter();
         bassFilter.type = 'lowshelf';
         bassFilter.frequency.value = 200;
         bassFilter.gain.value = 0;
-
         midFilter = audioContext.createBiquadFilter();
         midFilter.type = 'peaking';
         midFilter.frequency.value = 1000;
         midFilter.Q.value = 1;
         midFilter.gain.value = 0;
-
         trebleFilter = audioContext.createBiquadFilter();
         trebleFilter.type = 'highshelf';
         trebleFilter.frequency.value = 4000;
         trebleFilter.gain.value = 0;
-
         sourceNode.connect(bassFilter);
         bassFilter.connect(midFilter);
         midFilter.connect(trebleFilter);
         trebleFilter.connect(audioContext.destination);
-
         isEqInitialized = true;
         audioContext.resume();
         startSilentOscillator();
@@ -256,7 +236,6 @@ function loadEqPreference() {
     if (eqDiv) eqDiv.style.display = enabled ? 'flex' : 'none';
     const eqCheck = document.getElementById('eqToggleCheck');
     if (eqCheck) eqCheck.checked = enabled;
-    // Ініціалізація — тільки при першому play()
 }
 
 function toggleEq(checked) {
@@ -265,9 +244,8 @@ function toggleEq(checked) {
     const eqDiv = document.getElementById('eqControls');
     if (eqDiv) eqDiv.style.display = enabled ? 'flex' : 'none';
     if (enabled) {
-        if (!isEqInitialized) {
-            initEqualizer();
-        } else {
+        if (!isEqInitialized) initEqualizer();
+        else {
             const bs = document.getElementById('bassSlider');
             const ms = document.getElementById('midSlider');
             const ts = document.getElementById('trebleSlider');
@@ -276,16 +254,14 @@ function toggleEq(checked) {
             if (trebleFilter && ts) trebleFilter.gain.value = ts.value;
         }
     } else {
-        // Байпас: скидаємо gain, НЕ закриваємо контекст
         if (bassFilter)   bassFilter.gain.value   = 0;
         if (midFilter)    midFilter.gain.value    = 0;
         if (trebleFilter) trebleFilter.gain.value = 0;
     }
 }
 
-// ==================== BASS SHAKE ЕФЕКТ ====================
+// ==================== BASS SHAKE ====================
 let analyser = null;
-let shakeInterval = null;
 let shakeAnimFrame = null;
 
 function initBassAnalyser() {
@@ -294,45 +270,33 @@ function initBassAnalyser() {
         analyser = audioContext.createAnalyser();
         analyser.fftSize = 256;
         analyser.smoothingTimeConstant = 0.7;
-        // Підключаємо після trebleFilter щоб аналізувати фінальний сигнал
         trebleFilter.connect(analyser);
         startBassShake();
         console.log('✅ Bass analyser initialized');
-    } catch(e) {
-        console.warn('Bass analyser failed:', e);
-    }
+    } catch(e) { console.warn('Bass analyser failed:', e); }
 }
 
 function startBassShake() {
     if (shakeAnimFrame) cancelAnimationFrame(shakeAnimFrame);
     if (localStorage.getItem('grab_music_shake') === 'false') return;
-
+    if (!analyser) return;
     const data = new Uint8Array(analyser.frequencyBinCount);
     let lastShake = 0;
-
     function tick() {
         shakeAnimFrame = requestAnimationFrame(tick);
         if (localStorage.getItem('grab_music_shake') === 'false') {
-            document.body.style.transform = '';
-            return;
+            document.body.style.transform = ''; return;
         }
-        // Не трясемо якщо відкрита модалка
-        const anyModalOpen = document.querySelector('.modal.open');
-        if (anyModalOpen) {
-            document.body.style.transform = '';
-            return;
+        if (document.querySelector('.modal.open')) {
+            document.body.style.transform = ''; return;
         }
         analyser.getByteFrequencyData(data);
-
         const bass = (data[0] + data[1] + data[2] + data[3]) / 4;
         const now = Date.now();
-
-        // Поріг 185 — тільки дуже сильний бас
         if (bass > 185 && now - lastShake > 110) {
             lastShake = now;
-            // sliderVal 0..50 → px 0..10
             const sliderVal = parseInt(localStorage.getItem('grab_music_shake_intensity') ?? '25');
-            const intensity = Math.min((bass - 178) / 77, 1);
+            const intensity = Math.min((bass - 185) / 70, 1);
             const px = Math.round(intensity * (sliderVal / 5));
             if (px >= 1) {
                 const dir = Math.random() > 0.5 ? 1 : -1;
@@ -369,21 +333,14 @@ function setShakeIntensity(val) {
     updateShakeIntensityLabel();
 }
 
-function onShakeIntensityChange(val) {
-    localStorage.setItem('grab_music_shake_intensity', val);
-    updateShakeIntensityLabel();
-}
-
 function toggleShake(checked) {
     const enabled = checked !== undefined ? checked : !(localStorage.getItem('grab_music_shake') !== 'false');
     localStorage.setItem('grab_music_shake', enabled ? 'true' : 'false');
-    if (!enabled) {
-        document.body.style.transform = '';
-    } else if (analyser) {
-        startBassShake();
-    }
+    if (!enabled) { document.body.style.transform = ''; }
+    else if (analyser) startBassShake();
 }
 
+// ==================== ТЕМА ====================
 function loadThemePreference() {
     const isDark = localStorage.getItem('grab_music_theme') === 'dark';
     document.body.classList.toggle('dark-theme', isDark);
@@ -397,23 +354,20 @@ function toggleTheme(checked) {
     localStorage.setItem('grab_music_theme', isDark ? 'dark' : 'light');
 }
 
-// ==================== РЕЖИМИ ІНТЕРФЕЙСУ ====================
+// ==================== РЕЖИМИ ====================
 function loadModePreferences() {
     const simpleCheck = document.getElementById('simpleModeToggle');
     const ultraCheck  = document.getElementById('ultraSimpleModeToggle');
-
     const isSimple = localStorage.getItem('grab_music_simple') === 'true';
     const isUltra  = localStorage.getItem('grab_music_ultra')  === 'true';
-
     if (isSimple) { document.body.classList.add('simple-mode'); if (simpleCheck) simpleCheck.checked = true; }
-    if (isUltra)  { document.body.classList.add('ultra-simple-mode'); if (ultraCheck)  ultraCheck.checked  = true; }
+    if (isUltra)  { document.body.classList.add('ultra-simple-mode'); if (ultraCheck) ultraCheck.checked = true; }
 }
 
 function toggleSimpleMode(checked) {
     const enabled = checked !== undefined ? checked : !document.body.classList.contains('simple-mode');
     document.body.classList.toggle('simple-mode', enabled);
     localStorage.setItem('grab_music_simple', enabled ? 'true' : 'false');
-    // Прості і ультра режими взаємовиключні
     if (enabled) {
         document.body.classList.remove('ultra-simple-mode');
         localStorage.setItem('grab_music_ultra', 'false');
@@ -442,13 +396,11 @@ function disableUltraSimpleMode() {
     if (ultraCheck) ultraCheck.checked = false;
 }
 
-// ==================== MEDIA SESSION API ====================
+// ==================== MEDIA SESSION ====================
 function updateMediaSession(song) {
     if (!('mediaSession' in navigator)) return;
     navigator.mediaSession.metadata = new MediaMetadata({
-        title: song.name,
-        artist: song.artist,
-        album: 'Grab Music',
+        title: song.name, artist: song.artist, album: 'Grab Music',
         artwork: [
             { src: song.image, sizes: '512x512', type: 'image/jpeg' },
             { src: song.image, sizes: '256x256', type: 'image/jpeg' }
@@ -458,10 +410,9 @@ function updateMediaSession(song) {
     navigator.mediaSession.setActionHandler('play',         () => audio && audio.play());
     navigator.mediaSession.setActionHandler('pause',        () => audio && audio.pause());
     navigator.mediaSession.setActionHandler('stop',         () => { if(audio){ audio.pause(); audio.currentTime=0; }});
-    navigator.mediaSession.setActionHandler('seekbackward', d  => { if(audio) audio.currentTime = Math.max(0, audio.currentTime-(d.seekOffset||10)); });
-    navigator.mediaSession.setActionHandler('seekforward',  d  => { if(audio) audio.currentTime = Math.min(audio.duration, audio.currentTime+(d.seekOffset||10)); });
-    navigator.mediaSession.setActionHandler('seekto',       d  => { if(audio && d.seekTime!==undefined) audio.currentTime=d.seekTime; });
-
+    navigator.mediaSession.setActionHandler('seekbackward', d => { if(audio) audio.currentTime = Math.max(0, audio.currentTime-(d.seekOffset||10)); });
+    navigator.mediaSession.setActionHandler('seekforward',  d => { if(audio) audio.currentTime = Math.min(audio.duration, audio.currentTime+(d.seekOffset||10)); });
+    navigator.mediaSession.setActionHandler('seekto',       d => { if(audio && d.seekTime!==undefined) audio.currentTime=d.seekTime; });
     if (isRandomMode) {
         navigator.mediaSession.setActionHandler('nexttrack', () => playNextRandom());
         navigator.mediaSession.setActionHandler('previoustrack', null);
@@ -523,20 +474,47 @@ async function loadDatabase() {
         const lc = document.getElementById('lyricsContent');
         if (lc) lc.textContent = t('errorLoadingDB');
     }
-    if (!loadPlaylistsFromStorage()) {
-        try {
-            const res = await fetch('./playlists.json');
-            if (res.ok) { playlistsDatabase = await res.json(); savePlaylists(); }
-            else playlistsDatabase = [];
-        } catch(e) { playlistsDatabase = []; }
+
+    // Завжди завантажуємо playlists.json і мержимо з localStorage
+    // (зберігаємо улюблені з localStorage, але оновлюємо решту з файлу)
+    let storedPlaylists = null;
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+        try { storedPlaylists = JSON.parse(stored); } catch(e) {}
     }
+
+    try {
+        const res = await fetch('./playlists.json');
+        if (res.ok) {
+            const filePlaylists = await res.json();
+            if (storedPlaylists) {
+                // Зберігаємо улюблені зі збереженого стану
+                const favorites = storedPlaylists.find(p => p.id === 'favorites');
+                playlistsDatabase = filePlaylists.map(pl => {
+                    if (pl.id === 'favorites' && favorites) return favorites;
+                    return pl;
+                });
+                // Якщо favorites немає у файлі — додаємо
+                if (!playlistsDatabase.find(p => p.id === 'favorites') && favorites) {
+                    playlistsDatabase.unshift(favorites);
+                }
+            } else {
+                playlistsDatabase = filePlaylists;
+            }
+        } else {
+            playlistsDatabase = storedPlaylists || [];
+        }
+    } catch(e) {
+        playlistsDatabase = storedPlaylists || [];
+    }
+
     if (!playlistsDatabase.find(p => p.id === 'favorites')) {
-        playlistsDatabase.push({
+        playlistsDatabase.unshift({
             id: 'favorites', name: 'Улюблене', name_en: 'Favorites',
             description: 'Твої улюблені пісні', description_en: 'Your favorite songs', songs: []
         });
-        savePlaylists();
     }
+    savePlaylists();
     displayPlaylists();
     const si = document.getElementById('searchInput');
     if (si && si.value.trim()) searchSongs();
@@ -545,12 +523,12 @@ async function loadDatabase() {
 // ==================== LRC ====================
 function parseLRC(text) {
     const lines = [];
-    const regex = /\[(\d{2}):(\d{2})\.(\d{2})\]/;
+    const regex = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/;
     text.split('\n').forEach(line => {
         const m = line.match(regex);
         if (m) {
-            const time = parseInt(m[1])*60 + parseInt(m[2]) + parseInt(m[3])/100;
-            const txt = line.replace(regex, '').trim();
+            const time = parseInt(m[1])*60 + parseInt(m[2]) + parseInt(m[3].padEnd(3,'0'))/1000;
+            const txt = line.replace(/\[\d{2}:\d{2}\.\d{2,3}\]/g, '').trim();
             if (txt) lines.push({ time, text: txt });
         }
     });
@@ -576,15 +554,27 @@ function syncLRC() {
     }
 }
 
+// ==================== ПЕРЕКЛАД ====================
+// Зберігаємо оригінальні LRC рядки для можливості показати оригінал
+let originalLrcLines = [];
+let isShowingTranslatedLrc = false;
+
 async function showLyricsTab(filename, type) {
     const song = songsDatabase.find(s => s.file === filename);
     if (!song) return;
     const content = document.getElementById('lyricsContent');
     document.querySelectorAll('.lyrics-tab-btn').forEach(b => b.classList.remove('active'));
+
+    // Скидаємо стан перекладу при зміні вкладки
+    isShowingTranslatedLrc = false;
+    hideTranslatedResult();
+
     if (type === 'text') {
         if (lrcSyncInterval) { clearInterval(lrcSyncInterval); lrcSyncInterval = null; }
         currentLrcLines = [];
+        originalLrcLines = [];
         content.textContent = song.lyrics || t('noLyrics');
+        updateTranslateUI(song, 'text');
         document.querySelector('.lyrics-tab-btn:first-child')?.classList.add('active');
     } else if (type === 'lrc' && song.lrc) {
         try {
@@ -592,15 +582,161 @@ async function showLyricsTab(filename, type) {
             if (!resp.ok) throw new Error();
             const lrcText = await resp.text();
             currentLrcLines = parseLRC(lrcText);
+            originalLrcLines = [...currentLrcLines];
             if (currentLrcLines.length) {
-                content.innerHTML = currentLrcLines.map(l => `<div class="lrc-line">${escapeHtml(l.text)}</div>`).join('');
+                renderLrcLines(currentLrcLines);
                 if (lrcSyncInterval) clearInterval(lrcSyncInterval);
                 lrcSyncInterval = setInterval(syncLRC, 100);
                 syncLRC();
+                updateTranslateUI(song, 'lrc');
                 document.querySelector('.lyrics-tab-btn:last-child')?.classList.add('active');
-            } else content.textContent = t('invalidLrc');
-        } catch(e) { content.textContent = t('lrcNotAvailable'); }
-    } else content.textContent = t('lrcNotAvailable');
+            } else {
+                content.textContent = t('invalidLrc');
+                updateTranslateUI(song, 'text');
+            }
+        } catch(e) {
+            content.textContent = t('lrcNotAvailable');
+            updateTranslateUI(song, 'text');
+        }
+    } else {
+        content.textContent = t('lrcNotAvailable');
+        updateTranslateUI(song, 'text');
+    }
+}
+
+function renderLrcLines(lines) {
+    const content = document.getElementById('lyricsContent');
+    content.innerHTML = lines.map(l => `<div class="lrc-line">${escapeHtml(l.text)}</div>`).join('');
+}
+
+function hideTranslatedResult() {
+    const r = document.getElementById('translatedResult');
+    if (r) { r.style.display = 'none'; r.innerHTML = ''; }
+    const origBtn = document.getElementById('showOriginalBtn');
+    if (origBtn) origBtn.style.display = 'none';
+}
+
+function updateTranslateUI(song, mode) {
+    const button = document.getElementById('translateButton');
+    const translatedResult = document.getElementById('translatedResult');
+    const languageSelect = document.getElementById('translateLanguageSelect');
+    const origBtn = document.getElementById('showOriginalBtn');
+    if (!button) return;
+
+    if (translatedResult) { translatedResult.style.display = 'none'; translatedResult.innerHTML = ''; }
+    if (origBtn) origBtn.style.display = 'none';
+
+    button.style.display = 'inline-flex';
+    if (languageSelect) languageSelect.style.display = 'inline-flex';
+    button.disabled = false;
+    button.textContent = currentLanguage === 'uk' ? '🌐 Перекласти' : '🌐 Translate';
+    button.onclick = () => translateLyrics(mode);
+}
+
+async function translateLyrics(mode) {
+    const content = document.getElementById('lyricsContent');
+    const button = document.getElementById('translateButton');
+    const translatedResult = document.getElementById('translatedResult');
+    const languageSelect = document.getElementById('translateLanguageSelect');
+    if (!content || !button || !translatedResult || !languageSelect) return;
+
+    const targetLang = languageSelect.value || (currentLanguage === 'uk' ? 'en' : 'uk');
+
+    button.disabled = true;
+    button.textContent = currentLanguage === 'uk' ? '⏳ Переклад...' : '⏳ Translating...';
+
+    try {
+        if (mode === 'lrc' && originalLrcLines.length) {
+            // Перекладаємо LRC рядки по одному батчу
+            const texts = originalLrcLines.map(l => l.text).join('\n');
+            const res = await fetch(
+                `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(texts)}`
+            );
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            const translatedText = Array.isArray(data?.[0])
+                ? data[0].map(part => part[0]).join('')
+                : '';
+            if (!translatedText) throw new Error('Empty');
+
+            const translatedLines = translatedText.split('\n');
+            // Застосовуємо переклад до currentLrcLines
+            const translatedLrcLines = originalLrcLines.map((l, i) => ({
+                time: l.time,
+                text: translatedLines[i]?.trim() || l.text
+            }));
+
+            // Показуємо перекладені LRC замість оригінальних
+            currentLrcLines = translatedLrcLines;
+            renderLrcLines(currentLrcLines);
+            isShowingTranslatedLrc = true;
+
+            // Кнопка "Показати оригінал"
+            showOriginalButton();
+
+            translatedResult.style.display = 'none';
+        } else {
+            // Звичайний текст
+            const text = content.textContent.trim();
+            if (!text || text === t('noLyrics')) throw new Error('No text');
+
+            const res = await fetch(
+                `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`
+            );
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            const translatedText = Array.isArray(data?.[0])
+                ? data[0].map(part => part[0]).join('')
+                : '';
+            if (!translatedText) throw new Error('Empty');
+
+            translatedResult.innerHTML = escapeHtml(translatedText).replace(/\n/g, '<br>');
+            translatedResult.style.display = 'block';
+
+            showOriginalButton();
+        }
+    } catch(e) {
+        translatedResult.textContent = currentLanguage === 'uk'
+            ? '❌ Не вдалося перекласти. Спробуй пізніше.'
+            : '❌ Translation failed. Try again later.';
+        translatedResult.style.display = 'block';
+    } finally {
+        button.disabled = false;
+        button.textContent = currentLanguage === 'uk' ? '🌐 Перекласти' : '🌐 Translate';
+    }
+}
+
+function showOriginalButton() {
+    let origBtn = document.getElementById('showOriginalBtn');
+    if (!origBtn) {
+        const controls = document.querySelector('.translate-controls');
+        if (!controls) return;
+        origBtn = document.createElement('button');
+        origBtn.id = 'showOriginalBtn';
+        origBtn.className = 'show-original-btn';
+        controls.appendChild(origBtn);
+    }
+    origBtn.textContent = currentLanguage === 'uk' ? '📄 Показати оригінал' : '📄 Show original';
+    origBtn.style.display = 'inline-flex';
+    origBtn.onclick = showOriginalLyrics;
+}
+
+function showOriginalLyrics() {
+    const translatedResult = document.getElementById('translatedResult');
+    const origBtn = document.getElementById('showOriginalBtn');
+
+    if (isShowingTranslatedLrc && originalLrcLines.length) {
+        // Відновлюємо оригінальні LRC
+        currentLrcLines = [...originalLrcLines];
+        renderLrcLines(currentLrcLines);
+        isShowingTranslatedLrc = false;
+        if (translatedResult) { translatedResult.style.display = 'none'; translatedResult.innerHTML = ''; }
+    } else {
+        // Ховаємо переклад тексту
+        if (translatedResult) { translatedResult.style.display = 'none'; translatedResult.innerHTML = ''; }
+    }
+
+    if (origBtn) origBtn.style.display = 'none';
 }
 
 function escapeHtml(str) {
@@ -623,13 +759,16 @@ function showLyrics(song) {
     title.parentNode.insertBefore(div, title.nextSibling);
     content.textContent = song.lyrics || t('noLyrics');
     currentLrcLines = [];
+    originalLrcLines = [];
+    isShowingTranslatedLrc = false;
+    hideTranslatedResult();
+    updateTranslateUI(song, 'text');
     if (lrcSyncInterval) { clearInterval(lrcSyncInterval); lrcSyncInterval = null; }
 }
 
 // ==================== ІКОНКА PLAY/PAUSE ====================
 function setPlayPauseIcon(isPlaying) {
     if (!playPauseBtn) return;
-    // Очищаємо pointer-events дочірніх елементів щоб клік завжди спрацьовував
     if (isPlaying) {
         playPauseBtn.innerHTML = '<span style="display:inline-flex;align-items:center;justify-content:center;gap:4px;pointer-events:none;"><span style="display:inline-block;width:4px;height:18px;background:currentColor;border-radius:2px;pointer-events:none;"></span><span style="display:inline-block;width:4px;height:18px;background:currentColor;border-radius:2px;pointer-events:none;"></span></span>';
     } else {
@@ -642,29 +781,23 @@ let isRandomMode = false;
 // ==================== НАВІГАЦІЯ ====================
 function updateNavButtons() {
     if (!prevBtn || !nextBtn || !loopBtn) return;
-
     const randomBtn = document.getElementById('randomModeBtn');
     if (randomBtn) {
         randomBtn.style.display = songsDatabase.length ? 'inline-flex' : 'none';
         randomBtn.classList.toggle('active', isRandomMode);
     }
-
     if (isRandomMode) {
-        // Рандомний режим: тільки ⏭ видима
         prevBtn.style.display = 'none';
         loopBtn.style.display = 'none';
         nextBtn.style.display = 'inline-flex';
         nextBtn.title = currentLanguage === 'uk' ? 'Наступна випадкова' : 'Next random';
-        // Media Session — дозволяємо next, забороняємо prev
         if ('mediaSession' in navigator) {
             navigator.mediaSession.setActionHandler('nexttrack', () => playNextRandom());
             navigator.mediaSession.setActionHandler('previoustrack', null);
         }
         return;
     }
-
     nextBtn.title = currentLanguage === 'uk' ? 'Далі' : 'Next';
-
     if (currentQueue.length <= 1) {
         prevBtn.style.display = 'none';
         nextBtn.style.display = 'none';
@@ -675,7 +808,6 @@ function updateNavButtons() {
         }
         return;
     }
-
     loopBtn.style.display = 'inline-flex';
     if (isPlaylistLoopEnabled) {
         prevBtn.style.display = 'inline-flex';
@@ -690,29 +822,23 @@ function updateNavButtons() {
 function toggleRandomMode() {
     isRandomMode = !isRandomMode;
     const audio = document.getElementById('audioPlayer');
-
     if (isRandomMode) {
-        // Вимикаємо loop
         isPlaylistLoopEnabled = false;
         if (loopBtn) loopBtn.classList.remove('active');
-        // Підключаємо ended → playNextRandom
         if (audio) {
             if (playlistEndedHandler) audio.removeEventListener('ended', playlistEndedHandler);
             playlistEndedHandler = () => playNextRandom();
             audio.addEventListener('ended', playlistEndedHandler);
         }
-        // Одразу оновлюємо Media Session
         if ('mediaSession' in navigator) {
             navigator.mediaSession.setActionHandler('nexttrack', () => playNextRandom());
             navigator.mediaSession.setActionHandler('previoustrack', null);
         }
     } else {
-        // Відключаємо ended → playNextRandom
         if (audio && playlistEndedHandler) {
             audio.removeEventListener('ended', playlistEndedHandler);
             playlistEndedHandler = null;
         }
-        // Відновлюємо Media Session для черги
         updateMediaSessionNavHandlers();
     }
     updateNavButtons();
@@ -748,22 +874,16 @@ function playSong(filename, fromQueue = false) {
 
     audio.play().then(() => {
         if (currentLrcLines.length && !lrcSyncInterval) lrcSyncInterval = setInterval(syncLRC, 100);
-
         if (localStorage.getItem('grab_music_eq') !== 'false' && !isEqInitialized) {
             initEqualizer();
         } else if (audioContext && audioContext.state === 'suspended') {
             audioContext.resume();
         }
-
-        // Рандомний режим — підключаємо ended якщо ще не підключено
         if (isRandomMode && !playlistEndedHandler) {
             playlistEndedHandler = () => playNextRandom();
             audio.addEventListener('ended', playlistEndedHandler);
         }
-
-        // Bass shake — ініціалізуємо якщо EQ є
         if (isEqInitialized && !analyser) initBassAnalyser();
-        // Якщо EQ вимкнено але analyser потрібен — підключаємо напряму
         if (!isEqInitialized && !analyser && audioContext) {
             try {
                 analyser = audioContext.createAnalyser();
@@ -774,11 +894,11 @@ function playSong(filename, fromQueue = false) {
             } catch(e) {}
         }
         if (analyser) startBassShake();
-
         if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
         requestWakeLock();
         startAudioKeepAlive(audio);
         startKeepAlive();
+        startSwPing();
     }).catch(e => console.log('play blocked:', e));
 
     updateNavButtons();
@@ -793,13 +913,11 @@ function clearQueue() {
     currentQueue = [];
     currentQueueIndex = -1;
     isPlaylistLoopEnabled = false;
-    // Рандомний режим НЕ скидаємо — він незалежний
     if (loopBtn) loopBtn.classList.remove('active');
     updateNavButtons();
 }
 
 function playNext() {
-    // В рандомному режимі — грати рандомну
     if (isRandomMode) { playNextRandom(); return; }
     if (currentQueue.length <= 1) return;
     let next = currentQueueIndex + 1;
@@ -821,11 +939,13 @@ function playPrev() {
 }
 
 function playPlaylist(songFiles) {
-    if (!songFiles.length) return;
+    if (!songFiles || !songFiles.length) return;
     clearQueue();
     currentQueue = [...songFiles];
     currentQueueIndex = 0;
     const audio = document.getElementById('audioPlayer');
+    // Прибираємо старий handler перед додаванням нового
+    if (playlistEndedHandler) audio.removeEventListener('ended', playlistEndedHandler);
     playlistEndedHandler = () => playNext();
     audio.addEventListener('ended', playlistEndedHandler);
     playSong(currentQueue[0], true);
@@ -862,7 +982,6 @@ function searchSongs() {
     );
     if (!found.length) { results.innerHTML = `<p class="no-results">${t('noResults')}</p>`; return; }
     results.innerHTML = found.map(song => {
-        // Підсвічуємо збіг у тексті якщо знайдено там
         let lyricsHint = '';
         if (song.lyrics && song.lyrics.toLowerCase().includes(q) &&
             !song.name.toLowerCase().includes(q) && !song.artist.toLowerCase().includes(q)) {
@@ -899,7 +1018,6 @@ function searchSongs() {
 function randomSong() {
     if (!songsDatabase.length) return;
     const song = songsDatabase[Math.floor(Math.random() * songsDatabase.length)];
-    // Показуємо пісню в результатах і одразу грає
     const results = document.getElementById('searchResults');
     const input = document.getElementById('searchInput');
     if (input) input.value = '';
@@ -931,9 +1049,7 @@ async function loadNews() {
         if (!res.ok) throw new Error();
         newsDatabase = await res.json();
         updateNewsBadge();
-    } catch(e) {
-        newsDatabase = [];
-    }
+    } catch(e) { newsDatabase = []; }
 }
 
 function updateNewsBadge() {
@@ -949,7 +1065,6 @@ function openNews() {
     const modal = document.getElementById('news-modal');
     const list  = document.getElementById('newsList');
     if (!modal || !list) return;
-
     if (!newsDatabase.length) {
         list.innerHTML = `<p class="news-empty">📭 ${currentLanguage === 'uk' ? 'Новин поки немає' : 'No news yet'}</p>`;
     } else {
@@ -961,26 +1076,17 @@ function openNews() {
                 currentLanguage === 'uk' ? 'uk-UA' : 'en-US',
                 { year: 'numeric', month: 'long', day: 'numeric' }
             );
-            return `
-                <div class="news-card">
-                    <div class="news-card-header">
-                        <span class="news-tag">${tag}</span>
-                        <span class="news-date">${date}</span>
-                    </div>
-                    <h3>${title}</h3>
-                    <p>${text}</p>
-                </div>
-            `;
+            return `<div class="news-card">
+                <div class="news-card-header"><span class="news-tag">${tag}</span><span class="news-date">${date}</span></div>
+                <h3>${title}</h3><p>${text}</p>
+            </div>`;
         }).join('');
     }
-
-    // Позначаємо всі як переглянуті
     if (newsDatabase.length) {
         const maxId = Math.max(...newsDatabase.map(n => n.id));
         localStorage.setItem('grab_music_news_seen', maxId);
         updateNewsBadge();
     }
-
     modal.classList.add('open');
 }
 
@@ -988,7 +1094,8 @@ function closeNews() {
     const modal = document.getElementById('news-modal');
     if (modal) modal.classList.remove('open');
 }
-// ==================== ПОШИРЕННЯ ПІСНІ ====================
+
+// ==================== ПОШИРЕННЯ ====================
 function shareSong(filename) {
     const song = songsDatabase.find(s => s.file === filename);
     if (!song) return;
@@ -999,24 +1106,22 @@ function shareSong(filename) {
     } else {
         navigator.clipboard.writeText(url).then(() => {
             showToast(currentLanguage === 'uk' ? '🔗 Посилання скопійовано!' : '🔗 Link copied!');
-        }).catch(() => {
-            prompt('Скопіюй посилання:', url);
-        });
+        }).catch(() => { prompt('Скопіюй посилання:', url); });
     }
 }
 
 function showToast(msg) {
-    let t = document.getElementById('shareToast');
-    if (!t) {
-        t = document.createElement('div');
-        t.id = 'shareToast';
-        t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;z-index:99999;transition:opacity 0.3s;';
-        document.body.appendChild(t);
+    let toast = document.getElementById('shareToast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'shareToast';
+        toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;z-index:99999;transition:opacity 0.3s;';
+        document.body.appendChild(toast);
     }
-    t.textContent = msg;
-    t.style.opacity = '1';
-    clearTimeout(t._hide);
-    t._hide = setTimeout(() => { t.style.opacity = '0'; }, 2500);
+    toast.textContent = msg;
+    toast.style.opacity = '1';
+    clearTimeout(toast._hide);
+    toast._hide = setTimeout(() => { toast.style.opacity = '0'; }, 2500);
 }
 
 function checkShareUrl() {
@@ -1024,13 +1129,8 @@ function checkShareUrl() {
     const songParam = params.get('song');
     if (!songParam) return;
     const decoded = decodeURIComponent(songParam).toLowerCase();
-    // Шукаємо пісню по "назва - артист"
-    const song = songsDatabase.find(s => {
-        const key = (s.name + ' - ' + s.artist).toLowerCase();
-        return key === decoded;
-    });
+    const song = songsDatabase.find(s => (s.name + ' - ' + s.artist).toLowerCase() === decoded);
     if (song) {
-        // Показуємо в результатах і граємо
         const results = document.getElementById('searchResults');
         if (results) {
             results.innerHTML = `
@@ -1062,17 +1162,14 @@ function registerServiceWorker() {
 }
 
 function precacheMusicFiles() {
-    if (!('serviceWorker' in navigator)) return;
-    if (!songsDatabase.length) return;
+    if (!('serviceWorker' in navigator) || !songsDatabase.length) return;
     const files = songsDatabase.map(s => './music/' + s.file);
     const send = () => {
         if (navigator.serviceWorker.controller) {
             navigator.serviceWorker.controller.postMessage({ type: 'PRECACHE_MUSIC', files });
             console.log('📦 Precaching', files.length, 'tracks...');
         } else {
-            navigator.serviceWorker.ready.then(() => {
-                setTimeout(() => precacheMusicFiles(), 1000);
-            });
+            navigator.serviceWorker.ready.then(() => setTimeout(() => precacheMusicFiles(), 1000));
         }
     };
     send();
@@ -1081,7 +1178,7 @@ function precacheMusicFiles() {
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('message', e => {
         if (e.data && e.data.type === 'PRECACHE_DONE') {
-            console.log('✅ All', e.data.count, 'tracks cached for offline');
+            console.log('✅ All', e.data.count, 'tracks cached');
         }
     });
 }
@@ -1100,6 +1197,7 @@ function stopSwPing() {
     if (swPingInterval) { clearInterval(swPingInterval); swPingInterval = null; }
 }
 
+// ==================== МОВА ====================
 function switchLanguage(lang) {
     window.location.href = lang === 'uk' ? './index.html' : './index_en.html';
 }
@@ -1123,7 +1221,6 @@ function setupAudioListeners() {
     const audio = document.getElementById('audioPlayer');
     if (!audio || audio.hasAttribute('data-listener')) return;
     audio.setAttribute('data-listener', 'true');
-
     playPauseBtn      = document.getElementById('playPauseBtn');
     nextBtn           = document.getElementById('nextBtn');
     prevBtn           = document.getElementById('prevBtn');
@@ -1133,7 +1230,6 @@ function setupAudioListeners() {
     durationTimeLabel = document.getElementById('durationTime');
 
     function hasTrack() { return audio.src && audio.src !== '' && audio.src !== window.location.href; }
-
     function updatePlayBtn() {
         if (!playPauseBtn) return;
         playPauseBtn.classList.toggle('disabled', !hasTrack());
@@ -1188,14 +1284,12 @@ function setupAudioListeners() {
         if (lrcSyncInterval) { clearInterval(lrcSyncInterval); lrcSyncInterval = null; }
     };
 
-    audio.onended = () => {
-        updateMediaSessionState(audio);
-    };
+    audio.onended = () => { updateMediaSessionState(audio); };
 
-    // Помилка — переходимо до наступного треку
     audio.onerror = () => {
-        console.warn('Audio error, skipping to next');
+        console.warn('Audio error, skipping');
         if (currentQueue.length > 1) playNext();
+        else if (isRandomMode) playNextRandom();
     };
 
     setPlayPauseIcon(false);
@@ -1216,6 +1310,82 @@ function formatTime(sec) {
 }
 
 // ==================== ПЛЕЙЛИСТИ ====================
+function renderPlaylistSongs(songs) {
+    return songs.length ? songs.map(song => `
+        <div class="result-item">
+            <img src="${escapeHtml(song.image)}" alt="${escapeHtml(song.name)}" class="song-image" onerror="this.src='./fotomusic/no-photo.jpg'">
+            <div class="result-info">
+                <h3>${escapeHtml(song.name)}</h3>
+                <p>${escapeHtml(song.artist)}</p>
+            </div>
+            <div class="result-buttons">
+                <button class="play-btn" onclick="playSong('${escapeHtml(song.file)}',false)">▶${t('playBtn')}</button>
+                <button class="download-btn" onclick="downloadSong('${escapeHtml(song.file)}')">⬇${t('downloadBtn')}</button>
+                <button class="like-btn ${isFavorite(song.file)?'liked':''}" data-filename="${escapeHtml(song.file)}" onclick="toggleFavorite('${escapeHtml(song.file)}')">❤️</button>
+                <button class="share-btn" onclick="shareSong('${escapeHtml(song.file)}')">🔗</button>
+            </div>
+        </div>
+    `).join('') : `<p style="text-align:center;color:rgba(255,255,255,0.7);padding:16px;">${currentLanguage === 'en' ? 'No songs yet' : 'Пісень ще немає'}</p>`;
+}
+
+function buildPlaylistCard(pl, options = {}) {
+    const name = currentLanguage === 'en' ? (pl.name_en || pl.name) : pl.name;
+    const desc = currentLanguage === 'en' ? (pl.description_en || pl.description) : pl.description;
+    const songs = pl.songs.map(fn => songsDatabase.find(s => s.file === fn)).filter(Boolean);
+    const songCountText = `${pl.songs.length} ${currentLanguage === 'en' ? 'songs' : 'пісень'}`;
+
+    // ФІКС: екрануємо JSON для onclick
+    const songsJson = JSON.stringify(pl.songs).replace(/"/g, '&quot;');
+    const playAllBtn = songs.length
+        ? `<button class="play-all-btn" onclick="event.stopPropagation();playPlaylist(${songsJson})">▶ ${t('playAllBtn')}</button>`
+        : '';
+
+    const classes = [
+        'playlist-item',
+        options.compact ? 'playlist-item-compact' : '',
+        options.pinned ? 'playlist-item-pinned' : '',
+        options.otherList ? 'playlist-item-other-list' : ''
+    ].filter(Boolean).join(' ');
+
+    if (options.compact || options.collapsible) {
+        const isOpen = options.defaultOpen === true;
+        return `
+            <div class="${classes}" id="playlist-${pl.id}">
+                <div class="playlist-header" onclick="togglePlaylist('${pl.id}')">
+                    <div class="playlist-info">
+                        <h3>📋 ${escapeHtml(name)}</h3>
+                        <p>${escapeHtml(desc)}</p>
+                        <small>${songCountText}</small>
+                    </div>
+                    <div class="playlist-header-btns">
+                        ${playAllBtn}
+                        <button class="view-btn playlist-toggle-btn${isOpen ? ' active' : ''}" onclick="event.stopPropagation();togglePlaylist('${pl.id}')">
+                            ${t('viewBtn')} <span class="toggle-arrow">${isOpen ? '▲' : '▼'}</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="playlist-dropdown" id="dropdown-${pl.id}" style="display:${isOpen ? 'block' : 'none'};">
+                    ${renderPlaylistSongs(songs)}
+                </div>
+            </div>`;
+    }
+
+    return `
+        <div class="${classes}" id="playlist-${pl.id}">
+            <div class="playlist-header">
+                <div class="playlist-info">
+                    <h3>📋 ${escapeHtml(name)}</h3>
+                    <p>${escapeHtml(desc)}</p>
+                    <small>${songCountText}</small>
+                </div>
+                <div class="playlist-header-btns">${playAllBtn}</div>
+            </div>
+            <div class="playlist-dropdown" id="dropdown-${pl.id}" style="display:block;">
+                ${renderPlaylistSongs(songs)}
+            </div>
+        </div>`;
+}
+
 function displayPlaylists() {
     const container = document.getElementById('playlistsContainer');
     if (!container) return;
@@ -1223,54 +1393,49 @@ function displayPlaylists() {
         container.innerHTML = '<p style="text-align:center;color:gray;">⚠️ Немає плейлистів</p>';
         return;
     }
-    container.innerHTML = playlistsDatabase.map(pl => {
-        const name = currentLanguage === 'en' ? (pl.name_en || pl.name) : pl.name;
-        const desc = currentLanguage === 'en' ? (pl.description_en || pl.description) : pl.description;
-        const songs = pl.songs.map(fn => songsDatabase.find(s => s.file === fn)).filter(Boolean);
-        const playAllBtn = songs.length
-            ? `<button class="play-all-btn" onclick="event.stopPropagation();playPlaylist(${JSON.stringify(pl.songs).replace(/"/g,'&quot;')})">▶ ${t('playAllBtn')}</button>`
-            : '';
-        return `
-            <div class="playlist-item" id="playlist-${pl.id}">
-                <div class="playlist-header" onclick="togglePlaylist('${pl.id}')">
+
+    const pinnedIds = ['favorites', 'ukrainian', 'foreign'];
+    const pinnedPlaylists = [];
+    const otherPlaylists = [];
+
+    playlistsDatabase.forEach(pl => {
+        if (pinnedIds.includes(pl.id)) pinnedPlaylists.push(pl);
+        else otherPlaylists.push(pl);
+    });
+
+    const pinnedMarkup = pinnedPlaylists.map(pl => buildPlaylistCard(pl, {
+        pinned: true, collapsible: true, defaultOpen: true
+    })).join('');
+
+    let otherMarkup = '';
+    if (otherPlaylists.length) {
+        otherMarkup = `
+            <div class="playlist-item other-playlists-group playlist-item-other-list" id="playlist-other-group">
+                <div class="playlist-header other-playlists-header" onclick="togglePlaylist('other-group')">
                     <div class="playlist-info">
-                        <h3>📋 ${escapeHtml(name)}</h3>
-                        <p>${escapeHtml(desc)}</p>
-                        <small>${pl.songs.length} ${currentLanguage === 'en' ? 'songs' : 'пісень'}</small>
+                        <h3>📚 ${currentLanguage === 'en' ? 'Other playlists' : 'Інші списки відтворення'}</h3>
+                        <p>${currentLanguage === 'en' ? 'Open to view all additional playlists' : 'Відкрий, щоб побачити всі додаткові списки'}</p>
+                        <small>${otherPlaylists.length} ${currentLanguage === 'en' ? 'playlists' : 'плейлистів'}</small>
                     </div>
                     <div class="playlist-header-btns">
-                        ${playAllBtn}
-                        <button class="view-btn playlist-toggle-btn" onclick="event.stopPropagation();togglePlaylist('${pl.id}')">
+                        <button class="view-btn playlist-toggle-btn" onclick="event.stopPropagation();togglePlaylist('other-group')">
                             ${t('viewBtn')} <span class="toggle-arrow">▼</span>
                         </button>
                     </div>
                 </div>
-                <div class="playlist-dropdown" id="dropdown-${pl.id}" style="display:none;">
-                    ${songs.length ? songs.map(song => `
-                        <div class="result-item">
-                            <img src="${escapeHtml(song.image)}" alt="${escapeHtml(song.name)}" class="song-image" onerror="this.src='./fotomusic/no-photo.jpg'">
-                            <div class="result-info">
-                                <h3>${escapeHtml(song.name)}</h3>
-                                <p>${escapeHtml(song.artist)}</p>
-                            </div>
-                            <div class="result-buttons">
-                                <button class="play-btn" onclick="playSong('${escapeHtml(song.file)}',false)">▶${t('playBtn')}</button>
-                                <button class="download-btn" onclick="downloadSong('${escapeHtml(song.file)}')">⬇${t('downloadBtn')}</button>
-                                <button class="like-btn ${isFavorite(song.file)?'liked':''}" data-filename="${escapeHtml(song.file)}" onclick="toggleFavorite('${escapeHtml(song.file)}')">❤️</button>
-                                <button class="share-btn" onclick="shareSong('${escapeHtml(song.file)}')">🔗</button>
-                            </div>
-                        </div>
-                    `).join('') : `<p style="text-align:center;color:rgba(255,255,255,0.7);padding:16px;">${currentLanguage==='en'?'No songs yet':'Пісень ще немає'}</p>`}
+                <div class="playlist-dropdown other-playlists-dropdown" id="dropdown-other-group" style="display:none;">
+                    ${otherPlaylists.map(pl => buildPlaylistCard(pl, { compact: true, otherList: true })).join('')}
                 </div>
-            </div>
-        `;
-    }).join('');
+            </div>`;
+    }
+
+    container.innerHTML = pinnedMarkup + otherMarkup;
 }
 
 function togglePlaylist(id) {
     const dropdown = document.getElementById('dropdown-' + id);
-    const arrow = document.querySelector(`#playlist-${id} .toggle-arrow`);
-    const btn   = document.querySelector(`#playlist-${id} .playlist-toggle-btn`);
+    const arrow = document.querySelector(`#playlist-${id} > .playlist-header .toggle-arrow`);
+    const btn   = document.querySelector(`#playlist-${id} > .playlist-header .playlist-toggle-btn`);
     if (!dropdown) return;
     const isOpen = dropdown.style.display !== 'none';
     dropdown.style.display = isOpen ? 'none' : 'block';
@@ -1289,29 +1454,22 @@ function toggleFavorite(filename) {
     const idx = fav.songs.indexOf(filename);
     if (idx > -1) fav.songs.splice(idx, 1); else fav.songs.push(filename);
     savePlaylists();
-
     const isNowLiked = fav.songs.includes(filename);
-
-    // Оновлюємо ВСІ кнопки лайку з цим filename на сторінці (пошук + плейлисти)
     document.querySelectorAll(`.like-btn[data-filename="${filename}"]`).forEach(btn => {
         btn.classList.toggle('liked', isNowLiked);
     });
-
-    // Запам'ятовуємо які плейлисти відкриті
+    // Запам'ятовуємо відкриті dropdown
     const openDropdowns = [];
     document.querySelectorAll('.playlist-dropdown').forEach(d => {
         if (d.style.display !== 'none') openDropdowns.push(d.id);
     });
-
-    // Перемальовуємо плейлисти
     displayPlaylists();
-
-    // Відновлюємо відкриті dropdown
+    // Відновлюємо відкриті
     openDropdowns.forEach(id => {
         const dropdown = document.getElementById(id);
         const plId = id.replace('dropdown-', '');
-        const arrow = document.querySelector(`#playlist-${plId} .toggle-arrow`);
-        const btn   = document.querySelector(`#playlist-${plId} .playlist-toggle-btn`);
+        const arrow = document.querySelector(`#playlist-${plId} > .playlist-header .toggle-arrow`);
+        const btn   = document.querySelector(`#playlist-${plId} > .playlist-header .playlist-toggle-btn`);
         if (dropdown) {
             dropdown.style.display = 'block';
             if (arrow) arrow.textContent = '▲';
@@ -1333,6 +1491,5 @@ window.addEventListener('DOMContentLoaded', async () => {
     updateNavButtons();
     setupAudioUnlock();
     checkShareUrl();
-    // Кешуємо музику для фонового відтворення
     setTimeout(() => precacheMusicFiles(), 2000);
 });

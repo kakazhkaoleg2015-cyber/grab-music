@@ -69,7 +69,7 @@ body {
     flex-direction: column;
 }
 
-/* ========== МОДАЛЬНІ ВІКНА (ЦЕНТР) ========== */
+/* ========== МОДАЛЬНІ ВІКНА ========== */
 .modal {
     display: none;
     position: fixed !important;
@@ -116,10 +116,7 @@ body {
     box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     box-sizing: border-box;
 }
-.modal-content h2 {
-    color: var(--accent-color);
-    margin-top: 0;
-}
+.modal-content h2 { color: var(--accent-color); margin-top: 0; }
 .modal-content .close {
     color: var(--text-muted);
     position: absolute;
@@ -129,9 +126,7 @@ body {
     font-weight: bold;
     cursor: pointer;
 }
-.modal-content .close:hover {
-    color: var(--accent-color);
-}
+.modal-content .close:hover { color: var(--accent-color); }
 
 /* ========== ЕКВАЛАЙЗЕР ========== */
 .equalizer-sliders {
@@ -155,11 +150,7 @@ body {
     align-items: center;
     gap: 8px;
 }
-.equalizer-sliders input {
-    width: 100px;
-    cursor: pointer;
-    accent-color: var(--accent-color);
-}
+.equalizer-sliders input { width: 100px; cursor: pointer; accent-color: var(--accent-color); }
 .reset-eq-btn {
     background: var(--accent-color);
     color: #1a2a3a;
@@ -170,15 +161,8 @@ body {
     font-size: 13px;
     font-weight: bold;
 }
-.reset-eq-btn:hover {
-    transform: scale(1.02);
-    background: var(--accent-dark);
-    color: white;
-}
-body.dark-theme .reset-eq-btn {
-    background: #4a7aa0;
-    color: white;
-}
+.reset-eq-btn:hover { transform: scale(1.02); background: var(--accent-dark); color: white; }
+body.dark-theme .reset-eq-btn { background: #4a7aa0; color: white; }
 
 /* ========== КАСТОМНИЙ ПЛЕЄР ========== */
 .custom-player {
@@ -190,22 +174,9 @@ body.dark-theme .reset-eq-btn {
     padding: 12px 20px;
     box-sizing: border-box;
 }
-body.dark-theme .custom-player {
-    background: rgba(0,0,0,0.3);
-}
-.progress-container {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
-}
-.time-label {
-    font-size: 13px;
-    font-weight: bold;
-    color: var(--text-primary);
-    min-width: 40px;
-    text-align: center;
-}
+body.dark-theme .custom-player { background: rgba(0,0,0,0.3); }
+.progress-container { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.time-label { font-size: 13px; font-weight: bold; color: var(--text-primary); min-width: 40px; text-align: center; }
 .seek-bar {
     flex: 1;
     height: 4px;
@@ -222,12 +193,7 @@ body.dark-theme .custom-player {
     border-radius: 50%;
     cursor: pointer;
 }
-.player-controls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-}
+.player-controls { display: flex; justify-content: center; align-items: center; gap: 20px; }
 .control-btn {
     background: transparent;
     border: none;
@@ -238,10 +204,7 @@ body.dark-theme .custom-player {
     padding: 5px 10px;
     border-radius: 6px;
 }
-.control-btn:hover {
-    transform: scale(1.05);
-    color: var(--accent-color);
-}
+.control-btn:hover { transform: scale(1.05); color: var(--accent-color); }
 .player-play-btn {
     font-size: 24px;
     line-height: 1;
@@ -259,13 +222,8 @@ body.dark-theme .custom-player {
     border: none;
     cursor: pointer;
 }
-.player-play-btn:hover {
-    transform: scale(1.08);
-}
-body.dark-theme .player-play-btn {
-    background: #4a7aa0;
-    color: white;
-}
+.player-play-btn:hover { transform: scale(1.08); }
+body.dark-theme .player-play-btn { background: #4a7aa0; color: white; }
 .loop-control-btn.active,
 .random-mode-btn.active {
     background: var(--accent-color);
@@ -273,10 +231,7 @@ body.dark-theme .player-play-btn {
     border-radius: 6px;
 }
 body.dark-theme .loop-control-btn.active,
-body.dark-theme .random-mode-btn.active {
-    background: #4a7aa0;
-    color: white;
-}
+body.dark-theme .random-mode-btn.active { background: #4a7aa0; color: white; }
 
 /* ========== ПЛЕЙЛИСТИ ========== */
 .playlist-item {
@@ -293,21 +248,14 @@ body.dark-theme .random-mode-btn.active {
     cursor: pointer;
     user-select: none;
 }
-.playlist-info {
-    flex: 1;
-    text-align: left;
-    color: white;
-}
+.playlist-info { flex: 1; text-align: left; color: white; }
 .playlist-item h3 {
     font-family: 'Comfortaa', cursive;
     font-size: 1.3rem;
     font-weight: 700;
     margin: 0 0 4px 0;
 }
-.playlist-item p {
-    font-size: 0.85rem;
-    margin-bottom: 4px;
-}
+.playlist-item p { font-size: 0.85rem; margin-bottom: 4px; }
 .playlist-item h3, .playlist-item p, .playlist-item small {
     color: #ffffff !important;
     text-shadow: 0 1px 1px rgba(0,0,0,0.15);
@@ -330,35 +278,13 @@ body.dark-theme .random-mode-btn.active {
     font-size: 13px;
     white-space: nowrap;
 }
-.back-btn {
-    background: var(--accent-color);
-    color: #1a2a3a;
-}
-.play-all-btn {
-    background: rgba(255,255,255,0.2);
-    color: #ffffff;
-    border: 1px solid rgba(255,255,255,0.5);
-}
-.play-all-btn:hover {
-    background: rgba(255,255,255,0.35);
-}
-.playlist-toggle-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: background 0.2s;
-}
-.playlist-toggle-btn.active {
-    background: rgba(255,255,255,0.15);
-    color: #ffffff;
-}
-.toggle-arrow {
-    font-size: 11px;
-    transition: transform 0.2s;
-    display: inline-block;
-}
+.back-btn { background: var(--accent-color); color: #1a2a3a; }
+.play-all-btn { background: rgba(255,255,255,0.2); color: #ffffff; border: 1px solid rgba(255,255,255,0.5); }
+.play-all-btn:hover { background: rgba(255,255,255,0.35); }
+.playlist-toggle-btn { display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
+.playlist-toggle-btn.active { background: rgba(255,255,255,0.15); color: #ffffff; }
+.toggle-arrow { font-size: 11px; display: inline-block; }
 
-/* Випадаючий список пісень */
 .playlist-dropdown {
     background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-dark) 100%);
     border-top: 2px solid rgba(255,255,255,0.25);
@@ -375,20 +301,25 @@ body.dark-theme .random-mode-btn.active {
     border-left-color: rgba(255,255,255,0.6);
     box-shadow: none;
 }
-.playlist-dropdown .result-info h3 {
-    color: #ffffff !important;
-    font-size: 15px;
-    margin: 0 0 4px 0;
+.playlist-dropdown .result-info h3 { color: #ffffff !important; font-size: 15px; margin: 0 0 4px 0; }
+.playlist-dropdown .result-info p { color: rgba(255,255,255,0.85) !important; font-size: 13px; margin: 0; }
+body.dark-theme .playlist-dropdown .result-item { background: rgba(0,0,0,0.2); border-left-color: rgba(255,255,255,0.3); }
+
+.playlist-item-pinned { width: 100%; }
+.playlist-item-pinned .playlist-info { max-width: 58%; }
+.playlist-item-pinned .playlist-header-btns { min-width: 180px; }
+.playlist-item-other-list .playlist-header { align-items: center; justify-content: space-between; }
+.other-playlists-group .playlist-info p,
+.other-playlists-group .playlist-info small { display: none; }
+.other-playlists-dropdown { display: grid; gap: 10px; }
+.playlist-item-compact {
+    margin: 8px 0 0;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.18);
 }
-.playlist-dropdown .result-info p {
-    color: rgba(255,255,255,0.85) !important;
-    font-size: 13px;
-    margin: 0;
-}
-body.dark-theme .playlist-dropdown .result-item {
-    background: rgba(0,0,0,0.2);
-    border-left-color: rgba(255,255,255,0.3);
-}
+.playlist-item-compact .playlist-header { padding: 14px 16px; }
+.playlist-item-compact .playlist-info { max-width: 62%; }
+.playlist-item-compact .playlist-header-btns { min-width: 170px; }
 
 /* ========== РЕЗУЛЬТАТИ ПОШУКУ ========== */
 .result-item {
@@ -402,399 +333,211 @@ body.dark-theme .playlist-dropdown .result-item {
     border-radius: 6px;
     box-shadow: 0 6px 12px var(--shadow);
 }
-.song-image {
-    width: 80px;
-    height: 80px;
-    border-radius: 6px;
-    object-fit: cover;
-}
-.result-info {
-    flex: 1;
-    text-align: left;
-    min-width: 0;
-    overflow: hidden;
-}
+.song-image { width: 80px; height: 80px; border-radius: 6px; object-fit: cover; }
+.result-info { flex: 1; text-align: left; min-width: 0; overflow: hidden; }
 .result-info h3 {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin: 0 0 4px 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 15px; font-weight: 600; color: var(--text-primary);
+    margin: 0 0 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .result-info p {
-    font-size: 13px;
-    color: var(--text-muted);
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 13px; color: var(--text-muted); margin: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     font-family: 'Segoe UI', Roboto, sans-serif;
 }
-.result-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    min-width: 130px;
-}
+.result-buttons { display: flex; flex-direction: column; gap: 8px; min-width: 130px; }
 
-/* ========== КНОПКИ: ПРОГРАВАТИ, СКАЧАТИ, ЛАЙК ========== */
+/* ========== КНОПКИ ========== */
 .result-buttons .play-btn,
 .result-buttons .download-btn,
 .result-buttons .like-btn {
     font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    border-radius: 10px;
-    cursor: pointer;
+    font-size: 14px; font-weight: 600; border-radius: 10px; cursor: pointer;
     transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
-    width: 100%;
-    box-sizing: border-box;
-    text-align: center;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    white-space: nowrap;
-    letter-spacing: 0.3px;
+    width: 100%; box-sizing: border-box; text-align: center;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 6px; white-space: nowrap; letter-spacing: 0.3px;
 }
-
-/* --- Програвати --- */
 .result-buttons .play-btn {
     background: linear-gradient(135deg, #43c95a 0%, #1e8c35 100%);
-    color: #ffffff;
-    border: none;
-    padding: 11px 14px;
+    color: #ffffff; border: none; padding: 11px 14px;
     box-shadow: 0 3px 10px rgba(30, 140, 53, 0.35);
-    /* Скидаємо стилі кастомного плеєра */
-    width: 100%;
-    height: auto;
-    border-radius: 10px;
-    font-size: 14px;
+    width: 100%; height: auto; border-radius: 10px; font-size: 14px;
 }
-.result-buttons .play-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(30, 140, 53, 0.45);
-    filter: brightness(1.07);
-}
-.result-buttons .play-btn:active {
-    transform: translateY(1px);
-    box-shadow: 0 1px 4px rgba(30, 140, 53, 0.3);
-    filter: brightness(0.97);
-}
-
-/* --- Скачати --- */
+.result-buttons .play-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(30,140,53,0.45); filter: brightness(1.07); }
+.result-buttons .play-btn:active { transform: translateY(1px); }
 .result-buttons .download-btn {
     background: linear-gradient(135deg, #3b9fef 0%, #1260b5 100%);
-    color: #ffffff;
-    border: none;
-    padding: 11px 14px;
+    color: #ffffff; border: none; padding: 11px 14px;
     box-shadow: 0 3px 10px rgba(18, 96, 181, 0.35);
 }
-.result-buttons .download-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(18, 96, 181, 0.45);
-    filter: brightness(1.07);
-}
-.result-buttons .download-btn:active {
-    transform: translateY(1px);
-    box-shadow: 0 1px 4px rgba(18, 96, 181, 0.3);
-    filter: brightness(0.97);
-}
-
-/* --- Лайк --- */
+.result-buttons .download-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(18,96,181,0.45); filter: brightness(1.07); }
+.result-buttons .download-btn:active { transform: translateY(1px); }
 .result-buttons .like-btn {
-    background: transparent;
-    border: 2px solid #e74c3c;
-    color: #e74c3c;
-    padding: 9px 14px;
-    font-size: 16px;
-    border-radius: 10px;
-    /* скидаємо стилі .play-btn */
-    width: 100%;
-    height: auto;
+    background: transparent; border: 2px solid #e74c3c; color: #e74c3c;
+    padding: 9px 14px; font-size: 16px; border-radius: 10px; width: 100%; height: auto;
 }
-.result-buttons .like-btn:hover {
-    background: rgba(231, 76, 60, 0.08);
-    border-color: #c0392b;
-    transform: scale(1.03);
-    box-shadow: 0 3px 10px rgba(231, 76, 60, 0.2);
-}
-.result-buttons .like-btn:active {
-    transform: scale(0.97);
-}
+.result-buttons .like-btn:hover { background: rgba(231,76,60,0.08); border-color: #c0392b; transform: scale(1.03); box-shadow: 0 3px 10px rgba(231,76,60,0.2); }
+.result-buttons .like-btn:active { transform: scale(0.97); }
 .result-buttons .like-btn.liked {
     background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-    color: #ffffff;
-    border-color: transparent;
-    box-shadow: 0 3px 10px rgba(231, 76, 60, 0.45);
+    color: #ffffff; border-color: transparent; box-shadow: 0 3px 10px rgba(231,76,60,0.45);
 }
-.result-buttons .like-btn.liked:hover {
-    filter: brightness(1.08);
-    box-shadow: 0 6px 16px rgba(231, 76, 60, 0.5);
-}
-
-/* --- Темна тема: кнопки --- */
-body.dark-theme .result-buttons .play-btn {
-    background: linear-gradient(135deg, #3ab854 0%, #176b2a 100%);
-    box-shadow: 0 3px 10px rgba(30, 140, 53, 0.5);
-}
-body.dark-theme .result-buttons .download-btn {
-    background: linear-gradient(135deg, #2e8de0 0%, #0d4f9e 100%);
-    box-shadow: 0 3px 10px rgba(18, 96, 181, 0.5);
-}
-body.dark-theme .result-buttons .like-btn {
-    border-color: #ff7070;
-    color: #ff7070;
-}
-body.dark-theme .result-buttons .like-btn.liked {
-    background: linear-gradient(135deg, #e74c3c 0%, #a93226 100%);
-    border-color: transparent;
-    color: #ffffff;
-}
-
-/* --- Заблоковані кнопки --- */
+.result-buttons .like-btn.liked:hover { filter: brightness(1.08); box-shadow: 0 6px 16px rgba(231,76,60,0.5); }
+body.dark-theme .result-buttons .play-btn { background: linear-gradient(135deg, #3ab854 0%, #176b2a 100%); box-shadow: 0 3px 10px rgba(30,140,53,0.5); }
+body.dark-theme .result-buttons .download-btn { background: linear-gradient(135deg, #2e8de0 0%, #0d4f9e 100%); box-shadow: 0 3px 10px rgba(18,96,181,0.5); }
+body.dark-theme .result-buttons .like-btn { border-color: #ff7070; color: #ff7070; }
+body.dark-theme .result-buttons .like-btn.liked { background: linear-gradient(135deg, #e74c3c 0%, #a93226 100%); border-color: transparent; color: #ffffff; }
 .result-buttons .play-btn.disabled,
 .result-buttons .download-btn.disabled,
-.result-buttons .like-btn.disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-    pointer-events: none;
-    transform: none !important;
-    filter: none !important;
-    box-shadow: none !important;
-}
+.result-buttons .like-btn.disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; transform: none !important; filter: none !important; box-shadow: none !important; }
 
-/* ========== ІНШІ СТИЛІ ========== */
+/* --- Share --- */
+.result-buttons .share-btn {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    color: #ffffff; border: none; padding: 9px 14px; font-size: 15px;
+    border-radius: 10px; cursor: pointer; width: 100%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 600; box-shadow: 0 3px 10px rgba(230,126,34,0.35);
+    transition: transform 0.15s, filter 0.15s;
+}
+.result-buttons .share-btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
+.result-buttons .share-btn:active { transform: translateY(1px); }
+
+/* ========== ІНШІ ========== */
 .top-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    max-width: 900px;
-    width: 100%;
-    margin: 0 auto 10px auto;
-    box-sizing: border-box;
-    flex-shrink: 0;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    max-width: 900px; width: 100%; margin: 0 auto 10px auto;
+    box-sizing: border-box; flex-shrink: 0;
 }
-.top-buttons {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-.lang-buttons-row {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-}
+.top-buttons { display: flex; gap: 10px; align-items: center; }
+.lang-buttons-row { display: flex; gap: 10px; justify-content: center; }
 .lang-btn {
-    font-family: 'Comfortaa', cursive;
-    font-size: 16px;
-    padding: 10px 18px;
-    border: 2px solid var(--accent-color);
-    background: transparent;
-    color: var(--accent-color);
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
+    font-family: 'Comfortaa', cursive; font-size: 16px; padding: 10px 18px;
+    border: 2px solid var(--accent-color); background: transparent;
+    color: var(--accent-color); border-radius: 6px; cursor: pointer; font-weight: bold;
 }
-.lang-btn:hover, .lang-btn.active {
-    background: var(--accent-color);
-    color: #1a2a3a;
-}
+.lang-btn:hover, .lang-btn.active { background: var(--accent-color); color: #1a2a3a; }
 .theme-toggle-btn {
-    font-size: 24px;
-    padding: 10px 15px;
-    border: 2px solid var(--accent-color);
-    background: transparent;
-    color: var(--icon-color);
-    border-radius: 6px;
-    cursor: pointer;
+    font-size: 24px; padding: 10px 15px; border: 2px solid var(--accent-color);
+    background: transparent; color: var(--icon-color); border-radius: 6px; cursor: pointer;
 }
-.content {
-    text-align: center;
-    max-width: 600px;
-    margin: 0 auto;
-    flex: 1;
-    width: 100%;
-    box-sizing: border-box;
-}
+.content { text-align: center; max-width: 600px; margin: 0 auto; flex: 1; width: 100%; box-sizing: border-box; }
 .support-plus-btn {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
+    width: 56px; height: 56px; border-radius: 50%;
     background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-dark) 100%);
-    color: white;
-    text-decoration: none;
-    font-size: 34px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    color: white; text-decoration: none; font-size: 34px;
+    display: inline-flex; align-items: center; justify-content: center;
     box-shadow: 0 6px 14px rgba(0,0,0,0.2);
 }
-.beta-badge {
-    font-family: 'Caveat', cursive;
-    font-size: 55px;
-    color: #ff6b81;
-    margin: 0 0 6px 0;
-}
-h1 {
-    font-family: 'Caveat', cursive;
-    font-size: 75px;
-    color: var(--accent-color);
-    margin: 0;
-    margin-bottom: 10px;
-}
-p {
-    font-family: 'Comfortaa', cursive;
-    font-size: 30px;
-    color: var(--text-primary);
-    margin: 0 0 40px 0;
-}
-.search-section {
-    margin-top: 40px;
-}
-.search-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    justify-content: center;
-    max-width: 460px;
-    margin: 0 auto;
-}
-.playlists-container {
-    margin-top: 30px;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 16px;
-    max-width: 900px;
-    margin-left: auto;
-    margin-right: auto;
-}
+.beta-badge { font-family: 'Caveat', cursive; font-size: 55px; color: #ff6b81; margin: 0 0 6px 0; }
+h1 { font-family: 'Caveat', cursive; font-size: 75px; color: var(--accent-color); margin: 0 0 10px 0; }
+p { font-family: 'Comfortaa', cursive; font-size: 30px; color: var(--text-primary); margin: 0 0 40px 0; }
+.search-section { margin-top: 40px; }
+.search-row { display: flex; align-items: center; gap: 10px; justify-content: center; max-width: 460px; margin: 0 auto; }
+.playlists-container { margin-top: 30px; display: grid; grid-template-columns: 1fr; gap: 14px; max-width: 980px; margin-left: auto; margin-right: auto; }
 .search-input {
-    width: 100%;
-    max-width: 400px;
-    padding: 14px 18px;
-    font-size: 16px;
-    border: 2px solid var(--accent-color);
-    border-radius: 6px;
-    background: var(--search-bg);
-    color: var(--search-text);
-    box-sizing: border-box;
+    width: 100%; max-width: 400px; padding: 14px 18px; font-size: 16px;
+    border: 2px solid var(--accent-color); border-radius: 6px;
+    background: var(--search-bg); color: var(--search-text); box-sizing: border-box;
 }
-.search-results {
-    margin-top: 20px;
-    max-width: 500px;
-    margin-left: auto;
-    margin-right: auto;
-    width: 100%;
-    box-sizing: border-box;
-}
+.search-results { margin-top: 20px; max-width: 500px; margin-left: auto; margin-right: auto; width: 100%; box-sizing: border-box; }
 .player-section {
-    margin-top: 50px;
-    padding: 30px;
-    background: var(--player-bg);
-    border-radius: 6px;
-    box-shadow: 0 8px 20px var(--shadow);
-    border-top: 6px solid var(--accent-color);
-    border-bottom: 3px solid var(--accent-dark);
+    margin-top: 50px; padding: 30px; background: var(--player-bg);
+    border-radius: 6px; box-shadow: 0 8px 20px var(--shadow);
+    border-top: 6px solid var(--accent-color); border-bottom: 3px solid var(--accent-dark);
 }
 .tutorial-btn {
-    background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
-    color: white;
-    border: none;
-    padding: 10px 24px;
-    border-radius: 6px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-bottom: 20px;
+    background: linear-gradient(135deg, #ff6b6b, #ff8e8e); color: white;
+    border: none; padding: 10px 24px; border-radius: 6px; font-weight: bold;
+    cursor: pointer; margin-bottom: 20px;
 }
 .now-playing {
-    margin-top: 18px;
-    padding: 12px 20px;
-    background: rgba(0,0,0,0.05);
-    border-radius: 6px;
-    border-left: 4px solid var(--accent-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    flex-wrap: wrap;
+    margin-top: 18px; padding: 12px 20px; background: rgba(0,0,0,0.05);
+    border-radius: 6px; border-left: 4px solid var(--accent-color);
+    display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;
 }
-.player-image {
-    width: 48px;
-    height: 48px;
-    border-radius: 6px;
-    object-fit: cover;
-}
+.player-image { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; }
 .lyrics-section {
-    margin-top: 28px;
-    padding: 24px;
-    background: var(--lyrics-bg);
-    border-radius: 6px;
-    text-align: left;
-    border-left: 5px solid var(--accent-color);
+    margin-top: 28px; padding: 24px; background: var(--lyrics-bg);
+    border-radius: 6px; text-align: left; border-left: 5px solid var(--accent-color);
 }
-.lyrics-section h2 {
-    font-family: 'Comfortaa', cursive;
-    font-size: 22px;
-    text-align: center;
-    margin-bottom: 16px;
-    color: var(--text-primary);
-}
+.lyrics-section h2 { font-family: 'Comfortaa', cursive; font-size: 22px; text-align: center; margin-bottom: 16px; color: var(--text-primary); }
 .lyrics-buttons {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    margin-bottom: 16px;
-    border-bottom: 2px solid var(--border-light);
-    padding-bottom: 12px;
+    display: flex; gap: 10px; justify-content: center; margin-bottom: 16px;
+    border-bottom: 2px solid var(--border-light); padding-bottom: 12px;
 }
-.lyrics-tab-btn {
-    padding: 10px 18px;
-    border: none;
-    background: transparent;
-    color: var(--text-muted);
-    font-weight: bold;
-    cursor: pointer;
-    position: relative;
-}
-.lyrics-tab-btn.active {
-    color: var(--accent-color);
-}
+.lyrics-tab-btn { padding: 10px 18px; border: none; background: transparent; color: var(--text-muted); font-weight: bold; cursor: pointer; position: relative; }
+.lyrics-tab-btn.active { color: var(--accent-color); }
 .lyrics-tab-btn.active::after {
-    content: '';
-    position: absolute;
-    bottom: -12px;
-    left: 0;
-    right: 0;
-    height: 3px;
+    content: ''; position: absolute; bottom: -12px; left: 0; right: 0; height: 3px;
     background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-dark) 100%);
 }
 .lyrics-content {
-    font-size: 15px;
-    line-height: 2;
-    background: rgba(0,0,0,0.05);
-    border-radius: 6px;
-    padding: 16px;
-    max-height: 400px;
-    overflow-y: auto;
-    white-space: pre-wrap;
+    font-size: 15px; line-height: 2; background: rgba(0,0,0,0.05);
+    border-radius: 6px; padding: 16px; max-height: 400px; overflow-y: auto; white-space: pre-wrap;
 }
-.lrc-line {
-    padding: 8px 0;
-    color: var(--text-muted);
+.lrc-line { padding: 8px 0; color: var(--text-muted); }
+.lrc-line.active { color: var(--accent-color); font-weight: bold; font-size: 16px; }
+
+/* ========== ПЕРЕКЛАД ========== */
+.translate-controls {
+    display: flex; align-items: center; justify-content: center;
+    gap: 12px; margin-top: 18px; flex-wrap: wrap;
 }
-.lrc-line.active {
-    color: var(--accent-color);
+.translate-language-select {
+    appearance: none; -webkit-appearance: none;
+    background-color: var(--card-bg); color: var(--text-primary);
+    border: 2px solid var(--accent-color); border-radius: 30px;
+    padding: 10px 38px 10px 20px; font-size: 14px;
+    font-family: 'Segoe UI', Roboto, sans-serif; font-weight: 700;
+    cursor: pointer; outline: none; transition: all 0.2s ease;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235d9cec' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 16px center;
+    box-shadow: 0 3px 8px var(--shadow); min-width: 150px;
+}
+.translate-language-select:hover { border-color: var(--accent-dark); transform: translateY(-2px); box-shadow: 0 5px 12px var(--shadow); }
+.translate-language-select:focus { border-color: var(--accent-dark); box-shadow: 0 0 0 3px rgba(93,156,236,0.25); }
+body.dark-theme .translate-language-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238ab8d8' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+.translate-btn {
+    background: linear-gradient(135deg, #34a853, #0f9d58); color: white;
+    border: none; padding: 11px 24px; border-radius: 30px; font-weight: bold;
+    font-size: 14px; cursor: pointer; transition: all 0.2s ease;
+    box-shadow: 0 3px 8px rgba(15,157,88,0.3);
+}
+.translate-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 12px rgba(15,157,88,0.4); filter: brightness(1.05); }
+.translate-btn:active { transform: translateY(1px); }
+.translate-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* ========== КНОПКА ПОКАЗАТИ ОРИГІНАЛ ========== */
+.show-original-btn {
+    background: transparent;
+    color: var(--accent-dark);
+    border: 2px solid var(--accent-color);
+    padding: 9px 20px;
+    border-radius: 30px;
+    font-size: 13px;
     font-weight: bold;
-    font-size: 16px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+.show-original-btn:hover {
+    background: var(--accent-color);
+    color: #1a2a3a;
+    transform: translateY(-1px);
 }
 
-/* ========== ПРОСТИЙ РЕЖИМ (збільшений інтерфейс) ========== */
-body.simple-mode {
-    font-size: 20px;
+.original-lyrics, .translated-lyrics {
+    background: rgba(0,0,0,0.05); padding: 12px; border-radius: 8px;
+    margin-top: 12px; white-space: pre-wrap; font-size: 14px; line-height: 1.6;
 }
+body.dark-theme .original-lyrics, body.dark-theme .translated-lyrics { background: rgba(255,255,255,0.1); }
+
+/* ========== ПРОСТИЙ РЕЖИМ ========== */
 body.simple-mode h1 { font-size: 90px; }
 body.simple-mode .beta-badge { font-size: 65px; }
 body.simple-mode p { font-size: 36px; }
@@ -825,364 +568,126 @@ body.ultra-simple-mode .tutorial-btn,
 body.ultra-simple-mode .news-btn,
 body.ultra-simple-mode #playlistsContainer,
 body.ultra-simple-mode #lyricsSection,
-body.ultra-simple-mode .contact-footer {
-    display: none !important;
-}
+body.ultra-simple-mode .contact-footer { display: none !important; }
 body.ultra-simple-mode {
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
+    padding: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; min-height: 100vh;
 }
 body.ultra-simple-mode .content {
-    max-width: 520px;
-    width: 100%;
-    padding: 20px 16px;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    max-width: 520px; width: 100%; padding: 20px 16px;
+    box-sizing: border-box; display: flex; flex-direction: column; align-items: center;
 }
-body.ultra-simple-mode .search-section {
-    margin-top: 0;
-    width: 100%;
-    text-align: center;
-}
-body.ultra-simple-mode .search-input {
-    max-width: 100%;
-    width: 100%;
-    font-size: 18px;
-    padding: 16px 18px;
-}
-body.ultra-simple-mode .search-results {
-    max-width: 100%;
-    width: 100%;
-}
-body.ultra-simple-mode .result-item {
-    padding: 14px;
-    gap: 12px;
-}
+body.ultra-simple-mode .search-section { margin-top: 0; width: 100%; text-align: center; }
+body.ultra-simple-mode .search-input { max-width: 100%; width: 100%; font-size: 18px; padding: 16px 18px; }
+body.ultra-simple-mode .search-results { max-width: 100%; width: 100%; }
+body.ultra-simple-mode .result-item { padding: 14px; gap: 12px; }
 body.ultra-simple-mode .result-info h3 { font-size: 17px; }
 body.ultra-simple-mode .result-info p  { font-size: 14px; }
 body.ultra-simple-mode .result-buttons .play-btn,
 body.ultra-simple-mode .result-buttons .download-btn { font-size: 16px; padding: 13px 14px; }
 body.ultra-simple-mode .result-buttons .like-btn { font-size: 18px; }
-body.ultra-simple-mode .player-section {
-    margin-top: 16px;
-    padding: 16px 12px;
-    width: 100%;
-    box-sizing: border-box;
-}
+body.ultra-simple-mode .player-section { margin-top: 16px; padding: 16px 12px; width: 100%; box-sizing: border-box; }
 body.ultra-simple-mode .player-play-btn { width: 62px; height: 62px; }
 body.ultra-simple-mode .control-btn { font-size: 30px; }
 body.ultra-simple-mode .now-playing { font-size: 15px; }
 
-/* Кнопка повернення у кутку */
 .ultra-simple-back-btn {
-    display: none;
-    position: fixed;
-    top: 12px;
-    left: 12px;
-    z-index: 9999;
-    background: var(--accent-color);
-    color: #1a2a3a;
-    border: none;
-    border-radius: 50%;
-    width: 48px;
-    height: 48px;
-    font-size: 22px;
-    cursor: pointer;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-    align-items: center;
-    justify-content: center;
+    display: none; position: fixed; top: 12px; left: 12px; z-index: 9999;
+    background: var(--accent-color); color: #1a2a3a; border: none; border-radius: 50%;
+    width: 48px; height: 48px; font-size: 22px; cursor: pointer;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2); align-items: center; justify-content: center;
 }
-body.ultra-simple-mode .ultra-simple-back-btn {
-    display: flex;
-}
+body.ultra-simple-mode .ultra-simple-back-btn { display: flex; }
 
+/* ========== КНОПКИ КУБИК І НОВИНИ ========== */
 .random-btn {
     background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
-    color: white;
-    border: none;
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
-    font-size: 22px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 3px 10px rgba(124,58,237,0.35);
-    transition: transform 0.15s, filter 0.15s;
-    flex-shrink: 0;
+    color: white; border: none; width: 44px; height: 44px; border-radius: 10px;
+    font-size: 22px; cursor: pointer; display: inline-flex; align-items: center;
+    justify-content: center; box-shadow: 0 3px 10px rgba(124,58,237,0.35);
+    transition: transform 0.15s, filter 0.15s; flex-shrink: 0;
 }
-.random-btn:hover {
-    transform: translateY(-2px) rotate(20deg);
-    filter: brightness(1.1);
-}
-.random-btn:active {
-    transform: scale(0.93);
-}
-.random-highlight {
-    border-left-color: #a855f7 !important;
-    animation: randomPop 0.35s ease;
-}
+.random-btn:hover { transform: translateY(-2px) rotate(20deg); filter: brightness(1.1); }
+.random-btn:active { transform: scale(0.93); }
+.random-highlight { border-left-color: #a855f7 !important; animation: randomPop 0.35s ease; }
 @keyframes randomPop {
     0%   { transform: scale(0.95); opacity: 0.5; }
     60%  { transform: scale(1.03); }
     100% { transform: scale(1);    opacity: 1; }
 }
 
-/* ========== НОВИНИ ========== */
 .news-btn {
-    background: linear-gradient(135deg, #ff6b81 0%, #c0392b 100%);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-weight: bold;
-    font-size: 15px;
-    cursor: pointer;
-    margin-bottom: 20px;
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    box-shadow: 0 3px 10px rgba(192,57,43,0.3);
-    transition: transform 0.15s, filter 0.15s;
+    background: linear-gradient(135deg, #ff6b81 0%, #c0392b 100%); color: white;
+    border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold;
+    font-size: 15px; cursor: pointer; margin-bottom: 20px;
+    display: inline-flex; align-items: center; gap: 7px;
+    box-shadow: 0 3px 10px rgba(192,57,43,0.3); transition: transform 0.15s, filter 0.15s;
 }
-.news-btn:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.08);
-}
+.news-btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
 .news-btn .news-badge {
-    background: white;
-    color: #c0392b;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    font-size: 12px;
-    font-weight: bold;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    background: white; color: #c0392b; border-radius: 50%;
+    width: 20px; height: 20px; font-size: 12px; font-weight: bold;
+    display: inline-flex; align-items: center; justify-content: center;
 }
 
-/* Модальне вікно новин */
-#news-modal .modal-content {
-    max-width: 560px;
-    text-align: left;
-    padding: 24px;
-}
-#news-modal .modal-content h2 {
-    text-align: center;
-    margin-bottom: 20px;
-}
-.news-list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    max-height: 70vh;
-    overflow-y: auto;
-}
+/* ========== НОВИНИ ========== */
+#news-modal .modal-content { max-width: 560px; text-align: left; padding: 24px; }
+#news-modal .modal-content h2 { text-align: center; margin-bottom: 20px; }
+.news-list { display: flex; flex-direction: column; gap: 16px; max-height: 70vh; overflow-y: auto; }
 .news-card {
-    background: var(--bg-gradient-end);
-    border-radius: 12px;
-    padding: 18px 20px;
-    border-left: 4px solid var(--accent-dark);
-    cursor: pointer;
-    transition: transform 0.15s, box-shadow 0.15s;
+    background: var(--bg-gradient-end); border-radius: 12px; padding: 18px 20px;
+    border-left: 4px solid var(--accent-dark); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
 }
-.news-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px var(--shadow);
-}
-.news-card-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-    flex-wrap: wrap;
-}
-.news-tag {
-    background: var(--accent-color);
-    color: #1a2a3a;
-    font-size: 11px;
-    font-weight: bold;
-    padding: 3px 10px;
-    border-radius: 20px;
-    white-space: nowrap;
-}
-.news-date {
-    font-size: 12px;
-    color: var(--text-muted);
-}
-.news-card h3 {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0 0 8px 0;
-    font-family: 'Comfortaa', cursive;
-}
-.news-card p {
-    font-size: 13px;
-    color: var(--text-muted);
-    margin: 0;
-    line-height: 1.6;
-    font-family: 'Segoe UI', Roboto, sans-serif;
-    white-space: pre-wrap;
-}
-.news-empty {
-    text-align: center;
-    color: var(--text-muted);
-    padding: 30px;
-    font-size: 15px;
-}
+.news-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px var(--shadow); }
+.news-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+.news-tag { background: var(--accent-color); color: #1a2a3a; font-size: 11px; font-weight: bold; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+.news-date { font-size: 12px; color: var(--text-muted); }
+.news-card h3 { font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0 0 8px 0; font-family: 'Comfortaa', cursive; }
+.news-card p { font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.6; font-family: 'Segoe UI', Roboto, sans-serif; white-space: pre-wrap; }
+.news-empty { text-align: center; color: var(--text-muted); padding: 30px; font-size: 15px; }
 
-/* --- Share --- */
-.result-buttons .share-btn {
-    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-    color: #ffffff;
-    border: none;
-    padding: 9px 14px;
-    font-size: 15px;
-    border-radius: 10px;
-    cursor: pointer;
-    width: 100%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    box-shadow: 0 3px 10px rgba(230,126,34,0.35);
-    transition: transform 0.15s, filter 0.15s;
-}
-.result-buttons .share-btn:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.08);
-}
-.result-buttons .share-btn:active {
-    transform: translateY(1px);
-}
+/* ========== НЕ ЗНАЙДЕНО ========== */
+.no-results { font-family: 'Comfortaa', cursive; font-size: 15px; color: var(--text-muted); text-align: center; padding: 20px; margin: 0; }
 
-/* ========== ПОВІДОМЛЕННЯ "НЕ ЗНАЙДЕНО" ========== */
-.no-results {
-    font-family: 'Comfortaa', cursive;
-    font-size: 15px;
-    color: var(--text-muted);
-    text-align: center;
-    padding: 20px;
-    margin: 0;
-}
-
-/* ========== ФУТЕР: КОНТАКТИ І КОПІРАЙТ ========== */
+/* ========== ФУТЕР ========== */
 .contact-footer {
-    max-width: 600px;
-    width: 100%;
-    margin: auto auto 0;
-    padding: 50px 20px 30px;
-    text-align: center;
-    box-sizing: border-box;
+    max-width: 600px; width: 100%; margin: auto auto 0;
+    padding: 50px 20px 30px; text-align: center; box-sizing: border-box;
     border-top: 1px solid var(--border-light);
 }
-
-.contact-title {
-    font-family: 'Comfortaa', cursive;
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--text-muted);
-    margin: 0 0 14px 0;
-}
-
-.contact-links {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.contact-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--accent-dark);
-    transition: opacity 0.15s;
-}
-.contact-item:hover {
-    opacity: 0.75;
-}
+.contact-title { font-family: 'Comfortaa', cursive; font-size: 16px; font-weight: 700; color: var(--text-muted); margin: 0 0 14px 0; }
+.contact-links { display: flex; flex-direction: column; gap: 8px; align-items: center; margin-bottom: 20px; }
+.contact-item { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-size: 14px; font-weight: 500; color: var(--accent-dark); transition: opacity 0.15s; }
+.contact-item:hover { opacity: 0.75; }
 .contact-telegram { color: #2aabee; }
 .contact-phone    { color: #43c95a; }
-
 .contact-icon { font-size: 16px; }
+.copyright-block { font-size: 12px; color: var(--text-muted); line-height: 1.7; }
+.copyright-block strong { color: var(--text-primary); }
 
-.copyright-block {
-    font-size: 12px;
-    color: var(--text-muted);
-    line-height: 1.7;
-}
-.copyright-block strong {
-    color: var(--text-primary);
-}
-
-/* ========== АДАПТИВНІСТЬ — ПЛАНШЕТ (до 768px) ========== */
+/* ========== АДАПТИВНІСТЬ 768px ========== */
 @media (max-width: 768px) {
-    body {
-        padding: 12px;
-    }
-
-    /* Заголовок */
+    body { padding: 12px; }
     h1 { font-size: 44px; margin-bottom: 4px; }
     .beta-badge { font-size: 32px; margin-bottom: 2px; }
     p { font-size: 18px; margin: 0 0 20px 0; }
-
-    /* Верхня панель */
     .top-controls { margin-bottom: 8px; }
     .support-plus-btn { width: 42px; height: 42px; font-size: 24px; }
     .theme-toggle-btn { font-size: 18px; padding: 7px 10px; }
     .lang-btn { font-size: 13px; padding: 7px 12px; }
     .top-buttons { gap: 6px; }
     .lang-buttons-row { gap: 6px; }
-
-    /* Кнопка туторіалу */
     .tutorial-btn { font-size: 13px; padding: 8px 16px; margin-bottom: 12px; }
-
-    /* Пошук */
     .search-section { margin-top: 20px; }
     .search-input { padding: 11px 14px; font-size: 15px; }
-
-    /* Картка пісні */
-    .result-item {
-        padding: 12px;
-        gap: 10px;
-        margin: 10px 0;
-    }
+    .result-item { padding: 12px; gap: 10px; margin: 10px 0; }
     .song-image { width: 60px; height: 60px; }
     .result-info h3 { font-size: 14px; margin: 0 0 3px 0; }
     .result-info p { font-size: 12px; margin: 0; }
-
-    /* Кнопки результатів */
     .result-buttons { gap: 6px; min-width: 110px; }
-    .result-buttons .play-btn,
-    .result-buttons .download-btn {
-        font-size: 13px;
-        padding: 9px 10px;
-        width: 100%;
-        height: auto;
-        border-radius: 8px;
-    }
-    .result-buttons .like-btn {
-        font-size: 14px;
-        padding: 7px 10px;
-        border-radius: 8px;
-    }
-
-    /* Плейлисти */
-    .playlists-container { gap: 10px; margin-top: 16px; }
+    .result-buttons .play-btn, .result-buttons .download-btn { font-size: 13px; padding: 9px 10px; width: 100%; height: auto; border-radius: 8px; }
+    .result-buttons .like-btn { font-size: 14px; padding: 7px 10px; border-radius: 8px; }
+    .playlists-container { grid-template-columns: 1fr; gap: 10px; margin-top: 16px; }
     .playlist-item { margin: 6px 0; border-radius: 10px; }
     .playlist-header { padding: 12px 14px; gap: 8px; }
     .playlist-item h3 { font-size: 1rem; margin-bottom: 2px; }
@@ -1190,8 +695,8 @@ body.ultra-simple-mode .ultra-simple-back-btn {
     .playlist-header-btns { gap: 6px; }
     .view-btn, .back-btn, .play-all-btn { padding: 6px 10px; font-size: 12px; }
     .playlist-dropdown { padding: 6px 8px 10px; }
-
-    /* Плеєр */
+    .playlist-item-pinned .playlist-info, .playlist-item-compact .playlist-info { max-width: 100%; }
+    .playlist-item-pinned .playlist-header-btns, .playlist-item-compact .playlist-header-btns { min-width: 150px; }
     .player-section { margin-top: 20px; padding: 16px 12px; }
     .custom-player { padding: 8px 10px; max-width: 100%; }
     .player-controls { gap: 12px; }
@@ -1199,149 +704,71 @@ body.ultra-simple-mode .ultra-simple-back-btn {
     .player-play-btn { font-size: 26px; width: 40px; height: 40px; }
     .time-label { font-size: 11px; min-width: 32px; }
     .progress-container { gap: 8px; margin-bottom: 8px; }
-
-    /* Зараз грає */
     .now-playing { padding: 8px 12px; gap: 8px; margin-top: 10px; font-size: 13px; }
     .player-image { width: 36px; height: 36px; }
-
-    /* Еквалайзер */
     .equalizer-sliders { gap: 8px; padding: 6px 10px; }
     .equalizer-sliders label { font-size: 11px; gap: 5px; }
     .equalizer-sliders input { width: 70px; }
     .reset-eq-btn { font-size: 11px; padding: 4px 8px; }
-
-    /* Текст пісні */
     .lyrics-section { padding: 14px; margin-top: 16px; }
     .lyrics-section h2 { font-size: 16px; margin-bottom: 10px; }
     .lyrics-content { font-size: 13px; line-height: 1.8; padding: 10px; max-height: 280px; }
     .lyrics-tab-btn { padding: 7px 12px; font-size: 13px; }
     .lrc-line { padding: 5px 0; }
     .lrc-line.active { font-size: 14px; }
-
-    /* Футер */
     .contact-footer { margin-top: 40px; padding: 0 0 24px 0; }
     .contact-title { font-size: 16px; margin-bottom: 14px; }
     .contact-item { font-size: 13px; padding: 10px 16px; border-radius: 10px; }
     .contact-icon { font-size: 16px; }
-
-    /* Темна тема на мобільних */
-    body.dark-theme .search-results {
-        background: rgba(30,47,62,0.9);
-        padding: 10px;
-        border-radius: 6px;
-    }
+    body.dark-theme .search-results { background: rgba(30,47,62,0.9); padding: 10px; border-radius: 6px; }
     body.dark-theme .now-playing,
     body.dark-theme .lyrics-section h2,
     body.dark-theme .lyrics-content,
     body.dark-theme .result-info h3,
-    body.dark-theme .result-info p {
-        color: #ffffff !important;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-    }
+    body.dark-theme .result-info p { color: #ffffff !important; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
 }
 
-/* ========== АДАПТИВНІСТЬ — ТЕЛЕФОН (до 480px) ========== */
+/* ========== АДАПТИВНІСТЬ 480px ========== */
 @media (max-width: 480px) {
     body { padding: 8px; }
-
-    /* Заголовок */
     h1 { font-size: 36px; }
     .beta-badge { font-size: 26px; }
     p { font-size: 15px; margin: 0 0 14px 0; }
-
-    /* Верхня панель */
     .support-plus-btn { width: 36px; height: 36px; font-size: 20px; }
     .theme-toggle-btn { font-size: 16px; padding: 6px 8px; }
     .lang-btn { font-size: 12px; padding: 6px 10px; }
-
-    /* Пошук */
     .search-input { padding: 10px 12px; font-size: 14px; }
     .search-section { margin-top: 14px; }
-
-    /* Картка пісні — вертикальне розташування на дуже малих екранах */
-    .result-item {
-        flex-wrap: wrap;
-        padding: 10px;
-        gap: 8px;
-    }
+    .result-item { flex-wrap: wrap; padding: 10px; gap: 8px; }
     .song-image { width: 50px; height: 50px; }
     .result-info { min-width: 0; }
     .result-info h3 { font-size: 13px; }
     .result-info p { font-size: 11px; }
-
-    /* Кнопки — горизонтально на маленьких екранах */
-    .result-buttons {
-        flex-direction: row;
-        flex-wrap: wrap;
-        width: 100%;
-        min-width: unset;
-        gap: 5px;
-    }
-    .result-buttons .play-btn,
-    .result-buttons .download-btn {
-        flex: 1;
-        font-size: 12px;
-        padding: 8px 6px;
-        border-radius: 7px;
-        min-width: 80px;
-    }
-    .result-buttons .like-btn {
-        font-size: 14px;
-        padding: 7px 10px;
-        border-radius: 7px;
-        flex: 0 0 auto;
-    }
-
-    /* Плейлисти */
+    .result-buttons { flex-direction: row; flex-wrap: wrap; width: 100%; min-width: unset; gap: 5px; }
+    .result-buttons .play-btn, .result-buttons .download-btn { flex: 1; font-size: 12px; padding: 8px 6px; border-radius: 7px; min-width: 80px; }
+    .result-buttons .like-btn { font-size: 14px; padding: 7px 10px; border-radius: 7px; flex: 0 0 auto; }
     .playlist-item { padding: 10px; }
     .playlist-item h3 { font-size: 1rem; }
-
-    /* Плеєр */
+    .playlist-item-pinned .playlist-header,
+    .playlist-item-compact .playlist-header,
+    .playlist-item-other-list .playlist-header { flex-direction: column; align-items: stretch; }
+    .playlist-item-pinned .playlist-header-btns,
+    .playlist-item-compact .playlist-header-btns,
+    .playlist-item-other-list .playlist-header-btns { width: 100%; min-width: unset; }
     .player-section { padding: 12px 8px; margin-top: 14px; }
     .player-controls { gap: 8px; }
     .control-btn { font-size: 20px; padding: 3px 6px; }
     .player-play-btn { font-size: 22px; width: 36px; height: 36px; }
-
-    /* Текст пісні */
     .lyrics-section { padding: 10px; }
     .lyrics-section h2 { font-size: 14px; }
     .lyrics-content { font-size: 12px; max-height: 220px; padding: 8px; }
-    /* Футер */
     .contact-footer { margin-top: 28px; }
     .contact-title { font-size: 14px; }
     .contact-item { font-size: 12px; padding: 9px 12px; max-width: 100%; }
-
-    /* Плейлисти */
     .playlist-header { padding: 10px 12px; }
-    .playlist-item h3 { font-size: 0.95rem; }
     .playlist-header-btns { flex-direction: row; align-items: center; }
     .view-btn, .play-all-btn { padding: 5px 9px; font-size: 11px; }
-}
-.translate-btn {
-    background: linear-gradient(135deg, #34a853, #0f9d58);
-    color: white;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 30px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 12px;
-    transition: 0.2s;
-}
-.translate-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-.original-lyrics, .translated-lyrics {
-    background: rgba(0,0,0,0.05);
-    padding: 12px;
-    border-radius: 8px;
-    margin-top: 12px;
-    white-space: pre-wrap;
-    font-size: 14px;
-    line-height: 1.6;
-}
-body.dark-theme .original-lyrics,
-body.dark-theme .translated-lyrics {
-    background: rgba(255,255,255,0.1);
+    .translate-controls { flex-direction: column; gap: 10px; width: 100%; }
+    .translate-language-select, .translate-btn { width: 100%; text-align: center; }
+    .translate-language-select { background-position: calc(100% - 16px) center; }
 }
