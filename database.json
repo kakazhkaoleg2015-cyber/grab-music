@@ -118,5 +118,21 @@
     "image":"./fotomusic/no foto.jpg",
     "lyrics":"Вікно — холодне повітря\nЩодня відчуваю втрату мого світла\nМотори, звуки автівок\nЗамивають співи платівок\nЯк же все по-справжньому набридло\nХочу знову я вернути спокій\nПравда, шкода, що вже все промерзло\nТа пішло нарешті на покій\nПід звуки касет ми з тобою вдвох\nЗаснемо навіки, без турбот та зла\nТа знову чаруєм ці часи епох\nЩоб доля знову назавжди звела\nПід звуки касет ми з тобою вдвох\nЗаснемо навіки, без турбот та зла\nТа знову чаруєм ці часи епох\nЩоб доля знову назавжди звела\nВікно — холодне повітря\nЩодня відчуваю втрату мого світла\nМотори, звуки автівок\nЗамивають співи платівок\nЯк же все по-справжньому набридло\nХочу знову я вернути спокій\nПравда, шкода, що вже все промерзло\nТа пішло нарешті на покій\nПід звуки касет ми з тобою вдвох\nЗаснемо навіки, без турбот та зла\nТа знову чаруєм ці часи епох\nЩоб доля знову назавжди звела\nПід звуки касет ми з тобою вдвох\nЗаснемо навіки, без турбот та зла\nТа знову чаруєм ці часи епох\nЩоб доля знову назавжди звела",
     "lrc":"./lrc music/Касета.lrc"
+  },
+  {
+    "name":"ДОТИКИ",
+    "artist":"STANS",
+    "file":"ДОТИКИ.mp3",
+    "image":"./fotomusic/no foto.jpg",
+    "lyrics":"В черзі до додавання (займе 2-3дні)",
+    "lrc":""
+  },
+  {
+    "name":"Ridnym (Eurovision version)",
+    "artist":"Leléka",
+    "file":"Ridnym (Eurovision version).mp3",
+    "image":"./fotomusic/no foto.jpg",
+    "lyrics":"Green into rust, trust in the change\nEverything fades be that as it may\nRed into dust, cut from the branch\nLeaves in the flames, nothing is safe\nВиш'ю, виш'ю\nВиш'ю нову долю\nВиш'ю, виш'ю рідним\nНайріднішим\nWhen we oppose our fears\nAnd turn all our woes to cheers\nI know the roots still carry water\nWhen all the seeds we've sown\nBlossom and lead us home\nWe'll see the trees grow even taller\nНову долю виш'ю (Виш'ю, виш'ю)\nРідним, найріднішим (Виш'ю, виш'ю)\nWhen we oppose our fears\nAnd turn all our woes to cheers\nWe'll see the trees grow even taller\nOoh…\nWhen we oppose our fears\nAnd turn all our woes to cheers\nI know the roots still carry water\nWhen all the seeds we've sown\nBlossom and lead us home\nWe'll see the trees grow even taller",
+    "lrc":"./lrc music/Ridnym (Eurovision version).lrc"
   }
 ]
