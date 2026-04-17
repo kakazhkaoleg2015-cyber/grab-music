@@ -768,7 +768,12 @@ body.ultra-simple-mode .ultra-simple-back-btn { display: flex; }
     .playlist-header { padding: 10px 12px; }
     .playlist-header-btns { flex-direction: row; align-items: center; }
     .view-btn, .play-all-btn { padding: 5px 9px; font-size: 11px; }
-    .translate-controls { flex-direction: column; gap: 10px; width: 100%; }
-    .translate-language-select, .translate-btn { width: 100%; text-align: center; }
+    .translate-controls { flex-direction: column; gap: 8px; width: 100%; align-items: stretch; }
+    .translate-language-select, .translate-btn, .show-original-btn { width: 100%; text-align: center; box-sizing: border-box; }
     .translate-language-select { background-position: calc(100% - 16px) center; }
+}
+/*Подяка в налашкуваннях*/
+.thank-you-inf{
+    font-size:34px;
+    font-family:Comfortaa;
 }

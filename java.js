@@ -555,9 +555,10 @@ function syncLRC() {
 }
 
 // ==================== ПЕРЕКЛАД ====================
-// Зберігаємо оригінальні LRC рядки для можливості показати оригінал
 let originalLrcLines = [];
-let isShowingTranslatedLrc = false;
+let originalTextContent = '';
+let isShowingTranslated = false;
+let currentTranslateMode = 'text';
 
 async function showLyricsTab(filename, type) {
     const song = songsDatabase.find(s => s.file === filename);
@@ -565,16 +566,17 @@ async function showLyricsTab(filename, type) {
     const content = document.getElementById('lyricsContent');
     document.querySelectorAll('.lyrics-tab-btn').forEach(b => b.classList.remove('active'));
 
-    // Скидаємо стан перекладу при зміні вкладки
-    isShowingTranslatedLrc = false;
-    hideTranslatedResult();
+    isShowingTranslated = false;
+    originalLrcLines = [];
+    originalTextContent = '';
+    currentTranslateMode = type === 'lrc' ? 'lrc' : 'text';
+    resetTranslateUI();
 
     if (type === 'text') {
         if (lrcSyncInterval) { clearInterval(lrcSyncInterval); lrcSyncInterval = null; }
         currentLrcLines = [];
-        originalLrcLines = [];
-        content.textContent = song.lyrics || t('noLyrics');
-        updateTranslateUI(song, 'text');
+        originalTextContent = song.lyrics || t('noLyrics');
+        content.textContent = originalTextContent;
         document.querySelector('.lyrics-tab-btn:first-child')?.classList.add('active');
     } else if (type === 'lrc' && song.lrc) {
         try {
@@ -588,19 +590,18 @@ async function showLyricsTab(filename, type) {
                 if (lrcSyncInterval) clearInterval(lrcSyncInterval);
                 lrcSyncInterval = setInterval(syncLRC, 100);
                 syncLRC();
-                updateTranslateUI(song, 'lrc');
                 document.querySelector('.lyrics-tab-btn:last-child')?.classList.add('active');
             } else {
                 content.textContent = t('invalidLrc');
-                updateTranslateUI(song, 'text');
+                currentTranslateMode = 'text';
             }
         } catch(e) {
             content.textContent = t('lrcNotAvailable');
-            updateTranslateUI(song, 'text');
+            currentTranslateMode = 'text';
         }
     } else {
         content.textContent = t('lrcNotAvailable');
-        updateTranslateUI(song, 'text');
+        currentTranslateMode = 'text';
     }
 }
 
@@ -609,97 +610,74 @@ function renderLrcLines(lines) {
     content.innerHTML = lines.map(l => `<div class="lrc-line">${escapeHtml(l.text)}</div>`).join('');
 }
 
-function hideTranslatedResult() {
-    const r = document.getElementById('translatedResult');
-    if (r) { r.style.display = 'none'; r.innerHTML = ''; }
+function resetTranslateUI() {
+    const btn = document.getElementById('translateButton');
     const origBtn = document.getElementById('showOriginalBtn');
+    if (btn) {
+        btn.disabled = false;
+        btn.textContent = currentLanguage === 'uk' ? '🌐 Перекласти' : '🌐 Translate';
+    }
     if (origBtn) origBtn.style.display = 'none';
 }
 
-function updateTranslateUI(song, mode) {
-    const button = document.getElementById('translateButton');
-    const translatedResult = document.getElementById('translatedResult');
-    const languageSelect = document.getElementById('translateLanguageSelect');
-    const origBtn = document.getElementById('showOriginalBtn');
-    if (!button) return;
-
-    if (translatedResult) { translatedResult.style.display = 'none'; translatedResult.innerHTML = ''; }
-    if (origBtn) origBtn.style.display = 'none';
-
-    button.style.display = 'inline-flex';
-    if (languageSelect) languageSelect.style.display = 'inline-flex';
-    button.disabled = false;
-    button.textContent = currentLanguage === 'uk' ? '🌐 Перекласти' : '🌐 Translate';
-    button.onclick = () => translateLyrics(mode);
-}
-
-async function translateLyrics(mode) {
+async function translateLyrics() {
     const content = document.getElementById('lyricsContent');
     const button = document.getElementById('translateButton');
-    const translatedResult = document.getElementById('translatedResult');
-    const languageSelect = document.getElementById('translateLanguageSelect');
-    if (!content || !button || !translatedResult || !languageSelect) return;
+    if (!content || !button) return;
 
-    const targetLang = languageSelect.value || (currentLanguage === 'uk' ? 'en' : 'uk');
+    // Отримуємо мову з select або показуємо вибір
+    const languageSelect = document.getElementById('translateLanguageSelect');
+    const targetLang = languageSelect ? languageSelect.value : (currentLanguage === 'uk' ? 'en' : 'uk');
 
     button.disabled = true;
     button.textContent = currentLanguage === 'uk' ? '⏳ Переклад...' : '⏳ Translating...';
 
     try {
-        if (mode === 'lrc' && originalLrcLines.length) {
-            // Перекладаємо LRC рядки по одному батчу
+        if (currentTranslateMode === 'lrc' && originalLrcLines.length) {
+            // LRC — перекладаємо і замінюємо рядки
             const texts = originalLrcLines.map(l => l.text).join('\n');
             const res = await fetch(
                 `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(texts)}`
             );
             if (!res.ok) throw new Error();
             const data = await res.json();
-            const translatedText = Array.isArray(data?.[0])
-                ? data[0].map(part => part[0]).join('')
-                : '';
+            const translatedText = Array.isArray(data?.[0]) ? data[0].map(p => p[0]).join('') : '';
             if (!translatedText) throw new Error('Empty');
 
             const translatedLines = translatedText.split('\n');
-            // Застосовуємо переклад до currentLrcLines
-            const translatedLrcLines = originalLrcLines.map((l, i) => ({
+            currentLrcLines = originalLrcLines.map((l, i) => ({
                 time: l.time,
                 text: translatedLines[i]?.trim() || l.text
             }));
-
-            // Показуємо перекладені LRC замість оригінальних
-            currentLrcLines = translatedLrcLines;
             renderLrcLines(currentLrcLines);
-            isShowingTranslatedLrc = true;
-
-            // Кнопка "Показати оригінал"
+            isShowingTranslated = true;
             showOriginalButton();
 
-            translatedResult.style.display = 'none';
         } else {
-            // Звичайний текст
-            const text = content.textContent.trim();
-            if (!text || text === t('noLyrics')) throw new Error('No text');
+            // Звичайний текст — замінюємо вміст
+            const srcText = isShowingTranslated ? originalTextContent : content.textContent.trim();
+            if (!srcText || srcText === t('noLyrics') || srcText === t('lrcNotAvailable')) throw new Error('No text');
 
             const res = await fetch(
-                `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`
+                `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(srcText)}`
             );
             if (!res.ok) throw new Error();
             const data = await res.json();
-            const translatedText = Array.isArray(data?.[0])
-                ? data[0].map(part => part[0]).join('')
-                : '';
+            const translatedText = Array.isArray(data?.[0]) ? data[0].map(p => p[0]).join('') : '';
             if (!translatedText) throw new Error('Empty');
 
-            translatedResult.innerHTML = escapeHtml(translatedText).replace(/\n/g, '<br>');
-            translatedResult.style.display = 'block';
+            // Зберігаємо оригінал якщо ще не збережено
+            if (!isShowingTranslated) originalTextContent = srcText;
 
+            // Замінюємо текст перекладом
+            content.textContent = translatedText;
+            isShowingTranslated = true;
             showOriginalButton();
         }
     } catch(e) {
-        translatedResult.textContent = currentLanguage === 'uk'
+        content.textContent = (currentLanguage === 'uk'
             ? '❌ Не вдалося перекласти. Спробуй пізніше.'
-            : '❌ Translation failed. Try again later.';
-        translatedResult.style.display = 'block';
+            : '❌ Translation failed. Try again later.');
     } finally {
         button.disabled = false;
         button.textContent = currentLanguage === 'uk' ? '🌐 Перекласти' : '🌐 Translate';
@@ -716,26 +694,23 @@ function showOriginalButton() {
         origBtn.className = 'show-original-btn';
         controls.appendChild(origBtn);
     }
-    origBtn.textContent = currentLanguage === 'uk' ? '📄 Показати оригінал' : '📄 Show original';
+    origBtn.textContent = currentLanguage === 'uk' ? '📄 Оригінал' : '📄 Original';
     origBtn.style.display = 'inline-flex';
     origBtn.onclick = showOriginalLyrics;
 }
 
 function showOriginalLyrics() {
-    const translatedResult = document.getElementById('translatedResult');
+    const content = document.getElementById('lyricsContent');
     const origBtn = document.getElementById('showOriginalBtn');
 
-    if (isShowingTranslatedLrc && originalLrcLines.length) {
-        // Відновлюємо оригінальні LRC
+    if (currentTranslateMode === 'lrc' && originalLrcLines.length) {
         currentLrcLines = [...originalLrcLines];
         renderLrcLines(currentLrcLines);
-        isShowingTranslatedLrc = false;
-        if (translatedResult) { translatedResult.style.display = 'none'; translatedResult.innerHTML = ''; }
-    } else {
-        // Ховаємо переклад тексту
-        if (translatedResult) { translatedResult.style.display = 'none'; translatedResult.innerHTML = ''; }
+    } else if (originalTextContent) {
+        if (content) content.textContent = originalTextContent;
     }
 
+    isShowingTranslated = false;
     if (origBtn) origBtn.style.display = 'none';
 }
 
@@ -757,12 +732,15 @@ function showLyrics(song) {
     `;
     const title = section.querySelector('h2');
     title.parentNode.insertBefore(div, title.nextSibling);
-    content.textContent = song.lyrics || t('noLyrics');
+    originalTextContent = song.lyrics || t('noLyrics');
+    content.textContent = originalTextContent;
     currentLrcLines = [];
     originalLrcLines = [];
-    isShowingTranslatedLrc = false;
-    hideTranslatedResult();
-    updateTranslateUI(song, 'text');
+    isShowingTranslated = false;
+    currentTranslateMode = 'text';
+    resetTranslateUI();
+    const origBtn = document.getElementById('showOriginalBtn');
+    if (origBtn) origBtn.style.display = 'none';
     if (lrcSyncInterval) { clearInterval(lrcSyncInterval); lrcSyncInterval = null; }
 }
 
