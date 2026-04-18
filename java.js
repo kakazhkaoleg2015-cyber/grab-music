@@ -867,6 +867,9 @@ function playSong(filename, fromQueue = false) {
     updateMediaSession(song);
 
     audio.play().then(() => {
+        // Застосовуємо збережену швидкість
+        const savedSpeed = parseFloat(localStorage.getItem('grab_music_speed') || '1');
+        audio.playbackRate = savedSpeed;
         if (currentLrcLines.length && !lrcSyncInterval) lrcSyncInterval = setInterval(syncLRC, 100);
         if (localStorage.getItem('grab_music_eq') !== 'false' && !isEqInitialized) {
             initEqualizer();
@@ -1081,12 +1084,14 @@ function openNews() {
         localStorage.setItem('grab_music_news_seen', maxId);
         updateNewsBadge();
     }
+    _lockScroll();
     modal.classList.add('open');
 }
 
 function closeNews() {
     const modal = document.getElementById('news-modal');
     if (modal) modal.classList.remove('open');
+    _checkNoModals();
 }
 
 // ==================== ПОШИРЕННЯ ====================
@@ -1191,18 +1196,56 @@ function stopSwPing() {
     if (swPingInterval) { clearInterval(swPingInterval); swPingInterval = null; }
 }
 
-// ==================== МОВА ====================
+// ==================== ШВИДКІСТЬ ВІДТВОРЕННЯ ====================
+function setPlaybackSpeed(val) {
+    const speed = parseFloat(val);
+    const audio = document.getElementById('audioPlayer');
+    if (audio) audio.playbackRate = speed;
+    localStorage.setItem('grab_music_speed', String(speed));
+    const label = document.getElementById('speedLabel');
+    if (label) label.textContent = speed + '×';
+    const slider = document.getElementById('speedSlider');
+    if (slider && parseFloat(slider.value) !== speed) slider.value = speed;
+}
+
+function loadSpeedPreference() {
+    const saved = parseFloat(localStorage.getItem('grab_music_speed') || '1');
+    const slider = document.getElementById('speedSlider');
+    const label  = document.getElementById('speedLabel');
+    if (slider) {
+        slider.value = saved;
+        // Підключаємо обробник один раз
+        if (!slider.dataset.bound) {
+            slider.dataset.bound = '1';
+            slider.addEventListener('input', e => setPlaybackSpeed(e.target.value));
+        }
+    }
+    if (label) label.textContent = saved + '×';
+}
 function switchLanguage(lang) {
     window.location.href = lang === 'uk' ? './index.html' : './index_en.html';
 }
 
 // ==================== МОДАЛЬНІ ВІКНА ====================
-function openModal()         { document.getElementById('tutorial-modal').classList.add('open'); }
-function closeModal()        { document.getElementById('tutorial-modal').classList.remove('open'); }
-function openPremiumModal()  { document.getElementById('premium-modal').classList.add('open'); }
-function closePremiumModal() { document.getElementById('premium-modal').classList.remove('open'); }
-function openSettings()      { document.getElementById('settings-modal').classList.add('open'); loadShakePreference(); }
-function closeSettings()     { document.getElementById('settings-modal').classList.remove('open'); }
+function openModal()         { _lockScroll(); document.getElementById('tutorial-modal').classList.add('open'); }
+function closeModal()        { document.getElementById('tutorial-modal').classList.remove('open'); _checkNoModals(); }
+function openPremiumModal()  { _lockScroll(); document.getElementById('premium-modal').classList.add('open'); }
+function closePremiumModal() { document.getElementById('premium-modal').classList.remove('open'); _checkNoModals(); }
+function openSettings()      { _lockScroll(); document.getElementById('settings-modal').classList.add('open'); loadShakePreference(); loadSpeedPreference(); }
+function closeSettings()     { document.getElementById('settings-modal').classList.remove('open'); _checkNoModals(); }
+function _checkNoModals()    { if (!document.querySelector('.modal.open')) _unlockScroll(); }
+
+let _scrollY = 0;
+function _lockScroll() {
+    if (document.body.classList.contains('modal-open')) return;
+    _scrollY = window.scrollY || window.pageYOffset;
+    document.body.classList.add('modal-open');
+}
+function _unlockScroll() {
+    document.body.classList.remove('modal-open');
+    window.scrollTo(0, _scrollY);
+}
+
 window.onclick = function(e) {
     if (e.target === document.getElementById('tutorial-modal'))  closeModal();
     if (e.target === document.getElementById('premium-modal'))   closePremiumModal();
@@ -1279,6 +1322,12 @@ function setupAudioListeners() {
     };
 
     audio.onended = () => { updateMediaSessionState(audio); };
+
+    // Застосовуємо швидкість після завантаження нового треку
+    audio.oncanplay = () => {
+        const speed = parseFloat(localStorage.getItem('grab_music_speed') || '1');
+        if (audio.playbackRate !== speed) audio.playbackRate = speed;
+    };
 
     audio.onerror = () => {
         console.warn('Audio error, skipping');
@@ -1398,7 +1447,7 @@ function displayPlaylists() {
     });
 
     const pinnedMarkup = pinnedPlaylists.map(pl => buildPlaylistCard(pl, {
-        pinned: true, collapsible: true, defaultOpen: true
+        pinned: true, collapsible: true, defaultOpen: false
     })).join('');
 
     let otherMarkup = '';
@@ -1481,6 +1530,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     loadThemePreference();
     loadEqPreference();
     loadShakePreference();
+    loadSpeedPreference();
     loadModePreferences();
     updateNavButtons();
     setupAudioUnlock();
