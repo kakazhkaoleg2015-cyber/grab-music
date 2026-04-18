@@ -73,16 +73,17 @@
             <pre id="lyricsContent" class="lyrics-content">Select a song to see lyrics.</pre>
             <div class="translate-controls">
                 <select id="translateLanguageSelect" class="translate-language-select">
-                    <option value="en">English</option>
-                    <option value="uk">Українська</option>
-                    <option value="pl">Polski</option>
-                    <option value="de">Deutsch</option>
-                    <option value="fr">Français</option>
-                    <option value="es">Español</option>
-                    <option value="it">Italiano</option>
-                    <option value="pt">Português</option>
-                    <option value="cs">Čeština</option>
-                    <option value="ja">日本語</option>
+                    <option value="en">🇬🇧 English</option>
+                    <option value="uk">🇺🇦 Українська</option>
+                    <option value="ru">🇷🇺 Русский</option>
+                    <option value="pl">🇵🇱 Polski</option>
+                    <option value="de">🇩🇪 Deutsch</option>
+                    <option value="fr">🇫🇷 Français</option>
+                    <option value="es">🇪🇸 Español</option>
+                    <option value="it">🇮🇹 Italiano</option>
+                    <option value="pt">🇵🇹 Português</option>
+                    <option value="cs">🇨🇿 Čeština</option>
+                    <option value="ja">🇯🇵 日本語</option>
                 </select>
                 <button id="translateButton" class="translate-btn" onclick="translateLyrics()">🌐 Translate</button>
             </div>
@@ -133,22 +134,19 @@
             <span class="close" onclick="closeSettings()">&times;</span>
             <h2>⚙️ Settings</h2>
             <div style="display:flex;flex-direction:column;gap:14px;margin:20px 0;text-align:left;">
-                <label><input type="checkbox" id="darkThemeToggle" onchange="toggleTheme(this.checked)"> Dark theme</label>
-                <label><input type="checkbox" id="eqToggleCheck" onchange="toggleEq(this.checked)"> Equalizer</label>
-                <label><input type="checkbox" id="simpleModeToggle" onchange="toggleSimpleMode(this.checked)"> Simple mode (larger interface)</label>
-                <label><input type="checkbox" id="ultraSimpleModeToggle" onchange="toggleUltraSimpleMode(this.checked)"> Ultra simple mode (search and player only)</label>
-                <label><input type="checkbox" id="shakeToggle" onchange="toggleShake(this.checked)"> 🎵 Bass shake effect</label>
+                <label><input type="checkbox" id="darkThemeToggle" onchange="toggleTheme(this.checked)"> 🌙 Dark theme</label>
+                <label><input type="checkbox" id="eqToggleCheck" onchange="toggleEq(this.checked)"> 🎚️ Equalizer</label>
+                <label><input type="checkbox" id="simpleModeToggle" onchange="toggleSimpleMode(this.checked)"> 🔠 Large interface</label>
+                <label><input type="checkbox" id="ultraSimpleModeToggle" onchange="toggleUltraSimpleMode(this.checked)"> ⚡ Minimal mode</label>
+                <label><input type="checkbox" id="shakeToggle" onchange="toggleShake(this.checked)"> 🎵 Bass shake</label>
                 <div style="padding-left:22px;">
                     <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-                        <span style="font-size:13px;color:var(--text-muted);">Shake intensity</span>
+                        <span style="font-size:13px;color:var(--text-muted);">Intensity</span>
                         <strong id="shakeIntensityLabel" style="font-size:13px;">25</strong>
                     </div>
                     <input type="range" id="shakeIntensity" min="0" max="50" value="25" step="1"
                         oninput="setShakeIntensity(this.value)"
                         style="width:100%;accent-color:var(--accent-color);cursor:pointer;">
-                        <div class="thank-you-inf">
-                        <h6>Thank you to everyone who provided us with music, LRC, and lyrics. Your support helps us improve the site. Sources: Lyrics — Genius; Music — YouTube Music; LRC — Lyricsify, LRCLIB.</h6>
-                        </div>
                 </div>
             </div>
         </div>

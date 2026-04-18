@@ -1,197 +1,157 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Grab music</title>
-  <meta name="description" content="Сервіс для пошуку музики та текстів пісень">
-  <link rel="icon" href="./favicon.png" type="image/png">
-  <link rel="stylesheet" href="./visual.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grab music</title>
+    <meta name="description" content="...">
+    <link rel="icon" href="./favicon.png" type="image/png">
+    <link rel="stylesheet" href="./visual.css">
 </head>
 <body>
+    <button class="ultra-simple-back-btn" onclick="disableUltraSimpleMode()" title="Назад">←</button>
 
-  <button class="ultra-simple-back-btn" onclick="disableUltraSimpleMode()" title="Назад">←</button>
-
-  <div class="top-controls">
-    <div class="top-buttons">
-      <a href="mailto:oleguhexa@proton.me?subject=Додати%20пісню" class="support-plus-btn" title="Підтримка">+</a>
-      <a href="#" onclick="openPremiumModal(); return false;" class="support-plus-btn premium-btn" title="Premium">⭐</a>
-      <button class="theme-toggle-btn" onclick="openSettings()" title="Налаштування">⚙️</button>
-    </div>
-    <div class="language-buttons">
-      <div class="lang-buttons-row">
-        <button onclick="switchLanguage('uk')" class="lang-btn active">УК</button>
-        <button onclick="switchLanguage('en')" class="lang-btn">EN</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="content">
-    <h1>Grab music</h1>
-    <p class="beta-badge">Бета тест</p>
-    <p id="pageDescription">Візьми музику і текст</p>
-
-    <button onclick="openModal()" class="tutorial-btn">📖 Відкрити Tutorial</button>
-    <button onclick="openNews()" class="news-btn">
-      📰 Новини <span class="news-badge" id="newsBadge">1</span>
-    </button>
-
-    <div id="playlistsContainer" class="playlists-container"></div>
-
-    <div class="search-section">
-      <div class="search-row">
-        <input
-          type="text"
-          id="searchInput"
-          placeholder="Пошук пісень або тексту..."
-          class="search-input"
-          onkeyup="searchSongs()"
-        >
-        <button class="random-btn" onclick="randomSong()" title="Випадкова пісня">🎲</button>
-      </div>
-      <div id="searchResults" class="search-results"></div>
-    </div>
-
-    <div class="player-section">
-      <div id="eqControls" class="equalizer-sliders" style="display:none;">
-        <label>🔊 Низькі <input type="range" id="bassSlider"   min="-20" max="20" value="0" step="1"></label>
-        <label>🎵 Середні <input type="range" id="midSlider"    min="-20" max="20" value="0" step="1"></label>
-        <label>🎶 Високі <input type="range" id="trebleSlider" min="-20" max="20" value="0" step="1"></label>
-        <button id="resetEqBtn" class="reset-eq-btn">⟳ Скинути</button>
-      </div>
-
-      <audio id="audioPlayer"></audio>
-
-      <div class="custom-player">
-        <div class="progress-container">
-          <span id="currentTime" class="time-label">0:00</span>
-          <input type="range" id="seekBar" class="seek-bar" value="0" max="100">
-          <span id="durationTime" class="time-label">0:00</span>
+    <div class="top-controls">
+        <div class="top-buttons">
+            <a href="mailto:oleguhexa@proton.me?subject=Додати%20пісню" class="support-plus-btn" title="Підтримка">+</a>
+            <a href="#" onclick="openPremiumModal(); return false;" class="support-plus-btn premium-btn" title="Premium">⭐</a>
+            <button class="theme-toggle-btn" onclick="openSettings()" title="Налаштування">⚙️</button>
         </div>
-        <div class="player-controls">
-          <button id="prevBtn"       class="control-btn"                  title="Назад">⏮</button>
-          <button id="playPauseBtn"  class="control-btn player-play-btn"  title="Play/Pause"></button>
-          <button id="nextBtn"       class="control-btn"                  title="Далі">⏭</button>
-          <button id="loopBtn"       class="control-btn loop-control-btn" title="Повтор">🔁</button>
-          <button id="randomModeBtn" class="control-btn random-mode-btn"
-                  onclick="toggleRandomMode()" title="Рандомний режим" style="display:none;">🔀</button>
+        <div class="language-buttons">
+            <div class="lang-buttons-row">
+                <button onclick="switchLanguage('uk')" class="lang-btn active">УК</button>
+                <button onclick="switchLanguage('en')" class="lang-btn">EN</button>
+            </div>
         </div>
-      </div>
-
-      <div id="nowPlaying" class="now-playing">▶ Програється:</div>
     </div>
 
-    <div id="lyricsSection" class="lyrics-section">
-      <h2 id="lyricsTitle">Текст пісні</h2>
-      <pre id="lyricsContent" class="lyrics-content">Оберіть пісню, щоб побачити текст.</pre>
+    <div class="content">
+        <h1>Grab music</h1>
+        <p class="beta-badge">Бета тест</p>
+        <p id="pageDescription">Візьми музику і текст</p>
 
-      <div class="translate-controls">
-        <select id="translateLanguageSelect" class="translate-language-select">
-          <option value="en">English</option>
-          <option value="uk">Українська</option>
-          <option value="pl">Polski</option>
-          <option value="de">Deutsch</option>
-          <option value="fr">Français</option>
-          <option value="es">Español</option>
-          <option value="it">Italiano</option>
-          <option value="pt">Português</option>
-          <option value="cs">Čeština</option>
-          <option value="ja">日本語</option>
-        </select>
-        <button id="translateButton" class="translate-btn" onclick="translateLyrics()">🌐 Перекласти</button>
-      </div>
-    </div>
-  </div>
+        <button onclick="openModal()" class="tutorial-btn">📖 Відкрити Tutorial</button>
+        <button onclick="openNews()" class="news-btn">📰 Новини <span class="news-badge" id="newsBadge">1</span></button>
 
-  <footer class="contact-footer">
-    <h3 class="contact-title">📬 Зв'язатися з нами</h3>
-    <div class="contact-links">
-      <a href="https://t.me/ANDREW21812" target="_blank" rel="noopener" class="contact-item contact-telegram">
-        <span class="contact-icon">✈️</span> Telegram: <strong>@ANDREW21812</strong>
-      </a>
-      <a href="tel:+380953898152" class="contact-item contact-phone">
-        <span class="contact-icon">📞</span> Телефон: <strong>+380 095 389 8152</strong>
-      </a>
-    </div>
-    <div class="copyright-block">
-      © 2025–2026 <strong>Grab Music</strong>. Усі права захищені.
-      Несанкціоноване копіювання та розповсюдження заборонено.
-    </div>
-  </footer>
+        <div id="playlistsContainer" class="playlists-container"></div>
 
-  <!-- МОДАЛЬНЕ: Новини -->
-  <div id="news-modal" class="modal" role="dialog" aria-modal="true" aria-label="Новини">
-    <div class="modal-content">
-      <span class="close" onclick="closeNews()" aria-label="Закрити">&times;</span>
-      <h2>📰 Новини</h2>
-      <div id="newsList" class="news-list"></div>
-    </div>
-  </div>
-
-  <!-- МОДАЛЬНЕ: Туторіал -->
-  <div id="tutorial-modal" class="modal" role="dialog" aria-modal="true" aria-label="Туторіал">
-    <div class="modal-content">
-      <span class="close" onclick="closeModal()" aria-label="Закрити">&times;</span>
-      <h2>🎵 Туторіал</h2>
-      <p>Просто пишіть будь-які букви у пошуку, і сайт все знайде!</p>
-    </div>
-  </div>
-
-  <!-- МОДАЛЬНЕ: Premium -->
-  <div id="premium-modal" class="modal" role="dialog" aria-modal="true" aria-label="Premium">
-    <div class="modal-content">
-      <span class="close" onclick="closePremiumModal()" aria-label="Закрити">&times;</span>
-      <h2>⭐ Premium</h2>
-      <p>У нас все безкоштовно 🎉<br>Преміум не потрібен!</p>
-    </div>
-  </div>
-
-  <!-- МОДАЛЬНЕ: Налаштування -->
-  <div id="settings-modal" class="modal" role="dialog" aria-modal="true" aria-label="Налаштування">
-    <div class="modal-content">
-      <span class="close" onclick="closeSettings()" aria-label="Закрити">&times;</span>
-      <h2>⚙️ Налаштування</h2>
-      <div style="display:flex;flex-direction:column;gap:14px;margin:20px 0;text-align:left;">
-        <label>
-          <input type="checkbox" id="darkThemeToggle" onchange="toggleTheme(this.checked)">
-          Темна тема
-        </label>
-        <label>
-          <input type="checkbox" id="eqToggleCheck" onchange="toggleEq(this.checked)">
-          Еквалайзер
-        </label>
-        <label>
-          <input type="checkbox" id="simpleModeToggle" onchange="toggleSimpleMode(this.checked)">
-          Простий режим (збільшений інтерфейс)
-        </label>
-        <label>
-          <input type="checkbox" id="ultraSimpleModeToggle" onchange="toggleUltraSimpleMode(this.checked)">
-          Дуже простий режим (тільки пошук і плеєр)
-        </label>
-        <label>
-          <input type="checkbox" id="shakeToggle" onchange="toggleShake(this.checked)">
-          🎵 Тремтіння на баси
-        </label>
-        <div style="padding-left:22px;">
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-            <span style="font-size:13px;color:var(--text-muted);">Інтенсивність тремтіння</span>
-            <strong id="shakeIntensityLabel" style="font-size:13px;">25</strong>
-          </div>
-          <input
-            type="range" id="shakeIntensity"
-            min="0" max="50" value="25" step="1"
-            oninput="setShakeIntensity(this.value)"
-            style="width:100%;accent-color:var(--accent);cursor:pointer;"
-          >
-          <div class="thank-you-inf">
-            <h6>Дякуємо всім, хто надавав нам музику, LRC та тексти для пісень. Ваша підтримка — кращий сайт.<br>
-            Джерела: Тексти — Genius; Музика — YouTube Music; LRC — Lyricsify, LRCLIB.</h6>
-          </div>
+        <div class="search-section">
+            <div class="search-row">
+                <input type="text" id="searchInput" placeholder="Пошук пісень або тексту..." class="search-input" onkeyup="searchSongs()">
+                <button class="random-btn" onclick="randomSong()" title="Випадкова пісня">🎲</button>
+            </div>
+            <div id="searchResults" class="search-results"></div>
         </div>
-      </div>
-    </div>
-  </div>
 
-  <script src="./java.js"></script>
+        <div class="player-section">
+            <div id="eqControls" class="equalizer-sliders" style="display:none;">
+                <label>🔊 Низькі <input type="range" id="bassSlider" min="-20" max="20" value="0" step="1"></label>
+                <label>🎵 Середні <input type="range" id="midSlider" min="-20" max="20" value="0" step="1"></label>
+                <label>🎶 Високі <input type="range" id="trebleSlider" min="-20" max="20" value="0" step="1"></label>
+                <button id="resetEqBtn" class="reset-eq-btn">⟳ Скинути</button>
+            </div>
+            <audio id="audioPlayer"></audio>
+            <div class="custom-player">
+                <div class="progress-container">
+                    <span id="currentTime" class="time-label">0:00</span>
+                    <input type="range" id="seekBar" class="seek-bar" value="0" max="100">
+                    <span id="durationTime" class="time-label">0:00</span>
+                </div>
+                <div class="player-controls">
+                    <button id="prevBtn" class="control-btn" title="Назад">⏮</button>
+                    <button id="playPauseBtn" class="control-btn player-play-btn" title="Play/Pause"></button>
+                    <button id="nextBtn" class="control-btn" title="Далі">⏭</button>
+                    <button id="loopBtn" class="control-btn loop-control-btn" title="Повтор">🔁</button>
+                    <button id="randomModeBtn" class="control-btn random-mode-btn" onclick="toggleRandomMode()" title="Рандомний режим" style="display:none;">🔀</button>
+                </div>
+            </div>
+            <div id="nowPlaying" class="now-playing">▶ Програється:</div>
+        </div>
+
+        <div id="lyricsSection" class="lyrics-section">
+            <h2 id="lyricsTitle">Текст пісні</h2>
+            <pre id="lyricsContent" class="lyrics-content">Оберіть пісню, щоб побачити текст.</pre>
+            <div class="translate-controls">
+                <select id="translateLanguageSelect" class="translate-language-select">
+                    <option value="en">🇬🇧 English</option>
+                    <option value="uk">🇺🇦 Українська</option>
+                    <option value="ru">🇷🇺 Русский</option>
+                    <option value="pl">🇵🇱 Polski</option>
+                    <option value="de">🇩🇪 Deutsch</option>
+                    <option value="fr">🇫🇷 Français</option>
+                    <option value="es">🇪🇸 Español</option>
+                    <option value="it">🇮🇹 Italiano</option>
+                    <option value="pt">🇵🇹 Português</option>
+                    <option value="cs">🇨🇿 Čeština</option>
+                    <option value="ja">🇯🇵 日本語</option>
+                </select>
+                <button id="translateButton" class="translate-btn" onclick="translateLyrics()">🌐 Перекласти</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="contact-footer">
+        <h3 class="contact-title">📬 Зв'язатися з нами</h3>
+        <div class="contact-links">
+            <a href="https://t.me/ANDREW21812" target="_blank" class="contact-item contact-telegram">
+                <span class="contact-icon">✈️</span> Telegram: <strong>@ANDREW21812</strong>
+            </a>
+            <a href="tel:+380953898152" class="contact-item contact-phone">
+                <span class="contact-icon">📞</span> Телефон: <strong>+380 095 389 8152</strong>
+            </a>
+        </div>
+        <div class="copyright-block">
+            © 2025–2026 <strong>Grab Music</strong>. Усі права захищені. Несанкціоноване копіювання та розповсюдження заборонено.
+        </div>
+    </footer>
+
+    <div id="news-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeNews()">&times;</span>
+            <h2>📰 Новини</h2>
+            <div id="newsList" class="news-list"></div>
+        </div>
+    </div>
+
+    <div id="tutorial-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>🎵 Туторіал</h2>
+            <p>Просто пишіть будь-які букви у пошуку, і сайт все знайде!</p>
+        </div>
+    </div>
+
+    <div id="premium-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closePremiumModal()">&times;</span>
+            <h2>⭐ Premium</h2>
+            <p>У нас все безкоштовно 🎉<br>Преміум не потрібен!</p>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSettings()">&times;</span>
+            <h2>⚙️ Налаштування</h2>
+            <div style="display:flex;flex-direction:column;gap:14px;margin:20px 0;text-align:left;">
+                <label><input type="checkbox" id="darkThemeToggle" onchange="toggleTheme(this.checked)"> 🌙 Темна тема</label>
+                <label><input type="checkbox" id="eqToggleCheck" onchange="toggleEq(this.checked)"> 🎚️ Еквалайзер</label>
+                <label><input type="checkbox" id="simpleModeToggle" onchange="toggleSimpleMode(this.checked)"> 🔠 Великий інтерфейс</label>
+                <label><input type="checkbox" id="ultraSimpleModeToggle" onchange="toggleUltraSimpleMode(this.checked)"> ⚡ Мінімальний режим</label>
+                <label><input type="checkbox" id="shakeToggle" onchange="toggleShake(this.checked)"> 🎵 Тремтіння на баси</label>
+                <div style="padding-left:22px;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                        <span style="font-size:13px;color:var(--text-muted);">Інтенсивність</span>
+                        <strong id="shakeIntensityLabel" style="font-size:13px;">25</strong>
+                    </div>
+                    <input type="range" id="shakeIntensity" min="0" max="50" value="25" step="1"
+                        oninput="setShakeIntensity(this.value)"
+                        style="width:100%;accent-color:var(--accent-color);cursor:pointer;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./java.js"></script>
 </body>
 </html>

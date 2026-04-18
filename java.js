@@ -607,7 +607,23 @@ async function showLyricsTab(filename, type) {
 
 function renderLrcLines(lines) {
     const content = document.getElementById('lyricsContent');
-    content.innerHTML = lines.map(l => `<div class="lrc-line">${escapeHtml(l.text)}</div>`).join('');
+    // Кожен рядок — клікабельний, перемотує на потрібну секунду
+    content.innerHTML = lines.map((l, i) =>
+        `<div class="lrc-line" data-index="${i}" onclick="seekToLrcLine(${i})">${escapeHtml(l.text)}</div>`
+    ).join('');
+}
+
+function seekToLrcLine(index) {
+    const audio = document.getElementById('audioPlayer');
+    const line = currentLrcLines[index];
+    if (!audio || !line) return;
+    audio.currentTime = line.time;
+    // Якщо на паузі — запускаємо
+    if (audio.paused) audio.play().catch(() => {});
+    // Підсвічуємо одразу
+    document.querySelectorAll('.lrc-line').forEach((el, i) => {
+        el.classList.toggle('active', i === index);
+    });
 }
 
 function resetTranslateUI() {

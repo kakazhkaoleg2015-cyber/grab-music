@@ -476,8 +476,9 @@ p { font-family: 'Comfortaa', cursive; font-size: 30px; color: var(--text-primar
     font-size: 15px; line-height: 2; background: rgba(0,0,0,0.05);
     border-radius: 6px; padding: 16px; max-height: 400px; overflow-y: auto; white-space: pre-wrap;
 }
-.lrc-line { padding: 8px 0; color: var(--text-muted); }
-.lrc-line.active { color: var(--accent-color); font-weight: bold; font-size: 16px; }
+.lrc-line { padding: 8px 0; color: var(--text-muted); cursor: pointer; border-radius: 4px; padding-left: 6px; transition: background 0.15s, color 0.15s; }
+.lrc-line:hover { background: rgba(164,194,244,0.15); color: var(--text-primary); }
+.lrc-line.active { color: var(--accent-color); font-weight: bold; font-size: 16px; background: rgba(164,194,244,0.1); }
 
 /* ========== ПЕРЕКЛАД ========== */
 .translate-controls {
@@ -494,6 +495,18 @@ p { font-family: 'Comfortaa', cursive; font-size: 30px; color: var(--text-primar
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235d9cec' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat; background-position: right 16px center;
     box-shadow: 0 3px 8px var(--shadow); min-width: 150px;
+}
+/* На мобільних — нативний select (iOS Safari не підтримує кастомний) */
+@media (max-width: 768px) {
+    .translate-language-select {
+        -webkit-appearance: auto;
+        appearance: auto;
+        background-image: none;
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 15px;
+        min-width: 0;
+    }
 }
 .translate-language-select:hover { border-color: var(--accent-dark); transform: translateY(-2px); box-shadow: 0 5px 12px var(--shadow); }
 .translate-language-select:focus { border-color: var(--accent-dark); box-shadow: 0 0 0 3px rgba(93,156,236,0.25); }
@@ -771,9 +784,4 @@ body.ultra-simple-mode .ultra-simple-back-btn { display: flex; }
     .translate-controls { flex-direction: column; gap: 8px; width: 100%; align-items: stretch; }
     .translate-language-select, .translate-btn, .show-original-btn { width: 100%; text-align: center; box-sizing: border-box; }
     .translate-language-select { background-position: calc(100% - 16px) center; }
-}
-/*Подяка в налашкуваннях*/
-.thank-you-inf{
-    font-size:34px;
-    font-family:Comfortaa;
 }
