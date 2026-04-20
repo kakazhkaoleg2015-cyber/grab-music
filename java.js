@@ -21,9 +21,8 @@ let isEqInitialized = false;
 // Keep-alive
 let wakeLock = null;
 let keepAliveInterval = null;
-let silentOscillator = null;
-let silentGain = null;
 let audioKeepAliveInterval = null;
+// silentOscillator/silentGain замінені на silentBufferSource/silentGainNode (оголошені в секції фонового відтворення)
 
 let playPauseBtn, nextBtn, prevBtn, loopBtn, seekBar, currentTimeLabel, durationTimeLabel;
 
@@ -74,12 +73,17 @@ function t(key) { return translations[currentLanguage][key] || key; }
 
 // ==================== ФОНОВЕ ВІДТВОРЕННЯ ====================
 
+// 1. Wake Lock — не дає екрану засипати
 async function requestWakeLock() {
     if (!('wakeLock' in navigator)) return;
     try {
         if (wakeLock) return;
         wakeLock = await navigator.wakeLock.request('screen');
-        wakeLock.addEventListener('release', () => { wakeLock = null; });
+        wakeLock.addEventListener('release', () => {
+            wakeLock = null;
+            const a = document.getElementById('audioPlayer');
+            if (a && !a.paused) setTimeout(() => requestWakeLock(), 500);
+        });
     } catch(e) {}
 }
 
@@ -87,43 +91,70 @@ function releaseWakeLock() {
     if (wakeLock) { try { wakeLock.release(); } catch(e) {} wakeLock = null; }
 }
 
-function startSilentOscillator() {
-    if (!audioContext || silentOscillator) return;
+// 2. Silent Audio Buffer — реальний тихий звук (не осцилятор)
+// Це ключовий трюк: браузер не заморожує AudioContext якщо є активний BufferSource
+let silentBufferSource = null;
+let silentGainNode = null;
+
+function startSilentAudio() {
+    if (!audioContext) return;
+    stopSilentAudio();
     try {
-        silentGain = audioContext.createGain();
-        silentGain.gain.value = 0.00001;
-        silentOscillator = audioContext.createOscillator();
-        silentOscillator.frequency.value = 1;
-        silentOscillator.connect(silentGain);
-        silentGain.connect(audioContext.destination);
-        silentOscillator.start();
-    } catch(e) {}
+        // 1 секунда тиші
+        const buffer = audioContext.createBuffer(1, audioContext.sampleRate, audioContext.sampleRate);
+        silentGainNode = audioContext.createGain();
+        silentGainNode.gain.value = 0.001; // майже нуль але не 0 — браузер не вбиває
+        silentGainNode.connect(audioContext.destination);
+
+        function playChunk() {
+            if (!audioContext || !silentGainNode) return;
+            silentBufferSource = audioContext.createBufferSource();
+            silentBufferSource.buffer = buffer;
+            silentBufferSource.connect(silentGainNode);
+            silentBufferSource.onended = () => playChunk(); // нескінченний loop
+            silentBufferSource.start();
+        }
+        playChunk();
+        console.log('✅ Silent audio started');
+    } catch(e) { console.warn('Silent audio failed:', e); }
 }
 
-function stopSilentOscillator() {
-    if (silentOscillator) {
-        try { silentOscillator.stop(); } catch(e) {}
-        silentOscillator = null;
-        silentGain = null;
-    }
+function stopSilentAudio() {
+    try { if (silentBufferSource) silentBufferSource.stop(); } catch(e) {}
+    silentBufferSource = null;
+    if (silentGainNode) { try { silentGainNode.disconnect(); } catch(e) {} silentGainNode = null; }
 }
 
+// Аліаси для сумісності зі старими викликами
+function startSilentOscillator() { startSilentAudio(); }
+function stopSilentOscillator()  { stopSilentAudio(); }
+
+// 3. Keep-alive: відновлення AudioContext + silent audio кожні 10 сек
 function startKeepAlive() {
     stopKeepAlive();
-    keepAliveInterval = setInterval(() => {
-        if (audioContext && audioContext.state === 'suspended') audioContext.resume();
-    }, 15000);
+    keepAliveInterval = setInterval(async () => {
+        if (!audioContext) return;
+        if (audioContext.state === 'suspended') {
+            try { await audioContext.resume(); } catch(e) {}
+        }
+        if (!silentBufferSource) startSilentAudio();
+    }, 10000);
 }
 
 function stopKeepAlive() {
     if (keepAliveInterval) { clearInterval(keepAliveInterval); keepAliveInterval = null; }
 }
 
+// 4. Audio element ping — підтримує активність потоку
 function startAudioKeepAlive(audio) {
     stopAudioKeepAlive();
     audioKeepAliveInterval = setInterval(() => {
-        if (!audio.paused && !isNaN(audio.currentTime)) { const _ = audio.currentTime; }
-    }, 25000);
+        if (!audio || audio.paused) return;
+        const _ = audio.currentTime; // читання = підтримка активності
+        if (audioContext && audioContext.state === 'suspended') {
+            audioContext.resume().catch(() => {});
+        }
+    }, 10000);
 }
 
 function stopAudioKeepAlive() {
@@ -133,21 +164,28 @@ function stopAudioKeepAlive() {
 let lastSrc = '';
 let lastTime = 0;
 
+// 5. Повернення на вкладку — відновлюємо все
 document.addEventListener('visibilitychange', async () => {
-    if (document.visibilityState !== 'visible') return;
     const audio = document.getElementById('audioPlayer');
     if (audioContext && audioContext.state === 'suspended') {
         try { await audioContext.resume(); } catch(e) {}
     }
-    if (!audio) return;
-    if (!audio.paused) requestWakeLock();
+    if (document.visibilityState === 'visible') {
+        if (audio && !audio.paused) {
+            requestWakeLock();
+            if (!silentBufferSource) startSilentAudio();
+        }
+    }
 });
 
+// 6. Розблокування AudioContext при будь-якому жесті користувача
 function setupAudioUnlock() {
     const unlock = async () => {
-        if (audioContext && audioContext.state === 'suspended') {
+        if (!audioContext) return;
+        if (audioContext.state === 'suspended') {
             try { await audioContext.resume(); } catch(e) {}
         }
+        if (!silentBufferSource) startSilentAudio();
     };
     document.addEventListener('touchstart', unlock, { passive: true });
     document.addEventListener('touchend',   unlock, { passive: true });
@@ -538,6 +576,8 @@ function parseLRC(text) {
 function syncLRC() {
     const audio = document.getElementById('audioPlayer');
     if (!audio || !currentLrcLines.length || isUserInteracting) return;
+    // Не робимо scrollIntoView якщо відкрита модалка — це блокує UI
+    const modalOpen = !!document.querySelector('.modal.open');
     const ct = audio.currentTime;
     let idx = -1;
     for (let i = 0; i < currentLrcLines.length; i++) {
@@ -550,7 +590,7 @@ function syncLRC() {
     if (target && cur !== target) {
         if (cur) cur.classList.remove('active');
         target.classList.add('active');
-        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (!modalOpen) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 }
 
