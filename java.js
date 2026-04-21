@@ -554,6 +554,9 @@ async function loadDatabase() {
     }
     savePlaylists();
     displayPlaylists();
+    // Ініціалізуємо систему ваг
+    _loadWeights();
+    initWeights();
     const si = document.getElementById('searchInput');
     if (si && si.value.trim()) searchSongs();
 }
@@ -878,10 +881,84 @@ function toggleRandomMode() {
     updateNavButtons();
 }
 
+// ==================== СИСТЕМА ВІДСОТКІВ (антиповтор) ====================
+// Кожній пісні присвоюється "вага" — чим більше % тим більша ймовірність вибору
+// Стартова вага: 45. Після програвання: 0. Потім повільно відновлюється (1-4 за цикл).
+const WEIGHT_DEFAULT  = 45;
+const WEIGHT_PLAYED   = 0;
+const WEIGHT_RECOVER_MIN = 1;
+const WEIGHT_RECOVER_MAX = 4;
+
+let songWeights = {}; // { filename: weight }
+
+function initWeights() {
+    if (!songsDatabase.length) return;
+    songsDatabase.forEach(s => {
+        if (!(s.file in songWeights)) {
+            songWeights[s.file] = WEIGHT_DEFAULT;
+        }
+    });
+    _saveWeights();
+}
+
+function _saveWeights() {
+    try { localStorage.setItem('grab_music_weights', JSON.stringify(songWeights)); } catch(e) {}
+}
+
+function _loadWeights() {
+    try {
+        const stored = localStorage.getItem('grab_music_weights');
+        if (stored) songWeights = JSON.parse(stored);
+    } catch(e) {}
+}
+
+// Вибираємо пісню зважено: більший % = більша ймовірність
+function _weightedPick(excludeFile) {
+    const songs = songsDatabase.filter(s => s.file !== excludeFile);
+    if (!songs.length) return songsDatabase[0];
+
+    const total = songs.reduce((sum, s) => sum + (songWeights[s.file] || WEIGHT_DEFAULT), 0);
+
+    // Якщо всі 0 (крайній випадок) — рандом
+    if (total === 0) return songs[Math.floor(Math.random() * songs.length)];
+
+    let rand = Math.random() * total;
+    for (const s of songs) {
+        rand -= (songWeights[s.file] || WEIGHT_DEFAULT);
+        if (rand <= 0) return s;
+    }
+    return songs[songs.length - 1];
+}
+
+// Викликається коли пісня ПОЧИНАЄ грати
+function onSongStarted(filename) {
+    // Обнуляємо поточну пісню
+    songWeights[filename] = WEIGHT_PLAYED;
+    _saveWeights();
+}
+
+// Викликається коли пісня ЗАКІНЧИЛА грати (або пропущена)
+function onSongEnded(filename) {
+    // Усім пісням додаємо 1-4% (крім тієї що щойно грала — вона ще 0)
+    songsDatabase.forEach(s => {
+        if (s.file === filename) return;
+        const current = songWeights[s.file] ?? WEIGHT_DEFAULT;
+        const bonus = Math.floor(Math.random() * (WEIGHT_RECOVER_MAX - WEIGHT_RECOVER_MIN + 1)) + WEIGHT_RECOVER_MIN;
+        songWeights[s.file] = Math.min(current + bonus, WEIGHT_DEFAULT);
+    });
+    _saveWeights();
+}
+
 function playNextRandom() {
     if (!songsDatabase.length) return;
-    const song = songsDatabase[Math.floor(Math.random() * songsDatabase.length)];
-    playSong(song.file, true);
+    const audio = document.getElementById('audioPlayer');
+    const currentFile = audio ? songsDatabase.find(s => audio.src.endsWith(encodeURIComponent(s.file)) || audio.src.endsWith(s.file))?.file : null;
+
+    // Нараховуємо бонус за завершення попередньої
+    if (currentFile) onSongEnded(currentFile);
+
+    const next = _weightedPick(currentFile);
+    playSong(next.file, true);
 }
 
 // ==================== ВІДТВОРЕННЯ ====================
@@ -907,6 +984,8 @@ function playSong(filename, fromQueue = false) {
     updateMediaSession(song);
 
     audio.play().then(() => {
+        // Обнуляємо відсоток поточної пісні
+        onSongStarted(filename);
         // Застосовуємо збережену швидкість
         const savedSpeed = parseFloat(localStorage.getItem('grab_music_speed') || '1');
         audio.playbackRate = savedSpeed;
@@ -1054,7 +1133,9 @@ function searchSongs() {
 
 function randomSong() {
     if (!songsDatabase.length) return;
-    const song = songsDatabase[Math.floor(Math.random() * songsDatabase.length)];
+    const audio = document.getElementById('audioPlayer');
+    const currentFile = audio ? songsDatabase.find(s => audio.src.endsWith(encodeURIComponent(s.file)) || audio.src.endsWith(s.file))?.file : null;
+    const song = _weightedPick(currentFile);
     const results = document.getElementById('searchResults');
     const input = document.getElementById('searchInput');
     if (input) input.value = '';
