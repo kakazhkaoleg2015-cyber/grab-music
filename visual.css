@@ -185,10 +185,13 @@ body.dark-theme .custom-player { background: rgba(0,0,0,0.3); }
     flex: 1;
     height: 4px;
     -webkit-appearance: none;
-    background: var(--accent-color);
+    appearance: none;
+    background: rgba(164,194,244,0.25);
     border-radius: 5px;
     cursor: pointer;
+    transition: height 0.15s;
 }
+.seek-bar:hover { height: 6px; }
 .seek-bar::-webkit-slider-thumb {
     -webkit-appearance: none;
     width: 14px;
@@ -196,6 +199,15 @@ body.dark-theme .custom-player { background: rgba(0,0,0,0.3); }
     background: var(--accent-dark);
     border-radius: 50%;
     cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+.seek-bar::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: var(--accent-dark);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
 }
 .player-controls { display: flex; justify-content: center; align-items: center; gap: 20px; }
 .control-btn {
@@ -810,4 +822,56 @@ body.modal-open {
     margin: 0;
     line-height: 1.7;
     font-weight: 400;
+}
+
+/* ========== THREE DOT MENU ========== */
+.three-dot-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+.three-dot-btn {
+    background: transparent;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 2px 8px;
+    border-radius: 6px;
+    line-height: 1;
+    transition: background 0.15s, color 0.15s;
+}
+.three-dot-btn:hover {
+    background: rgba(164,194,244,0.15);
+    color: var(--accent-color);
+}
+.three-dot-menu {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 6px);
+    right: 0;
+    background: var(--modal-bg);
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    z-index: 5000;
+    min-width: 190px;
+    overflow: hidden;
+}
+.three-dot-menu.open { display: block; }
+.three-dot-menu button {
+    display: block;
+    width: 100%;
+    padding: 12px 16px;
+    text-align: left;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+}
+.three-dot-menu button:hover {
+    background: rgba(164,194,244,0.15);
 }

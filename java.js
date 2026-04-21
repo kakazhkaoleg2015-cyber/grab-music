@@ -501,49 +501,126 @@ function loadPlaylistsFromStorage() {
 }
 
 // ==================== ЗАВАНТАЖЕННЯ ДАНИХ ====================
-async function loadDatabase() {
+const SONGS_CACHE_KEY = 'grab_music_songs_cache';
+const PLAYLISTS_CACHE_KEY = 'grab_music_playlists_cache'; // окремо від STORAGE_KEY (favorites)
+
+// Fetch з таймаутом (10 секунд)
+async function fetchWithTimeout(url, timeout = 10000) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
     try {
-        const res = await fetch('./database.json');
-        if (!res.ok) throw new Error();
-        songsDatabase = await res.json();
-        console.log('✅ songs loaded:', songsDatabase.length);
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(timer);
+        return res;
     } catch(e) {
-        songsDatabase = [];
-        const lc = document.getElementById('lyricsContent');
-        if (lc) lc.textContent = t('errorLoadingDB');
+        clearTimeout(timer);
+        throw e;
     }
+}
 
-    // Завжди завантажуємо playlists.json і мержимо з localStorage
-    // (зберігаємо улюблені з localStorage, але оновлюємо решту з файлу)
-    let storedPlaylists = null;
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-        try { storedPlaylists = JSON.parse(stored); } catch(e) {}
-    }
+function _showNoInternetScreen() {
+    // Якщо вже показано — не дублюємо
+    if (document.getElementById('noInternetScreen')) return;
+    const el = document.createElement('div');
+    el.id = 'noInternetScreen';
+    el.style.cssText = `
+        position:fixed;inset:0;z-index:99999;
+        background:var(--bg-gradient-end,#1a2a3a);
+        display:flex;flex-direction:column;align-items:center;justify-content:center;
+        font-family:'Comfortaa',cursive;color:var(--text-primary,#f0f0f0);
+        text-align:center;padding:30px;
+    `;
+    el.innerHTML = `
+        <div style="font-size:64px;margin-bottom:16px;">📡</div>
+        <h2 style="font-size:28px;margin:0 0 12px;color:#e67e22;">Немає інтернету :(</h2>
+        <p style="font-size:15px;opacity:0.7;margin:0 0 28px;max-width:300px;line-height:1.6;">
+            Не вдалося завантажити дані. Перевір підключення та спробуй ще раз.
+        </p>
+        <button onclick="location.reload()" style="
+            background:linear-gradient(135deg,#e67e22,#d35400);
+            color:#fff;border:none;padding:14px 32px;border-radius:30px;
+            font-size:16px;font-family:'Comfortaa',cursive;font-weight:700;
+            cursor:pointer;box-shadow:0 4px 14px rgba(230,126,34,0.4);
+        ">🔄 Спробувати знову</button>
+    `;
+    document.body.appendChild(el);
+}
+
+async function loadDatabase() {
+    // ── 1. SONGS ──────────────────────────────────────────────────────
+    const cachedSongs = localStorage.getItem(SONGS_CACHE_KEY);
 
     try {
-        const res = await fetch('./playlists.json');
-        if (res.ok) {
-            const filePlaylists = await res.json();
-            if (storedPlaylists) {
-                // Зберігаємо улюблені зі збереженого стану
-                const favorites = storedPlaylists.find(p => p.id === 'favorites');
-                playlistsDatabase = filePlaylists.map(pl => {
-                    if (pl.id === 'favorites' && favorites) return favorites;
-                    return pl;
-                });
-                // Якщо favorites немає у файлі — додаємо
-                if (!playlistsDatabase.find(p => p.id === 'favorites') && favorites) {
-                    playlistsDatabase.unshift(favorites);
-                }
-            } else {
-                playlistsDatabase = filePlaylists;
+        const res = await fetchWithTimeout('./database.json', 10000);
+        if (!res.ok) throw new Error('not ok');
+        const fresh = await res.json();
+        songsDatabase = fresh;
+        try { localStorage.setItem(SONGS_CACHE_KEY, JSON.stringify(fresh)); } catch(e) {}
+        console.log('✅ songs loaded from network:', songsDatabase.length);
+    } catch(e) {
+        if (cachedSongs) {
+            try {
+                songsDatabase = JSON.parse(cachedSongs);
+                console.log('📦 songs loaded from cache:', songsDatabase.length);
+                _showOfflineBanner();
+            } catch(err) {
+                songsDatabase = [];
+                _showNoInternetScreen();
+                return;
             }
         } else {
-            playlistsDatabase = storedPlaylists || [];
+            // Немає ні мережі ні кешу
+            songsDatabase = [];
+            _showNoInternetScreen();
+            return;
         }
+    }
+
+    // ── 2. PLAYLISTS ──────────────────────────────────────────────────
+    const storedFavorites = (() => {
+        try {
+            const s = localStorage.getItem(STORAGE_KEY);
+            if (!s) return null;
+            const arr = JSON.parse(s);
+            return arr.find(p => p.id === 'favorites') || null;
+        } catch(e) { return null; }
+    })();
+
+    const cachedPlaylists = localStorage.getItem(PLAYLISTS_CACHE_KEY);
+
+    const mergePlaylists = (filePlaylists) => {
+        let result = filePlaylists.map(pl => {
+            if (pl.id === 'favorites' && storedFavorites) return storedFavorites;
+            return pl;
+        });
+        if (!result.find(p => p.id === 'favorites') && storedFavorites) {
+            result.unshift(storedFavorites);
+        }
+        return result;
+    };
+
+    try {
+        const res = await fetchWithTimeout('./playlists.json', 10000);
+        if (!res.ok) throw new Error('not ok');
+        const filePlaylists = await res.json();
+        playlistsDatabase = mergePlaylists(filePlaylists);
+        try { localStorage.setItem(PLAYLISTS_CACHE_KEY, JSON.stringify(filePlaylists)); } catch(e) {}
+        console.log('✅ playlists loaded from network');
     } catch(e) {
-        playlistsDatabase = storedPlaylists || [];
+        if (cachedPlaylists) {
+            try {
+                const cached = JSON.parse(cachedPlaylists);
+                playlistsDatabase = mergePlaylists(cached);
+                console.log('📦 playlists loaded from cache');
+            } catch(err) {
+                playlistsDatabase = storedFavorites ? [storedFavorites] : [];
+            }
+        } else {
+            try {
+                const s = localStorage.getItem(STORAGE_KEY);
+                playlistsDatabase = s ? JSON.parse(s) : [];
+            } catch(err) { playlistsDatabase = []; }
+        }
     }
 
     if (!playlistsDatabase.find(p => p.id === 'favorites')) {
@@ -552,16 +629,139 @@ async function loadDatabase() {
             description: 'Твої улюблені пісні', description_en: 'Your favorite songs', songs: []
         });
     }
+
     savePlaylists();
     displayPlaylists();
-    // Ініціалізуємо систему ваг
     _loadWeights();
     initWeights();
+
+    // Відновлюємо останню пісню (авто-відновлення)
+    _restoreLastPosition();
+
     const si = document.getElementById('searchInput');
     if (si && si.value.trim()) searchSongs();
 }
 
-// ==================== LRC ====================
+function _showOfflineBanner() {
+    if (document.getElementById('offlineBanner')) return;
+    const banner = document.createElement('div');
+    banner.id = 'offlineBanner';
+    banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99998;background:#e67e22;color:#fff;text-align:center;padding:8px 16px;font-size:13px;font-family:Segoe UI,sans-serif;';
+    banner.textContent = '📡 Офлайн — завантажено з кешу. Деякі функції недоступні.';
+    document.body.prepend(banner);
+    setTimeout(() => banner.remove(), 5000);
+}
+
+// ==================== ФУНКЦІЯ 1: АВТОЗБЕРЕЖЕННЯ ПОЗИЦІЇ ====================
+// Коли закриваєш сайт — зберігається яка пісня грала і на якій секунді.
+// При наступному відкритті — пропонує продовжити з того ж місця.
+const LAST_POS_KEY = 'grab_music_last_position';
+
+function _saveLastPosition() {
+    const audio = document.getElementById('audioPlayer');
+    if (!audio || audio.paused || !audio.src || audio.src === window.location.href) return;
+    const song = songsDatabase.find(s => audio.src.includes(encodeURIComponent(s.file)) || audio.src.includes(s.file));
+    if (!song || audio.currentTime < 5) return; // не зберігаємо якщо менше 5 сек
+    try {
+        localStorage.setItem(LAST_POS_KEY, JSON.stringify({
+            file: song.file,
+            time: Math.floor(audio.currentTime),
+            name: song.name,
+            artist: song.artist
+        }));
+    } catch(e) {}
+}
+
+function _restoreLastPosition() {
+    const raw = localStorage.getItem(LAST_POS_KEY);
+    if (!raw) return;
+    let saved;
+    try { saved = JSON.parse(raw); } catch(e) { return; }
+    const song = songsDatabase.find(s => s.file === saved.file);
+    if (!song || saved.time < 5) return;
+
+    // Показуємо тост з пропозицією продовжити
+    const msg = currentLanguage === 'uk'
+        ? `▶ Продовжити "${saved.name}"? (${formatTime(saved.time)})`
+        : `▶ Continue "${saved.name}"? (${formatTime(saved.time)})`;
+
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+        background:var(--card-bg,#1e2f3e);color:var(--text-primary,#f0f0f0);
+        padding:14px 20px;border-radius:14px;font-size:14px;z-index:99999;
+        box-shadow:0 4px 20px rgba(0,0,0,0.4);border:1px solid var(--accent-color);
+        display:flex;align-items:center;gap:12px;max-width:90vw;font-family:'Segoe UI',sans-serif;
+    `;
+    toast.innerHTML = `
+        <span>${msg}</span>
+        <button onclick="
+            playSong('${song.file}', false);
+            setTimeout(() => {
+                const a = document.getElementById('audioPlayer');
+                if (a) a.currentTime = ${saved.time};
+            }, 800);
+            this.closest('div').remove();
+        " style="
+            background:var(--accent-color);color:#1a2a3a;border:none;
+            padding:8px 16px;border-radius:8px;cursor:pointer;
+            font-weight:bold;font-size:13px;white-space:nowrap;
+        ">${currentLanguage === 'uk' ? 'Так' : 'Yes'}</button>
+        <button onclick="
+            localStorage.removeItem('${LAST_POS_KEY}');
+            this.closest('div').remove();
+        " style="
+            background:transparent;color:var(--text-muted);border:none;
+            padding:8px;cursor:pointer;font-size:18px;
+        ">✕</button>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => { if (toast.parentNode) toast.remove(); }, 12000);
+}
+
+// Зберігаємо позицію перед закриттям
+window.addEventListener('beforeunload', _saveLastPosition);
+// Також зберігаємо кожні 10 сек під час відтворення
+setInterval(_saveLastPosition, 10000);
+
+
+// ==================== ФУНКЦІЯ 2: ЖИВИЙ ПРОГРЕС-БАР ====================
+// Seek bar плавно змінює колір від синього (початок) → зеленого (середина) → помаранчевого (кінець)
+// Виглядає як "температура" треку — відразу видно де ти в пісні.
+function _updateSeekBarColor() {
+    const seekBar = document.getElementById('seekBar');
+    if (!seekBar) return;
+    const val = parseFloat(seekBar.value) || 0; // 0..100
+    // Інтерполяція кольорів: 0%=синій, 50%=зелений, 100%=помаранчевий
+    let r, g, b;
+    if (val <= 50) {
+        const t = val / 50;
+        r = Math.round(93  + (30  - 93)  * t);  // 93→30  (синій→зелений R)
+        g = Math.round(156 + (201 - 156) * t);  // 156→201 (синій→зелений G)
+        b = Math.round(236 + (50  - 236) * t);  // 236→50  (синій→зелений B)
+    } else {
+        const t = (val - 50) / 50;
+        r = Math.round(30  + (243 - 30)  * t);  // 30→243  (зелений→помаранчевий R)
+        g = Math.round(201 + (156 - 201) * t);  // 201→156 (зелений→помаранчевий G)
+        b = Math.round(50  + (18  - 50)  * t);  // 50→18   (зелений→помаранчевий B)
+    }
+    const color = `rgb(${r},${g},${b})`;
+    const pct = val + '%';
+    seekBar.style.background = `linear-gradient(to right, ${color} 0%, ${color} ${pct}, rgba(164,194,244,0.25) ${pct})`;
+}
+
+// Підключаємо до timeupdate і seek
+(function _initSeekBarColor() {
+    const check = setInterval(() => {
+        const audio = document.getElementById('audioPlayer');
+        const seekBar = document.getElementById('seekBar');
+        if (!audio || !seekBar) return;
+        clearInterval(check);
+        audio.addEventListener('timeupdate', _updateSeekBarColor);
+        seekBar.addEventListener('input', _updateSeekBarColor);
+        _updateSeekBarColor();
+    }, 300);
+})();
 function parseLRC(text) {
     const lines = [];
     const regex = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/;
@@ -881,10 +1081,70 @@ function toggleRandomMode() {
     updateNavButtons();
 }
 
-// ==================== СИСТЕМА ВІДСОТКІВ (антиповтор) ====================
+// ==================== НЕ РЕКОМЕНДУВАТИ ====================
+const DISLIKED_KEY = 'grab_music_disliked';
+
+function getDisliked() {
+    try { return JSON.parse(localStorage.getItem(DISLIKED_KEY) || '[]'); } catch(e) { return []; }
+}
+
+function isDisliked(filename) {
+    return getDisliked().includes(filename);
+}
+
+function toggleDislike(filename) {
+    const list = getDisliked();
+    const idx = list.indexOf(filename);
+    if (idx > -1) list.splice(idx, 1);
+    else list.push(filename);
+    localStorage.setItem(DISLIKED_KEY, JSON.stringify(list));
+    // Оновлюємо всі меню на сторінці
+    _updateThreeDotMenus(filename);
+}
+
+function _updateThreeDotMenus(filename) {
+    document.querySelectorAll(`.three-dot-menu[data-file="${CSS.escape(filename)}"]`).forEach(menu => {
+        const btn = menu.querySelector('.dislike-btn');
+        if (btn) btn.textContent = isDisliked(filename)
+            ? (currentLanguage === 'uk' ? '✅ Рекомендувати' : '✅ Recommend')
+            : (currentLanguage === 'uk' ? '🚫 Не рекомендувати' : '🚫 Not interested');
+    });
+}
+
+// Закриваємо всі відкриті меню при кліку поза ними
+document.addEventListener('click', e => {
+    if (!e.target.closest('.three-dot-wrap')) {
+        document.querySelectorAll('.three-dot-menu.open').forEach(m => m.classList.remove('open'));
+    }
+});
+
+function toggleThreeDotMenu(btn, filename) {
+    const menu = btn.nextElementSibling;
+    const wasOpen = menu.classList.contains('open');
+    // Закриваємо всі
+    document.querySelectorAll('.three-dot-menu.open').forEach(m => m.classList.remove('open'));
+    if (!wasOpen) menu.classList.add('open');
+}
+
+// HTML для кнопки ⋯ і меню
+function threeDotHtml(filename) {
+    const dislikedLabel = isDisliked(filename)
+        ? (currentLanguage === 'uk' ? '✅ Рекомендувати' : '✅ Recommend')
+        : (currentLanguage === 'uk' ? '🚫 Не рекомендувати' : '🚫 Not interested');
+    return `<div class="three-dot-wrap">
+        <button class="three-dot-btn" onclick="toggleThreeDotMenu(this,'${escapeHtml(filename)}')" title="Більше">⋯</button>
+        <div class="three-dot-menu" data-file="${escapeHtml(filename)}">
+            <button class="dislike-btn" onclick="toggleDislike('${escapeHtml(filename)}');closeThreeDot(this)">${dislikedLabel}</button>
+        </div>
+    </div>`;
+}
+
+function closeThreeDot(el) {
+    el.closest('.three-dot-menu')?.classList.remove('open');
+}
 // Кожній пісні присвоюється "вага" — чим більше % тим більша ймовірність вибору
 // Стартова вага: 45. Після програвання: 0. Потім повільно відновлюється (1-4 за цикл).
-const WEIGHT_DEFAULT  = 45;
+const WEIGHT_DEFAULT  = 100;
 const WEIGHT_PLAYED   = 0;
 const WEIGHT_RECOVER_MIN = 1;
 const WEIGHT_RECOVER_MAX = 4;
@@ -914,20 +1174,21 @@ function _loadWeights() {
 
 // Вибираємо пісню зважено: більший % = більша ймовірність
 function _weightedPick(excludeFile) {
-    const songs = songsDatabase.filter(s => s.file !== excludeFile);
-    if (!songs.length) return songsDatabase[0];
+    const disliked = getDisliked();
+    const songs = songsDatabase.filter(s => s.file !== excludeFile && !disliked.includes(s.file));
+    // Якщо всі пісні в disliked — беремо всі (щоб не зависнути)
+    const pool = songs.length ? songs : songsDatabase.filter(s => s.file !== excludeFile);
+    if (!pool.length) return songsDatabase[0];
 
-    const total = songs.reduce((sum, s) => sum + (songWeights[s.file] || WEIGHT_DEFAULT), 0);
-
-    // Якщо всі 0 (крайній випадок) — рандом
-    if (total === 0) return songs[Math.floor(Math.random() * songs.length)];
+    const total = pool.reduce((sum, s) => sum + (songWeights[s.file] || WEIGHT_DEFAULT), 0);
+    if (total === 0) return pool[Math.floor(Math.random() * pool.length)];
 
     let rand = Math.random() * total;
-    for (const s of songs) {
+    for (const s of pool) {
         rand -= (songWeights[s.file] || WEIGHT_DEFAULT);
         if (rand <= 0) return s;
     }
-    return songs[songs.length - 1];
+    return pool[pool.length - 1];
 }
 
 // Викликається коли пісня ПОЧИНАЄ грати
@@ -974,7 +1235,7 @@ function playSong(filename, fromQueue = false) {
     audio.src = './music/' + filename;
     lastSrc = audio.src;
     lastTime = 0;
-    nowDiv.innerHTML = `<img src="${escapeHtml(song.image)}" alt="${escapeHtml(song.name)}" class="player-image" onerror="this.src='./fotomusic/no-photo.jpg'"> ${t('nowPlayingLabel')} <strong>${escapeHtml(song.name)}</strong> - ${escapeHtml(song.artist)}`;
+    nowDiv.innerHTML = `<img src="${escapeHtml(song.image)}" alt="${escapeHtml(song.name)}" class="player-image" onerror="this.src='./fotomusic/no-photo.jpg'"> ${t('nowPlayingLabel')} <strong>${escapeHtml(song.name)}</strong> - ${escapeHtml(song.artist)} ${threeDotHtml(song.file)}`;
     showLyrics(song);
     if (seekBar) seekBar.value = 0;
     if (currentTimeLabel)  currentTimeLabel.textContent  = '0:00';
@@ -1059,11 +1320,7 @@ function playPlaylist(songFiles) {
     clearQueue();
     currentQueue = [...songFiles];
     currentQueueIndex = 0;
-    const audio = document.getElementById('audioPlayer');
-    // Прибираємо старий handler перед додаванням нового
-    if (playlistEndedHandler) audio.removeEventListener('ended', playlistEndedHandler);
-    playlistEndedHandler = () => playNext();
-    audio.addEventListener('ended', playlistEndedHandler);
+    // ended handler не потрібен — onended в setupAudioListeners вже викликає playNext()
     playSong(currentQueue[0], true);
     updateNavButtons();
 }
@@ -1442,7 +1699,13 @@ function setupAudioListeners() {
         if (lrcSyncInterval) { clearInterval(lrcSyncInterval); lrcSyncInterval = null; }
     };
 
-    audio.onended = () => { updateMediaSessionState(audio); };
+    audio.onended = () => {
+        updateMediaSessionState(audio);
+        // Авто-перехід у плейлисті (якщо не рандомний режим — там є свій handler)
+        if (!isRandomMode && currentQueue.length > 1) {
+            playNext();
+        }
+    };
 
     // Застосовуємо швидкість після завантаження нового треку
     audio.oncanplay = () => {
@@ -1450,7 +1713,18 @@ function setupAudioListeners() {
         if (audio.playbackRate !== speed) audio.playbackRate = speed;
     };
 
+    let _errorCount = 0;
+    let _errorTimer = null;
     audio.onerror = () => {
+        // Захист від нескінченного циклу помилок (офлайн режим)
+        _errorCount++;
+        clearTimeout(_errorTimer);
+        _errorTimer = setTimeout(() => { _errorCount = 0; }, 3000);
+        if (_errorCount > 3) {
+            console.warn('Too many errors, stopping');
+            _errorCount = 0;
+            return;
+        }
         console.warn('Audio error, skipping');
         if (currentQueue.length > 1) playNext();
         else if (isRandomMode) playNextRandom();
