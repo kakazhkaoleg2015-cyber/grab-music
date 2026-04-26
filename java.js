@@ -879,28 +879,48 @@ function resetTranslateUI() {
     if (origBtn) origBtn.style.display = 'none';
 }
 
+async function _translateText(text, targetLang) {
+    // Спочатку пробуємо MyMemory — безкоштовний людський переклад
+    try {
+        const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text.slice(0, 500))}&langpair=auto|${targetLang}`;
+        const res = await fetchWithTimeout(url, 5000);
+        if (res.ok) {
+            const data = await res.json();
+            if (data.responseStatus === 200 && data.responseData?.translatedText) {
+                const result = data.responseData.translatedText;
+                // MyMemory іноді повертає "PLEASE SELECT TWO DISTINCT LANGUAGES" — тоді fallback
+                if (!result.toUpperCase().includes('PLEASE SELECT') && result.length > 3) {
+                    return result;
+                }
+            }
+        }
+    } catch(e) {}
+
+    // Fallback: Google Translate (gtx)
+    const res = await fetchWithTimeout(
+        `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`,
+        8000
+    );
+    if (!res.ok) throw new Error('translate failed');
+    const data = await res.json();
+    return Array.isArray(data?.[0]) ? data[0].map(p => p[0]).join('') : '';
+}
+
 async function translateLyrics() {
     const content = document.getElementById('lyricsContent');
     const button = document.getElementById('translateButton');
     if (!content || !button) return;
 
-    // Отримуємо мову з select або показуємо вибір
     const languageSelect = document.getElementById('translateLanguageSelect');
     const targetLang = languageSelect ? languageSelect.value : (currentLanguage === 'uk' ? 'en' : 'uk');
 
     button.disabled = true;
-    button.textContent = currentLanguage === 'uk' ? '⏳ Переклад...' : '⏳ Translating...';
+    button.textContent = currentLanguage === 'uk' ? '⏳ Перекладаю...' : '⏳ Translating...';
 
     try {
         if (currentTranslateMode === 'lrc' && originalLrcLines.length) {
-            // LRC — перекладаємо і замінюємо рядки
             const texts = originalLrcLines.map(l => l.text).join('\n');
-            const res = await fetch(
-                `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(texts)}`
-            );
-            if (!res.ok) throw new Error();
-            const data = await res.json();
-            const translatedText = Array.isArray(data?.[0]) ? data[0].map(p => p[0]).join('') : '';
+            const translatedText = await _translateText(texts, targetLang);
             if (!translatedText) throw new Error('Empty');
 
             const translatedLines = translatedText.split('\n');
@@ -913,34 +933,169 @@ async function translateLyrics() {
             showOriginalButton();
 
         } else {
-            // Звичайний текст — замінюємо вміст
             const srcText = isShowingTranslated ? originalTextContent : content.textContent.trim();
             if (!srcText || srcText === t('noLyrics') || srcText === t('lrcNotAvailable')) throw new Error('No text');
 
-            const res = await fetch(
-                `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(srcText)}`
-            );
-            if (!res.ok) throw new Error();
-            const data = await res.json();
-            const translatedText = Array.isArray(data?.[0]) ? data[0].map(p => p[0]).join('') : '';
+            const translatedText = await _translateText(srcText, targetLang);
             if (!translatedText) throw new Error('Empty');
 
-            // Зберігаємо оригінал якщо ще не збережено
             if (!isShowingTranslated) originalTextContent = srcText;
-
-            // Замінюємо текст перекладом
             content.textContent = translatedText;
             isShowingTranslated = true;
             showOriginalButton();
         }
     } catch(e) {
-        content.textContent = (currentLanguage === 'uk'
-            ? '❌ Не вдалося перекласти. Спробуй пізніше.'
-            : '❌ Translation failed. Try again later.');
+        showToast(currentLanguage === 'uk'
+            ? '❌ Не вдалося перекласти. Перевір інтернет.'
+            : '❌ Translation failed. Check your internet.');
     } finally {
         button.disabled = false;
         button.textContent = currentLanguage === 'uk' ? '🌐 Перекласти' : '🌐 Translate';
     }
+}
+
+// ==================== ТРАНСКРИПЦІЯ ====================
+// Конвертує ієрогліфи (японська/китайська/корейська) в латинське читання
+async function showTranscription() {
+    const content = document.getElementById('lyricsContent');
+    const btn = document.getElementById('transcriptionBtn');
+    if (!content || !btn) return;
+
+    const srcText = isShowingTranslated ? originalTextContent : content.textContent.trim();
+    if (!srcText || srcText === t('noLyrics')) return;
+
+    const hasKanji = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\u4e00-\u9fff\uac00-\ud7af]/.test(srcText);
+    if (!hasKanji) {
+        showToast(currentLanguage === 'uk' ? '⚠️ Транскрипція тільки для японської/китайської/корейської' : '⚠️ Transcription only for Japanese/Chinese/Korean');
+        return;
+    }
+
+    // Якщо вже показана — прибираємо
+    if (btn.dataset.active === '1') {
+        _hideTranscription();
+        btn.dataset.active = '0';
+        btn.textContent = '🔤 ' + (currentLanguage === 'uk' ? 'Транскрипція' : 'Transcription');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '⏳...';
+
+    try {
+        const lines = srcText.split('\n');
+        const results = [];
+
+        // Перекладаємо кожен рядок окремо щоб отримати точну транслітерацію
+        for (const line of lines) {
+            if (!line.trim()) { results.push({ orig: line, rom: '' }); continue; }
+
+            // Перевіряємо чи є ієрогліфи в цьому рядку
+            const lineHasKanji = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\u4e00-\u9fff\uac00-\ud7af]/.test(line);
+            if (!lineHasKanji) { results.push({ orig: line, rom: null }); continue; }
+
+            try {
+                const res = await fetchWithTimeout(
+                    `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&dt=rm&q=${encodeURIComponent(line)}`,
+                    6000
+                );
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+
+                // data[2] — транслітерація
+                let rom = '';
+                if (Array.isArray(data[2])) {
+                    rom = data[2].map(c => Array.isArray(c) ? (c[3] || c[0] || '') : '').filter(Boolean).join('');
+                }
+                // Fallback на data[0] (переклад)
+                if (!rom && Array.isArray(data[0])) {
+                    rom = data[0].map(p => p[0]).join('');
+                }
+                results.push({ orig: line, rom: rom.trim() || null });
+            } catch(e) {
+                results.push({ orig: line, rom: null });
+            }
+        }
+
+        _renderTranscriptionInline(results);
+        btn.dataset.active = '1';
+        btn.textContent = '✕ ' + (currentLanguage === 'uk' ? 'Прибрати' : 'Hide');
+
+    } catch(e) {
+        showToast(currentLanguage === 'uk' ? '❌ Не вдалося отримати транскрипцію' : '❌ Could not get transcription');
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+function _renderTranscriptionInline(results) {
+    const content = document.getElementById('lyricsContent');
+    if (!content) return;
+    // Зберігаємо оригінальний innerHTML для відновлення
+    content.dataset.origHtml = content.innerHTML;
+
+    const html = results.map(({ orig, rom }) => {
+        if (!orig && !rom) return `<div class="lrc-transcription-empty"></div>`;
+        if (!rom) {
+            // Рядок без ієрогліфів — просто текст
+            return `<div class="transcription-row"><div class="transcription-orig">${escapeHtml(orig)}</div></div>`;
+        }
+        return `
+            <div class="transcription-row">
+                <div class="transcription-rom">${escapeHtml(rom)}</div>
+                <div class="transcription-orig">${escapeHtml(orig)}</div>
+            </div>`;
+    }).join('');
+
+    content.innerHTML = html;
+}
+
+function _hideTranscription() {
+    const content = document.getElementById('lyricsContent');
+    if (!content) return;
+    if (content.dataset.origHtml) {
+        content.innerHTML = content.dataset.origHtml;
+        delete content.dataset.origHtml;
+    }
+}
+
+function _showTranscriptionModal(r, o) {} // лишаємо для сумісності
+
+function _showTranscriptionModal(romanized, original) {
+    const existing = document.getElementById('transcriptionModal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.className = 'modal open';
+    modal.id = 'transcriptionModal';
+    modal.innerHTML = `
+        <div class="modal-content" style="text-align:left;max-width:520px;">
+            <span class="close" onclick="this.closest('.modal').remove();_checkNoModals();">&times;</span>
+            <h2 style="text-align:center;">🔤 ${currentLanguage === 'uk' ? 'Транскрипція' : 'Transcription'}</h2>
+            <p style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:-8px;">
+                ${currentLanguage === 'uk' ? 'Латинське читання оригіналу' : 'Latin reading of the original'}
+            </p>
+            <div style="
+                background:rgba(164,194,244,0.08);
+                border-radius:10px;padding:16px;
+                font-size:14px;line-height:2;
+                max-height:55vh;overflow-y:auto;
+                white-space:pre-wrap;
+                border:1px solid var(--border-light);
+                font-family:'Segoe UI',Roboto,sans-serif;
+                color:var(--text-primary);
+                -webkit-overflow-scrolling:touch;
+            ">${escapeHtml(romanized)}</div>
+            <button onclick="navigator.clipboard.writeText(${JSON.stringify(romanized)}).then(()=>showToast('📋 Скопійовано!'))" style="
+                width:100%;margin-top:14px;
+                background:var(--accent-color);color:#1a2a3a;
+                border:none;padding:11px;border-radius:10px;
+                font-weight:bold;font-size:14px;cursor:pointer;
+            ">📋 ${currentLanguage === 'uk' ? 'Скопіювати' : 'Copy'}</button>
+        </div>
+    `;
+    modal.onclick = e => { if (e.target === modal) { modal.remove(); _checkNoModals(); } };
+    document.body.appendChild(modal);
+    _lockScroll();
 }
 
 function showOriginalButton() {
@@ -1000,7 +1155,30 @@ function showLyrics(song) {
     resetTranslateUI();
     const origBtn = document.getElementById('showOriginalBtn');
     if (origBtn) origBtn.style.display = 'none';
+    // Додаємо кнопку транскрипції якщо є ієрогліфи
+    _updateTranscriptionBtn(song);
     if (lrcSyncInterval) { clearInterval(lrcSyncInterval); lrcSyncInterval = null; }
+}
+
+function _updateTranscriptionBtn(song) {
+    const controls = document.querySelector('.translate-controls');
+    if (!controls) return;
+    let btn = document.getElementById('transcriptionBtn');
+    const lyrics = song ? (song.lyrics || '') : '';
+    const hasKanji = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\u4e00-\u9fff\uac00-\ud7af]/.test(lyrics);
+    if (hasKanji) {
+        if (!btn) {
+            btn = document.createElement('button');
+            btn.id = 'transcriptionBtn';
+            btn.className = 'transcription-btn';
+            btn.onclick = showTranscription;
+            controls.appendChild(btn);
+        }
+        btn.textContent = '🔤 ' + (currentLanguage === 'uk' ? 'Транскрипція' : 'Transcription');
+        btn.style.display = 'inline-flex';
+    } else {
+        if (btn) btn.style.display = 'none';
+    }
 }
 
 // ==================== ІКОНКА PLAY/PAUSE ====================
@@ -1346,14 +1524,41 @@ function downloadSong(filename) {
 function searchSongs() {
     const input = document.getElementById('searchInput');
     const results = document.getElementById('searchResults');
-    const q = input.value.trim().toLowerCase();
+    const raw = input.value.trim();
+    const q = raw.toLowerCase();
     if (!q) { results.innerHTML = ''; return; }
-    const found = songsDatabase.filter(s =>
-        s.name.toLowerCase().includes(q) ||
-        s.artist.toLowerCase().includes(q) ||
-        (s.lyrics && s.lyrics.toLowerCase().includes(q))
-    );
+
+    // Секретна команда #ALL# — показує всі пісні
+    const isAll = raw.toUpperCase() === '#ALL#';
+    const found = isAll
+        ? [...songsDatabase]
+        : songsDatabase.filter(s =>
+            s.name.toLowerCase().includes(q) ||
+            s.artist.toLowerCase().includes(q) ||
+            (s.lyrics && s.lyrics.toLowerCase().includes(q))
+          );
+
     if (!found.length) { results.innerHTML = `<p class="no-results">${t('noResults')}</p>`; return; }
+
+    if (isAll) {
+        results.innerHTML = `<p style="text-align:center;font-size:13px;color:var(--text-muted);margin:0 0 12px;">🎵 ${currentLanguage === 'uk' ? 'Всі пісні' : 'All songs'} — ${found.length}</p>` +
+        found.map(song => `
+        <div class="result-item">
+            <img src="${escapeHtml(song.image)}" alt="${escapeHtml(song.name)}" class="song-image" onerror="this.src='./fotomusic/no-photo.jpg'">
+            <div class="result-info">
+                <h3>${escapeHtml(song.name)}</h3>
+                <p>${escapeHtml(song.artist)}</p>
+            </div>
+            <div class="result-buttons">
+                <button class="play-btn" onclick="playSong('${escapeHtml(song.file)}', false)">▶${t('playBtn')}</button>
+                <button class="download-btn" onclick="downloadSong('${escapeHtml(song.file)}')">⬇${t('downloadBtn')}</button>
+                <button class="like-btn ${isFavorite(song.file) ? 'liked' : ''}" data-filename="${escapeHtml(song.file)}" onclick="toggleFavorite('${escapeHtml(song.file)}')">❤️</button>
+                <button class="share-btn" onclick="shareSong('${escapeHtml(song.file)}')">🔗</button>
+            </div>
+        </div>`).join('');
+        return;
+    }
+
     results.innerHTML = found.map(song => {
         let lyricsHint = '';
         if (song.lyrics && song.lyrics.toLowerCase().includes(q) &&
@@ -1600,6 +1805,173 @@ function loadSpeedPreference() {
     }
     if (label) label.textContent = saved + '×';
 }
+// ==================== ІНТЕРАКТИВНИЙ ТУТОРІАЛ ====================
+const TOUR_STEPS = [
+    { selector: '.top-buttons',        uk: '⚙️ Зверху — кнопки налаштувань, преміум і підтримки автора', en: '⚙️ Top buttons: settings, premium and support' },
+    { selector: '.lang-buttons-row',   uk: '🌐 Перемикач мови — УК або EN', en: '🌐 Language switcher — UK or EN' },
+    { selector: '#playlistsContainer', uk: '📋 Плейлисти — твої улюблені, українські та іноземні пісні. Клікай щоб відкрити!', en: '📋 Playlists — favorites, Ukrainian and foreign songs. Click to open!' },
+    { selector: '.search-section',     uk: '🔍 Пошук — пиши назву або частину тексту пісні. Спробуй #ALL# щоб побачити всі пісні!', en: '🔍 Search by name or lyrics. Try #ALL# to see all songs!' },
+    { selector: '.player-section',     uk: '🎵 Плеєр — тут керуєш музикою. Є кнопки prev/next, loop і рандом', en: '🎵 Player — control music here. Has prev/next, loop and random' },
+    { selector: '#seekBar',            uk: '🌈 Прогрес-бар — тягни для перемотки. Колір змінюється від синього до помаранчевого!', en: '🌈 Progress bar — drag to seek. Color changes blue → orange!' },
+    { selector: '#randomModeBtn',      uk: '🔀 Рандомний режим — пісні не повторюватимуться, система сама слідкує за цим', en: '🔀 Random mode — no repeats, system tracks what was played' },
+    { selector: '#lyricsSection',      uk: '📝 Текст пісні — підтримує текст і LRC. Натисни на рядок LRC щоб перемотати до нього!', en: '📝 Lyrics — text and LRC supported. Click an LRC line to seek!' },
+    { selector: '.translate-controls', uk: '🌐 Переклад — обери мову і натисни кнопку. Переклад заміняє оригінал, є кнопка повернення', en: '🌐 Translation — pick language, translate replaces original' },
+    { selector: '.contact-footer',     uk: '📬 Контакти внизу — пиши нам щоб додати пісню або повідомити про помилку!', en: '📬 Footer contacts — write us to add songs or report bugs!' },
+];
+
+let _tourStep = 0;
+let _tourOverlay = null;
+
+function startTour() {
+    closeModal();
+    _tourStep = 0;
+    _tourOverlay = document.createElement('div');
+    _tourOverlay.id = 'tourOverlay';
+    _tourOverlay.style.cssText = 'position:fixed;inset:0;z-index:50000;pointer-events:none;';
+    _tourOverlay.innerHTML = `
+        <div id="tourHighlight" style="position:fixed;border-radius:12px;box-shadow:0 0 0 5px #a4c2f4,0 0 0 9999px rgba(0,0,0,0.7);transition:all 0.4s ease;pointer-events:none;"></div>
+        <div id="tourTooltip" style="
+            position:fixed;z-index:50001;opacity:0;
+            background:var(--modal-bg,#fff);color:var(--text-primary,#333);
+            border-radius:16px;padding:18px 20px;max-width:300px;width:300px;
+            box-shadow:0 8px 30px rgba(0,0,0,0.5);border:2px solid var(--accent-color);
+            font-family:'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.6;
+            transition:opacity 0.3s ease,top 0.4s ease,left 0.4s ease;pointer-events:auto;
+        ">
+            <div id="tourText" style="margin-bottom:12px;"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                <span id="tourCounter" style="font-size:12px;color:var(--text-muted);white-space:nowrap;"></span>
+                <div style="display:flex;gap:8px;">
+                    <button onclick="stopTour()" style="background:transparent;border:1px solid var(--border-light);color:var(--text-muted);padding:6px 10px;border-radius:8px;cursor:pointer;font-size:12px;pointer-events:auto;">✕</button>
+                    <button onclick="nextTourStep()" id="tourNextBtn" style="background:var(--accent-color);color:#1a2a3a;border:none;padding:8px 18px;border-radius:8px;cursor:pointer;font-weight:bold;font-size:13px;pointer-events:auto;">Далі →</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(_tourOverlay);
+    _showTourStep(0);
+}
+
+function _showTourStep(idx) {
+    if (idx >= TOUR_STEPS.length) { stopTour(); return; }
+    const step = TOUR_STEPS[idx];
+    const el = document.querySelector(step.selector);
+    const tooltip   = document.getElementById('tourTooltip');
+    const highlight = document.getElementById('tourHighlight');
+    const counter   = document.getElementById('tourCounter');
+    const nextBtn   = document.getElementById('tourNextBtn');
+    if (!tooltip || !highlight) return;
+
+    document.getElementById('tourText').textContent = currentLanguage === 'uk' ? step.uk : step.en;
+    counter.textContent = `${idx + 1} / ${TOUR_STEPS.length}`;
+    nextBtn.textContent = idx === TOUR_STEPS.length - 1
+        ? (currentLanguage === 'uk' ? '🎉 Готово!' : '🎉 Done!')
+        : (currentLanguage === 'uk' ? 'Далі →' : 'Next →');
+
+    // Ховаємо highlight поки скролимо
+    highlight.style.opacity = '0';
+    tooltip.style.opacity   = '0';
+
+    if (!el) return;
+
+    // Скролимо до елементу
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Чекаємо завершення скролу (500мс достатньо для smooth)
+    setTimeout(() => {
+        const r   = el.getBoundingClientRect();
+        const pad = 10;
+        const TW  = 300;
+        const TH  = 160;
+
+        // Highlight — точно по BoundingClientRect після скролу
+        highlight.style.cssText = `
+            position:fixed;border-radius:12px;pointer-events:none;opacity:1;
+            box-shadow:0 0 0 5px #a4c2f4,0 0 0 9999px rgba(0,0,0,0.72);
+            transition:opacity 0.3s ease;
+            left:${Math.round(r.left - pad)}px;
+            top:${Math.round(r.top  - pad)}px;
+            width:${Math.round(r.width  + pad * 2)}px;
+            height:${Math.round(r.height + pad * 2)}px;
+        `;
+
+        // Тултіп — під елементом або над, в залежності від місця
+        let tipTop  = r.bottom + 16;
+        let tipLeft = r.left;
+
+        // Якщо не влазить знизу — ставимо зверху
+        if (tipTop + TH > window.innerHeight - 10) tipTop = r.top - TH - 12;
+        // Якщо не влазить зверху — по центру екрану
+        if (tipTop < 10) tipTop = Math.max(10, (window.innerHeight - TH) / 2);
+        // Не виходимо за правий і лівий краї
+        if (tipLeft + TW > window.innerWidth - 10) tipLeft = window.innerWidth - TW - 10;
+        if (tipLeft < 10) tipLeft = 10;
+
+        tooltip.style.cssText += `opacity:1;left:${tipLeft}px;top:${tipTop}px;`;
+    }, 550);
+}
+
+function nextTourStep() {
+    _tourStep++;
+    _showTourStep(_tourStep);
+}
+
+function stopTour() {
+    if (_tourOverlay) { _tourOverlay.remove(); _tourOverlay = null; }
+}
+
+// ==================== ДОНАТ ====================
+function openDonate() {
+    closeSettings();
+    const modal = document.createElement('div');
+    modal.className = 'modal open';
+    modal.id = 'donate-modal';
+    modal.innerHTML = `
+        <div class="modal-content" style="text-align:center;">
+            <span class="close" onclick="this.closest('.modal').remove();_checkNoModals();">&times;</span>
+            <h2>💵 Донат</h2>
+            <p style="font-size:14px;color:var(--text-muted);margin:0 0 20px;">Дякуємо за підтримку! Це допомагає розвивати сайт 🙏</p>
+            <!-- ВСТАВТЕ СВОЇ РЕКВІЗИТИ НИЖЧЕ -->
+            <div style="
+                background:rgba(164,194,244,0.1);
+                border:2px dashed var(--accent-color);
+                border-radius:14px;padding:20px;margin-bottom:16px;
+                font-family:'Comfortaa',cursive;
+            ">
+                <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px;">💳 Карта (Monobank / PrivatBank)</div>
+                <div id="donateCardNumber" style="font-size:20px;font-weight:700;letter-spacing:3px;color:var(--text-primary);cursor:pointer;" onclick="copyDonateCard()" title="Натисни щоб скопіювати">
+                    #### #### #### ####
+                </div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">← вставте номер картки тут у java.js</div>
+            </div>
+            <button onclick="copyDonateCard()" style="
+                background:linear-gradient(135deg,#a4c2f4,#5d9cec);
+                color:#1a2a3a;border:none;padding:12px 28px;
+                border-radius:30px;font-weight:bold;font-size:14px;cursor:pointer;
+                font-family:'Comfortaa',cursive;
+            ">📋 Скопіювати номер</button>
+            <p style="font-size:11px;color:var(--text-muted);margin-top:14px;">
+                Будь-яка сума буде дуже приємна ❤️
+            </p>
+        </div>
+    `;
+    modal.onclick = e => { if (e.target === modal) { modal.remove(); _checkNoModals(); } };
+    document.body.appendChild(modal);
+    _lockScroll();
+}
+
+function copyDonateCard() {
+    // ВСТАВТЕ НОМЕР КАРТКИ ТУТ:
+    const cardNumber = '#### #### #### ####';
+    // ^^^^ ЗАМІНІТЬ НА СВІЙ НОМЕР КАРТКИ ^^^^
+    navigator.clipboard.writeText(cardNumber.replace(/\s/g, '')).then(() => {
+        showToast('📋 Номер картки скопійовано!');
+    }).catch(() => {
+        prompt('Скопіюй номер картки:', cardNumber);
+    });
+}
+
+// ==================== МОВА ====================
 function switchLanguage(lang) {
     window.location.href = lang === 'uk' ? './index.html' : './index_en.html';
 }

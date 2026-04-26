@@ -20,7 +20,9 @@
       "Тут було місто.mp3",
       "Скрябін - Мам.mp3",
       "Воїни світла.mp3",
-      "Касета.mp3"
+      "Касета.mp3",
+      "ДОТИКИ.mp3",
+      "Ridnym (Eurovision Version).mp3"
     ]
   },
   {
@@ -31,8 +33,18 @@
     "description_en": "Songs in other languages",
     "songs": [
       "The Unknowing.mp3",
-      "Tokyo.mp3",
       "Valasy.mp3",
+      "Billie Eilish - L'AMOUR DE MA VIE.mp3"
+    ]
+  },
+  {
+    "id": "jpkr",
+    "name": "🇯🇵 Японське / Китайське / Корейське",
+    "name_en": "🇯🇵 Japanese / Chinese / Korean",
+    "description": "Пісні азійськими мовами — з транскрипцією!",
+    "description_en": "Songs in Asian languages — with transcription!",
+    "songs": [
+      "Tokyo.mp3",
       "Execution Clap.mp3"
     ]
   },

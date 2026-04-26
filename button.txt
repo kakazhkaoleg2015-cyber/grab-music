@@ -1,0 +1,23 @@
+<button onclick="openDonate()" style="
+                width:100%;margin-top:14px;
+                background:linear-gradient(135deg,#27ae60,#1e8449);
+                color:#fff;border:none;padding:13px;border-radius:12px;
+                font-size:15px;font-weight:bold;cursor:pointer;
+                font-family:'Comfortaa',cursive;
+                box-shadow:0 4px 14px rgba(39,174,96,0.4);
+                transition:filter 0.2s;
+            " onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter=''">
+                💵 Підтримати донатом
+            </button>
+
+            <button onclick="openDonate()" style="
+                width:100%;margin-top:14px;
+                background:linear-gradient(135deg,#27ae60,#1e8449);
+                color:#fff;border:none;padding:13px;border-radius:12px;
+                font-size:15px;font-weight:bold;cursor:pointer;
+                font-family:'Comfortaa',cursive;
+                box-shadow:0 4px 14px rgba(39,174,96,0.4);
+                transition:filter 0.2s;
+            " onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter=''">
+                💵 Support with a donation
+            </button>
