@@ -1359,7 +1359,8 @@ function playSong(filename, fromQueue = false) {
 
     updateMediaSession(song);
 
-    audio.src = './music/' + encodeURIComponent(song.file);
+    audio.src = encodeURI('./music/' + song.file);
+    audio.load();
     audio.play().then(() => {
         // Обнуляємо відсоток поточної пісні
         onSongStarted(filename);
@@ -1683,7 +1684,7 @@ function registerServiceWorker() {
 
 function precacheMusicFiles() {
     if (!('serviceWorker' in navigator) || !songsDatabase.length) return;
-    const files = songsDatabase.map(s => './music/' + s.file);
+    const files = songsDatabase.map(s => encodeURI('./music/' + s.file));
     const send = () => {
         if (navigator.serviceWorker.controller) {
             navigator.serviceWorker.controller.postMessage({ type: 'PRECACHE_MUSIC', files });
