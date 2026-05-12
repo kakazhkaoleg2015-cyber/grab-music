@@ -71,7 +71,51 @@ const translations = {
 
 function t(key) { return translations[currentLanguage][key] || key; }
 
-// ==================== ФОНОВЕ ВІДТВОРЕННЯ ====================
+// Обробка життєвого циклу сторінки для фонового відтворення
+if ('serviceWorker' in navigator && 'mediaSession' in navigator) {
+    navigator.serviceWorker.register('./sw.js').then(registration => {
+        console.log('✅ Service Worker registered for background playback');
+    }).catch(error => {
+        console.log('❌ Service Worker registration failed:', error);
+    });
+}
+
+// Page Lifecycle API — обробка заморожування/розморожування
+document.addEventListener('freeze', () => {
+    console.log('📱 Page frozen');
+    const audio = document.getElementById('audioPlayer');
+    if (audio && !audio.paused) {
+        // Зберігаємо стан для відновлення
+        sessionStorage.setItem('page_frozen', 'true');
+        sessionStorage.setItem('frozen_time', audio.currentTime);
+        sessionStorage.setItem('frozen_src', audio.src);
+    }
+});
+
+document.addEventListener('resume', () => {
+    console.log('📱 Page resumed');
+    const wasFrozen = sessionStorage.getItem('page_frozen') === 'true';
+    if (wasFrozen) {
+        const audio = document.getElementById('audioPlayer');
+        const frozenTime = parseFloat(sessionStorage.getItem('frozen_time') || '0');
+        const frozenSrc = sessionStorage.getItem('frozen_src');
+
+        if (audio && frozenSrc && audio.src === frozenSrc) {
+            // Відновлюємо позицію
+            audio.currentTime = frozenTime;
+            // Переконуємося що контекст активний
+            if (audioContext && audioContext.state === 'suspended') {
+                audioContext.resume().catch(() => {});
+            }
+            if (!silentBufferSource) startSilentAudio();
+        }
+
+        // Очищаємо
+        sessionStorage.removeItem('page_frozen');
+        sessionStorage.removeItem('frozen_time');
+        sessionStorage.removeItem('frozen_src');
+    }
+});
 
 // 1. Wake Lock — не дає екрану засипати
 async function requestWakeLock() {
@@ -182,6 +226,23 @@ document.addEventListener('visibilitychange', async () => {
             if (!silentBufferSource) startSilentAudio();
             if (audioContext) audioContext.resume().catch(() => {});
         }
+    }
+});
+
+// Обробка для мобільних пристроїв — коли екран вимикається
+document.addEventListener('freeze', async () => {
+    const audio = document.getElementById('audioPlayer');
+    if (audio && !audio.paused && audioContext) {
+        try { await audioContext.resume(); } catch(e) {}
+        if (!silentBufferSource) startSilentAudio();
+    }
+});
+
+document.addEventListener('resume', async () => {
+    const audio = document.getElementById('audioPlayer');
+    if (audio && !audio.paused && audioContext) {
+        try { await audioContext.resume(); } catch(e) {}
+        if (!silentBufferSource) startSilentAudio();
     }
 });
 
@@ -1039,6 +1100,22 @@ function showLyrics(song) {
     if (origBtn) origBtn.style.display = 'none';
     // Додаємо кнопку транскрипції якщо є ієрогліфи
     if (lrcSyncInterval) { clearInterval(lrcSyncInterval); lrcSyncInterval = null; }
+
+    // Додаємо секцію розробника якщо увімкнено
+    if (isDevMode()) {
+        const oldDev = section.querySelector('#devToolsSection');
+        if (oldDev) oldDev.remove();
+        const devDiv = document.createElement('div');
+        devDiv.id = 'devToolsSection';
+        devDiv.className = 'dev-tools-section';
+        devDiv.innerHTML = `
+            <div class="dev-tools-buttons">
+                ${currentTranslateMode === 'lrc' ? `<button onclick="downloadLrc('${song.file}')" class="dev-btn">${currentLanguage === 'uk' ? '📥 Завантажити LRC' : '📥 Download LRC'}</button>` : ''}
+                ${currentTranslateMode === 'text' ? `<button onclick="copyLyrics()" class="dev-btn">${currentLanguage === 'uk' ? '📋 Копіювати' : '📋 Copy'}</button>` : ''}
+            </div>
+        `;
+        section.appendChild(devDiv);
+    }
 }
 
 
@@ -1842,6 +1919,12 @@ function isDevMode() {
 function toggleDevMode(checked) {
     localStorage.setItem(DEV_KEY, checked ? 'true' : 'false');
     _updateDevUI();
+    // Оновлюємо поточну пісню щоб показати/сховати кнопки розробника
+    const audio = document.getElementById('audioPlayer');
+    if (audio && audio.src) {
+        const song = songsDatabase.find(s => audio.src.includes(encodeURIComponent(s.file)) || audio.src.includes(s.file));
+        if (song) showLyrics(song);
+    }
 }
 
 function _updateDevUI() {
@@ -1890,27 +1973,30 @@ function copyLRC() {
     });
 }
 
-function downloadLRC() {
-    const lrc = _generateLrcText();
-    if (!lrc) {
-        showToast(currentLanguage === 'uk' ? '⚠️ Спочатку відкрий вкладку LRC' : '⚠️ Open LRC tab first');
+function downloadLrc(filename) {
+    const song = songsDatabase.find(s => s.file === filename);
+    if (!song || !song.lrc) {
+        showToast(currentLanguage === 'uk' ? '⚠️ LRC файл недоступний' : '⚠️ LRC file not available');
         return;
     }
-    // Генеруємо назву файлу з поточної пісні
-    const audio = document.getElementById('audioPlayer');
-    const song = songsDatabase.find(s => audio?.src?.includes(encodeURIComponent(s.file)) || audio?.src?.includes(s.file));
-    const filename = song ? `${song.name} - ${song.artist}.lrc` : 'lyrics.lrc';
-
-    const blob = new Blob([lrc], { type: 'text/plain;charset=utf-8' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
-    a.download = filename;
+    const a = document.createElement('a');
+    a.href = './' + song.lrc;
+    a.download = song.lrc.split('/').pop();
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
     showToast('⬇️ LRC завантажено!');
+}
+
+function copyLyrics() {
+    const content = document.getElementById('lyricsContent');
+    if (!content) return;
+    const text = content.textContent || content.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        showToast(currentLanguage === 'uk' ? '📋 Скопійовано!' : '📋 Copied!');
+    }).catch(() => {
+        showToast(currentLanguage === 'uk' ? '❌ Помилка копіювання' : '❌ Copy error');
+    });
 }
 
 function showLrcPreview() {
@@ -2131,7 +2217,11 @@ function setupAudioListeners() {
         updateMediaSessionState(audio);
         // Авто-перехід у плейлисті (якщо не рандомний режим — там є свій handler)
         if (!isRandomMode && currentQueue.length > 1) {
-            playNext();
+            // Додаємо невелику затримку щоб уникнути проблем з контекстом
+            setTimeout(() => playNext(), 100);
+        } else if (isRandomMode && playlistEndedHandler) {
+            // Для рандомного режиму також додаємо затримку
+            setTimeout(() => playlistEndedHandler(), 100);
         }
     };
 
