@@ -2146,6 +2146,9 @@ function setupAudioListeners() {
     const audio = document.getElementById('audioPlayer');
     if (!audio || audio.hasAttribute('data-listener')) return;
     audio.setAttribute('data-listener', 'true');
+    audio.playsInline = true;
+    audio.setAttribute('playsinline', '');
+    audio.setAttribute('webkit-playsinline', '');
     playPauseBtn      = document.getElementById('playPauseBtn');
     nextBtn           = document.getElementById('nextBtn');
     prevBtn           = document.getElementById('prevBtn');

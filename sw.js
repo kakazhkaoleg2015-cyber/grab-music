@@ -28,6 +28,13 @@ self.addEventListener('fetch', e => {
 
     // Музичні файли — кеш спочатку, потім мережа
     if (url.pathname.includes('/music/') || url.pathname.match(/\.(mp3|ogg|wav|flac|m4a|aac)$/i)) {
+        // Якщо браузер попросив діапазон байтів — не віддаємо кешовану повну відповідь,
+        // бо це може порушити відтворення аудіо. Пропускаємо такий запит напряму.
+        if (e.request.headers.get('range')) {
+            e.respondWith(fetch(e.request).catch(() => new Response('', { status: 503 })));
+            return;
+        }
+
         e.respondWith(
             caches.open(MUSIC_CACHE).then(cache =>
                 cache.match(e.request).then(cached => {
