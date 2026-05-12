@@ -129,7 +129,7 @@ function stopSilentAudio() {
 function startSilentOscillator() { startSilentAudio(); }
 function stopSilentOscillator()  { stopSilentAudio(); }
 
-// 3. Keep-alive: відновлення AudioContext + silent audio кожні 10 сек
+// 3. Keep-alive: відновлення AudioContext + silent audio кожні 5 сек (раніше за браузер)
 function startKeepAlive() {
     stopKeepAlive();
     keepAliveInterval = setInterval(async () => {
@@ -138,7 +138,7 @@ function startKeepAlive() {
             try { await audioContext.resume(); } catch(e) {}
         }
         if (!silentBufferSource) startSilentAudio();
-    }, 10000);
+    }, 5000);
 }
 
 function stopKeepAlive() {
@@ -154,7 +154,8 @@ function startAudioKeepAlive(audio) {
         if (audioContext && audioContext.state === 'suspended') {
             audioContext.resume().catch(() => {});
         }
-    }, 10000);
+        if (!silentBufferSource) startSilentAudio();
+    }, 5000);
 }
 
 function stopAudioKeepAlive() {
@@ -175,6 +176,12 @@ document.addEventListener('visibilitychange', async () => {
             requestWakeLock();
             if (!silentBufferSource) startSilentAudio();
         }
+    } else {
+        // Коли вкладка приховується — оновлюємо силент аудіо щоб утримати контекст
+        if (audio && !audio.paused) {
+            if (!silentBufferSource) startSilentAudio();
+            if (audioContext) audioContext.resume().catch(() => {});
+        }
     }
 });
 
@@ -191,6 +198,24 @@ function setupAudioUnlock() {
     document.addEventListener('touchend',   unlock, { passive: true });
     document.addEventListener('click',      unlock);
 }
+
+// Поновлення при втраті фокусу вікна
+window.addEventListener('blur', async () => {
+    const audio = document.getElementById('audioPlayer');
+    if (audio && !audio.paused && audioContext) {
+        try { await audioContext.resume(); } catch(e) {}
+        if (!silentBufferSource) startSilentAudio();
+    }
+});
+
+// Поновлення при повернутті фокусу
+window.addEventListener('focus', async () => {
+    const audio = document.getElementById('audioPlayer');
+    if (audio && !audio.paused && audioContext) {
+        try { await audioContext.resume(); } catch(e) {}
+        if (!silentBufferSource) startSilentAudio();
+    }
+});
 
 // ==================== ЕКВАЛАЙЗЕР ====================
 function initEqualizer() {
@@ -954,149 +979,6 @@ async function translateLyrics() {
     }
 }
 
-// ==================== ТРАНСКРИПЦІЯ ====================
-// Конвертує ієрогліфи (японська/китайська/корейська) в латинське читання
-async function showTranscription() {
-    const content = document.getElementById('lyricsContent');
-    const btn = document.getElementById('transcriptionBtn');
-    if (!content || !btn) return;
-
-    const srcText = isShowingTranslated ? originalTextContent : content.textContent.trim();
-    if (!srcText || srcText === t('noLyrics')) return;
-
-    const hasKanji = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\u4e00-\u9fff\uac00-\ud7af]/.test(srcText);
-    if (!hasKanji) {
-        showToast(currentLanguage === 'uk' ? '⚠️ Транскрипція тільки для японської/китайської/корейської' : '⚠️ Transcription only for Japanese/Chinese/Korean');
-        return;
-    }
-
-    // Якщо вже показана — прибираємо
-    if (btn.dataset.active === '1') {
-        _hideTranscription();
-        btn.dataset.active = '0';
-        btn.textContent = '🔤 ' + (currentLanguage === 'uk' ? 'Транскрипція' : 'Transcription');
-        return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = '⏳...';
-
-    try {
-        const lines = srcText.split('\n');
-        const results = [];
-
-        // Перекладаємо кожен рядок окремо щоб отримати точну транслітерацію
-        for (const line of lines) {
-            if (!line.trim()) { results.push({ orig: line, rom: '' }); continue; }
-
-            // Перевіряємо чи є ієрогліфи в цьому рядку
-            const lineHasKanji = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\u4e00-\u9fff\uac00-\ud7af]/.test(line);
-            if (!lineHasKanji) { results.push({ orig: line, rom: null }); continue; }
-
-            try {
-                const res = await fetchWithTimeout(
-                    `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&dt=rm&q=${encodeURIComponent(line)}`,
-                    6000
-                );
-                if (!res.ok) throw new Error();
-                const data = await res.json();
-
-                // data[2] — транслітерація
-                let rom = '';
-                if (Array.isArray(data[2])) {
-                    rom = data[2].map(c => Array.isArray(c) ? (c[3] || c[0] || '') : '').filter(Boolean).join('');
-                }
-                // Fallback на data[0] (переклад)
-                if (!rom && Array.isArray(data[0])) {
-                    rom = data[0].map(p => p[0]).join('');
-                }
-                results.push({ orig: line, rom: rom.trim() || null });
-            } catch(e) {
-                results.push({ orig: line, rom: null });
-            }
-        }
-
-        _renderTranscriptionInline(results);
-        btn.dataset.active = '1';
-        btn.textContent = '✕ ' + (currentLanguage === 'uk' ? 'Прибрати' : 'Hide');
-
-    } catch(e) {
-        showToast(currentLanguage === 'uk' ? '❌ Не вдалося отримати транскрипцію' : '❌ Could not get transcription');
-    } finally {
-        btn.disabled = false;
-    }
-}
-
-function _renderTranscriptionInline(results) {
-    const content = document.getElementById('lyricsContent');
-    if (!content) return;
-    // Зберігаємо оригінальний innerHTML для відновлення
-    content.dataset.origHtml = content.innerHTML;
-
-    const html = results.map(({ orig, rom }) => {
-        if (!orig && !rom) return `<div class="lrc-transcription-empty"></div>`;
-        if (!rom) {
-            // Рядок без ієрогліфів — просто текст
-            return `<div class="transcription-row"><div class="transcription-orig">${escapeHtml(orig)}</div></div>`;
-        }
-        return `
-            <div class="transcription-row">
-                <div class="transcription-rom">${escapeHtml(rom)}</div>
-                <div class="transcription-orig">${escapeHtml(orig)}</div>
-            </div>`;
-    }).join('');
-
-    content.innerHTML = html;
-}
-
-function _hideTranscription() {
-    const content = document.getElementById('lyricsContent');
-    if (!content) return;
-    if (content.dataset.origHtml) {
-        content.innerHTML = content.dataset.origHtml;
-        delete content.dataset.origHtml;
-    }
-}
-
-function _showTranscriptionModal(r, o) {} // лишаємо для сумісності
-
-function _showTranscriptionModal(romanized, original) {
-    const existing = document.getElementById('transcriptionModal');
-    if (existing) existing.remove();
-
-    const modal = document.createElement('div');
-    modal.className = 'modal open';
-    modal.id = 'transcriptionModal';
-    modal.innerHTML = `
-        <div class="modal-content" style="text-align:left;max-width:520px;">
-            <span class="close" onclick="this.closest('.modal').remove();_checkNoModals();">&times;</span>
-            <h2 style="text-align:center;">🔤 ${currentLanguage === 'uk' ? 'Транскрипція' : 'Transcription'}</h2>
-            <p style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:-8px;">
-                ${currentLanguage === 'uk' ? 'Латинське читання оригіналу' : 'Latin reading of the original'}
-            </p>
-            <div style="
-                background:rgba(164,194,244,0.08);
-                border-radius:10px;padding:16px;
-                font-size:14px;line-height:2;
-                max-height:55vh;overflow-y:auto;
-                white-space:pre-wrap;
-                border:1px solid var(--border-light);
-                font-family:'Segoe UI',Roboto,sans-serif;
-                color:var(--text-primary);
-                -webkit-overflow-scrolling:touch;
-            ">${escapeHtml(romanized)}</div>
-            <button onclick="navigator.clipboard.writeText(${JSON.stringify(romanized)}).then(()=>showToast('📋 Скопійовано!'))" style="
-                width:100%;margin-top:14px;
-                background:var(--accent-color);color:#1a2a3a;
-                border:none;padding:11px;border-radius:10px;
-                font-weight:bold;font-size:14px;cursor:pointer;
-            ">📋 ${currentLanguage === 'uk' ? 'Скопіювати' : 'Copy'}</button>
-        </div>
-    `;
-    modal.onclick = e => { if (e.target === modal) { modal.remove(); _checkNoModals(); } };
-    document.body.appendChild(modal);
-    _lockScroll();
-}
 
 function showOriginalButton() {
     let origBtn = document.getElementById('showOriginalBtn');
@@ -1156,30 +1038,9 @@ function showLyrics(song) {
     const origBtn = document.getElementById('showOriginalBtn');
     if (origBtn) origBtn.style.display = 'none';
     // Додаємо кнопку транскрипції якщо є ієрогліфи
-    _updateTranscriptionBtn(song);
     if (lrcSyncInterval) { clearInterval(lrcSyncInterval); lrcSyncInterval = null; }
 }
 
-function _updateTranscriptionBtn(song) {
-    const controls = document.querySelector('.translate-controls');
-    if (!controls) return;
-    let btn = document.getElementById('transcriptionBtn');
-    const lyrics = song ? (song.lyrics || '') : '';
-    const hasKanji = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\u4e00-\u9fff\uac00-\ud7af]/.test(lyrics);
-    if (hasKanji) {
-        if (!btn) {
-            btn = document.createElement('button');
-            btn.id = 'transcriptionBtn';
-            btn.className = 'transcription-btn';
-            btn.onclick = showTranscription;
-            controls.appendChild(btn);
-        }
-        btn.textContent = '🔤 ' + (currentLanguage === 'uk' ? 'Транскрипція' : 'Transcription');
-        btn.style.display = 'inline-flex';
-    } else {
-        if (btn) btn.style.display = 'none';
-    }
-}
 
 // ==================== ІКОНКА PLAY/PAUSE ====================
 function setPlayPauseIcon(isPlaying) {
@@ -1409,8 +1270,7 @@ function playSong(filename, fromQueue = false) {
     if (!song) return;
 
     if (lrcSyncInterval) { clearInterval(lrcSyncInterval); lrcSyncInterval = null; }
-
-    audio.src = './music/' + filename;
+    _resetABLoop();
     lastSrc = audio.src;
     lastTime = 0;
     nowDiv.innerHTML = `<img src="${escapeHtml(song.image)}" alt="${escapeHtml(song.name)}" class="player-image" onerror="this.src='./fotomusic/no-photo.jpg'"> ${t('nowPlayingLabel')} <strong>${escapeHtml(song.name)}</strong> - ${escapeHtml(song.artist)} ${threeDotHtml(song.file)}`;
@@ -1422,6 +1282,7 @@ function playSong(filename, fromQueue = false) {
 
     updateMediaSession(song);
 
+    audio.src = './music/' + encodeURIComponent(song.file);
     audio.play().then(() => {
         // Обнуляємо відсоток поточної пісні
         onSongStarted(filename);
@@ -1971,7 +1832,137 @@ function copyDonateCard() {
     });
 }
 
-// ==================== МОВА ====================
+// ==================== РЕЖИМ РОЗРОБНИКА ====================
+const DEV_KEY = 'grab_music_devmode';
+
+function isDevMode() {
+    return localStorage.getItem(DEV_KEY) === 'true';
+}
+
+function toggleDevMode(checked) {
+    localStorage.setItem(DEV_KEY, checked ? 'true' : 'false');
+    _updateDevUI();
+}
+
+function _updateDevUI() {
+    const dev = isDevMode();
+    // Показуємо/ховаємо секцію розробника в лірицях
+    const devSection = document.getElementById('devToolsSection');
+    if (devSection) devSection.style.display = dev ? 'block' : 'none';
+    // Оновлюємо чекбокс
+    const cb = document.getElementById('devModeToggle');
+    if (cb) cb.checked = dev;
+}
+
+// Генеруємо LRC з поточних рядків
+function _generateLrcText() {
+    if (!originalLrcLines.length) return null;
+    return originalLrcLines.map(l => {
+        const totalSec = l.time;
+        const min = Math.floor(totalSec / 60);
+        const sec = Math.floor(totalSec % 60);
+        const ms  = Math.round((totalSec % 1) * 100);
+        const mm  = String(min).padStart(2, '0');
+        const ss  = String(sec).padStart(2, '0');
+        const cc  = String(ms).padStart(2, '0');
+        return `[${mm}:${ss}.${cc}]${l.text}`;
+    }).join('\n');
+}
+
+function copyLRC() {
+    const lrc = _generateLrcText();
+    if (!lrc) {
+        showToast(currentLanguage === 'uk' ? '⚠️ Спочатку відкрий вкладку LRC' : '⚠️ Open LRC tab first');
+        return;
+    }
+    navigator.clipboard.writeText(lrc).then(() => {
+        showToast('📋 LRC скопійовано!');
+    }).catch(() => {
+        // Fallback
+        const ta = document.createElement('textarea');
+        ta.value = lrc;
+        ta.style.cssText = 'position:fixed;top:-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+        showToast('📋 LRC скопійовано!');
+    });
+}
+
+function downloadLRC() {
+    const lrc = _generateLrcText();
+    if (!lrc) {
+        showToast(currentLanguage === 'uk' ? '⚠️ Спочатку відкрий вкладку LRC' : '⚠️ Open LRC tab first');
+        return;
+    }
+    // Генеруємо назву файлу з поточної пісні
+    const audio = document.getElementById('audioPlayer');
+    const song = songsDatabase.find(s => audio?.src?.includes(encodeURIComponent(s.file)) || audio?.src?.includes(s.file));
+    const filename = song ? `${song.name} - ${song.artist}.lrc` : 'lyrics.lrc';
+
+    const blob = new Blob([lrc], { type: 'text/plain;charset=utf-8' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('⬇️ LRC завантажено!');
+}
+
+function showLrcPreview() {
+    const lrc = _generateLrcText();
+    if (!lrc) {
+        showToast(currentLanguage === 'uk' ? '⚠️ Спочатку відкрий вкладку LRC' : '⚠️ Open LRC tab first');
+        return;
+    }
+
+    const existing = document.getElementById('lrcPreviewModal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'lrcPreviewModal';
+    modal.className = 'modal open';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width:560px;text-align:left;">
+            <span class="close" onclick="this.closest('.modal').remove();_checkNoModals();">&times;</span>
+            <h2 style="text-align:center;">📄 LRC Preview</h2>
+            <pre style="
+                background:rgba(0,0,0,0.05);
+                border-radius:10px;
+                padding:14px;
+                font-size:12px;
+                line-height:1.8;
+                max-height:55vh;
+                overflow-y:auto;
+                white-space:pre-wrap;
+                word-break:break-all;
+                font-family:'Courier New',monospace;
+                color:var(--text-primary);
+                border:1px solid var(--border-light);
+                -webkit-overflow-scrolling:touch;
+            ">${escapeHtml(lrc)}</pre>
+            <div style="display:flex;gap:10px;margin-top:14px;">
+                <button onclick="copyLRC()" style="
+                    flex:1;background:var(--accent-color);color:#1a2a3a;
+                    border:none;padding:11px;border-radius:10px;
+                    font-weight:bold;font-size:14px;cursor:pointer;
+                ">📋 Копіювати</button>
+                <button onclick="downloadLRC()" style="
+                    flex:1;background:linear-gradient(135deg,#3b9fef,#1260b5);color:#fff;
+                    border:none;padding:11px;border-radius:10px;
+                    font-weight:bold;font-size:14px;cursor:pointer;
+                ">⬇️ Завантажити</button>
+            </div>
+        </div>
+    `;
+    modal.onclick = e => { if (e.target === modal) { modal.remove(); _checkNoModals(); } };
+    document.body.appendChild(modal);
+    _lockScroll();
+}
 function switchLanguage(lang) {
     window.location.href = lang === 'uk' ? './index.html' : './index_en.html';
 }
@@ -1981,7 +1972,7 @@ function openModal()         { _lockScroll(); document.getElementById('tutorial-
 function closeModal()        { document.getElementById('tutorial-modal').classList.remove('open'); _checkNoModals(); }
 function openPremiumModal()  { _lockScroll(); document.getElementById('premium-modal').classList.add('open'); }
 function closePremiumModal() { document.getElementById('premium-modal').classList.remove('open'); _checkNoModals(); }
-function openSettings()      { _lockScroll(); document.getElementById('settings-modal').classList.add('open'); loadShakePreference(); loadSpeedPreference(); }
+function openSettings()      { _lockScroll(); document.getElementById('settings-modal').classList.add('open'); loadShakePreference(); loadSpeedPreference(); _updateDevUI(); }
 function closeSettings()     { document.getElementById('settings-modal').classList.remove('open'); _checkNoModals(); }
 function _checkNoModals()    { if (!document.querySelector('.modal.open')) _unlockScroll(); }
 
@@ -2003,7 +1994,68 @@ window.onclick = function(e) {
     if (e.target === document.getElementById('news-modal'))      closeNews();
 };
 
-// ==================== КАСТОМНИЙ ПЛЕЄР ====================
+// ==================== A→B LOOP ====================
+let abLoopA = null; // секунди
+let abLoopB = null;
+let abLoopActive = false;
+
+function toggleABLoop() {
+    const audio = document.getElementById('audioPlayer');
+    if (!audio || isNaN(audio.duration) || audio.duration <= 0) return;
+
+    if (!abLoopActive && abLoopA === null) {
+        // Крок 1: Встановлюємо точку A
+        abLoopA = audio.currentTime;
+        abLoopB = null;
+        _updateABDisplay();
+        showToast(`🅰 A = ${formatTime(abLoopA)}`);
+    } else if (!abLoopActive && abLoopA !== null && abLoopB === null) {
+        // Крок 2: Встановлюємо точку B — але B має бути після A
+        const b = audio.currentTime;
+        if (b <= abLoopA) {
+            showToast(currentLanguage === 'uk' ? '⚠️ B має бути після A' : '⚠️ B must be after A');
+            return;
+        }
+        abLoopB = b;
+        abLoopActive = true;
+        _updateABDisplay();
+        showToast(`🅱 B = ${formatTime(abLoopB)} — Зациклено!`);
+    } else {
+        // Скидаємо
+        abLoopA = null;
+        abLoopB = null;
+        abLoopActive = false;
+        _updateABDisplay();
+        showToast(currentLanguage === 'uk' ? '↩ A→B скинуто' : '↩ A→B cleared');
+    }
+}
+
+function _updateABDisplay() {
+    const btn = document.getElementById('abLoopBtn');
+    if (!btn) return;
+    if (abLoopActive) {
+        btn.classList.add('active');
+        btn.title = `A(${formatTime(abLoopA)}) → B(${formatTime(abLoopB)}) — натисни щоб скинути`;
+    } else if (abLoopA !== null) {
+        btn.classList.remove('active');
+        btn.style.opacity = '0.7';
+        btn.title = `A=${formatTime(abLoopA)} встановлено — натисни для B`;
+    } else {
+        btn.classList.remove('active');
+        btn.style.opacity = '';
+        btn.title = 'A→B Loop';
+    }
+}
+
+// Скидаємо A→B при зміні пісні
+function _resetABLoop() {
+    abLoopA = null;
+    abLoopB = null;
+    abLoopActive = false;
+    _updateABDisplay();
+}
+
+// ==================== АУДІО СЛУХАЧІ ====================
 function setupAudioListeners() {
     const audio = document.getElementById('audioPlayer');
     if (!audio || audio.hasAttribute('data-listener')) return;
@@ -2043,6 +2095,10 @@ function setupAudioListeners() {
         lastTime = audio.currentTime;
         updateMediaSessionState(audio);
         updatePlayBtn();
+        // A→B loop перевірка
+        if (abLoopActive && abLoopB !== null && audio.currentTime >= abLoopB) {
+            audio.currentTime = abLoopA;
+        }
     };
 
     audio.onplay = () => {
@@ -2298,6 +2354,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     loadEqPreference();
     loadShakePreference();
     loadSpeedPreference();
+    _updateDevUI();
     loadModePreferences();
     updateNavButtons();
     setupAudioUnlock();

@@ -38,17 +38,6 @@
     ]
   },
   {
-    "id": "jpkr",
-    "name": "🇯🇵 Японське / Китайське / Корейське",
-    "name_en": "🇯🇵 Japanese / Chinese / Korean",
-    "description": "Пісні азійськими мовами — з транскрипцією!",
-    "description_en": "Songs in Asian languages — with transcription!",
-    "songs": [
-      "Tokyo.mp3",
-      "Execution Clap.mp3"
-    ]
-  },
-  {
     "id": "melancholic",
     "name": "Меланхолія",
     "name_en": "Melancholic",

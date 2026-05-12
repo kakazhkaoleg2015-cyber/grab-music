@@ -63,6 +63,7 @@
                     <button id="nextBtn" class="control-btn" title="Далі">⏭</button>
                     <button id="loopBtn" class="control-btn loop-control-btn" title="Повтор">🔁</button>
                     <button id="randomModeBtn" class="control-btn random-mode-btn" onclick="toggleRandomMode()" title="Рандомний режим" style="display:none;">🔀</button>
+                    <button id="abLoopBtn" class="control-btn ab-loop-btn" onclick="toggleABLoop()" title="A→B Loop">A→B</button>
                 </div>
             </div>
             <div id="nowPlaying" class="now-playing">▶ Програється:</div>
@@ -172,6 +173,22 @@
                 <h6>Дякуємо всім, хто надавав нам музику, LRC та тексти. Ваша підтримка допомагає покращувати сайт.<br>
                 Джерела: Тексти — Genius; Музика — YouTube Music; LRC — Lyricsify, LRCLIB.</h6>
             </div>
+            <button onclick="openDonate()" style="
+                width:100%;margin-top:14px;
+                background:linear-gradient(135deg,#27ae60,#1e8449);
+                color:#fff;border:none;padding:13px;border-radius:12px;
+                font-size:15px;font-weight:bold;cursor:pointer;
+                font-family:'Comfortaa',cursive;
+                box-shadow:0 4px 14px rgba(39,174,96,0.4);
+                transition:filter 0.2s;
+            " onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter=''">
+                💵 Підтримати донатом
+            </button>
+            <hr style="margin:18px 0;border:none;border-top:1px solid var(--border-light);">
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:4px 0;">
+                <input type="checkbox" id="devModeToggle" onchange="toggleDevMode(this.checked)">
+                <span style="font-size:13px;">🛠️ Режим розробника</span>
+            </label>
         </div>
     </div>
 
