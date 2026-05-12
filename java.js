@@ -282,7 +282,7 @@ window.addEventListener('focus', async () => {
 function initEqualizer() {
     const audio = document.getElementById('audioPlayer');
     if (!audio) return;
-    if (localStorage.getItem('grab_music_eq') === 'false') return;
+    if (localStorage.getItem('grab_music_eq') !== 'true') return;
     if (isEqInitialized && audioContext && audioContext.state !== 'closed') {
         if (audioContext.state === 'suspended') audioContext.resume();
         return;
@@ -327,6 +327,33 @@ function initEqualizer() {
     }
 }
 
+function destroyEqualizer() {
+    stopSilentAudio();
+    stopKeepAlive();
+    if (sourceNode) {
+        try { sourceNode.disconnect(); } catch(e) {}
+        sourceNode = null;
+    }
+    if (bassFilter) {
+        try { bassFilter.disconnect(); } catch(e) {}
+        bassFilter = null;
+    }
+    if (midFilter) {
+        try { midFilter.disconnect(); } catch(e) {}
+        midFilter = null;
+    }
+    if (trebleFilter) {
+        try { trebleFilter.disconnect(); } catch(e) {}
+        trebleFilter = null;
+    }
+    if (audioContext) {
+        try { audioContext.close(); } catch(e) {}
+        audioContext = null;
+    }
+    analyser = null;
+    isEqInitialized = false;
+}
+
 function updateEqualizerLabels() {
     const eqDiv = document.getElementById('eqControls');
     if (!eqDiv) return;
@@ -355,7 +382,7 @@ function updateEqualizerLabels() {
 }
 
 function loadEqPreference() {
-    const enabled = localStorage.getItem('grab_music_eq') !== 'false';
+    const enabled = localStorage.getItem('grab_music_eq') === 'true';
     const eqDiv = document.getElementById('eqControls');
     if (eqDiv) eqDiv.style.display = enabled ? 'flex' : 'none';
     const eqCheck = document.getElementById('eqToggleCheck');
@@ -363,7 +390,7 @@ function loadEqPreference() {
 }
 
 function toggleEq(checked) {
-    const enabled = checked !== undefined ? checked : !(localStorage.getItem('grab_music_eq') !== 'false');
+    const enabled = checked !== undefined ? checked : !(localStorage.getItem('grab_music_eq') === 'true');
     localStorage.setItem('grab_music_eq', enabled ? 'true' : 'false');
     const eqDiv = document.getElementById('eqControls');
     if (eqDiv) eqDiv.style.display = enabled ? 'flex' : 'none';
@@ -378,9 +405,9 @@ function toggleEq(checked) {
             if (trebleFilter && ts) trebleFilter.gain.value = ts.value;
         }
     } else {
-        if (bassFilter)   bassFilter.gain.value   = 0;
-        if (midFilter)    midFilter.gain.value    = 0;
-        if (trebleFilter) trebleFilter.gain.value = 0;
+        if (isEqInitialized) {
+            destroyEqualizer();
+        }
     }
 }
 
@@ -1359,7 +1386,9 @@ function playSong(filename, fromQueue = false) {
 
     updateMediaSession(song);
 
-    audio.src = encodeURI('./music/' + song.file);
+    const trackUrl = new URL('./music/' + song.file, location.href).href;
+    audio.pause();
+    audio.src = trackUrl;
     audio.load();
     audio.play().then(() => {
         // Обнуляємо відсоток поточної пісні
@@ -1368,7 +1397,7 @@ function playSong(filename, fromQueue = false) {
         const savedSpeed = parseFloat(localStorage.getItem('grab_music_speed') || '1');
         audio.playbackRate = savedSpeed;
         if (currentLrcLines.length && !lrcSyncInterval) lrcSyncInterval = setInterval(syncLRC, 100);
-        if (localStorage.getItem('grab_music_eq') !== 'false' && !isEqInitialized) {
+        if (localStorage.getItem('grab_music_eq') === 'true' && !isEqInitialized) {
             initEqualizer();
         } else if (audioContext && audioContext.state === 'suspended') {
             audioContext.resume();
@@ -1452,7 +1481,7 @@ function toggleLoop() {
 // ==================== ЗАВАНТАЖЕННЯ ФАЙЛУ ====================
 function downloadSong(filename) {
     const a = document.createElement('a');
-    a.href = './music/' + filename;
+    a.href = new URL('./music/' + filename, location.href).href;
     a.download = filename;
     document.body.appendChild(a);
     a.click();
@@ -1684,7 +1713,7 @@ function registerServiceWorker() {
 
 function precacheMusicFiles() {
     if (!('serviceWorker' in navigator) || !songsDatabase.length) return;
-    const files = songsDatabase.map(s => encodeURI('./music/' + s.file));
+    const files = songsDatabase.map(s => new URL('./music/' + s.file, location.href).href);
     const send = () => {
         if (navigator.serviceWorker.controller) {
             navigator.serviceWorker.controller.postMessage({ type: 'PRECACHE_MUSIC', files });

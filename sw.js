@@ -28,25 +28,50 @@ self.addEventListener('fetch', e => {
 
     // Музичні файли — кеш спочатку, потім мережа
     if (url.pathname.includes('/music/') || url.pathname.match(/\.(mp3|ogg|wav|flac|m4a|aac)$/i)) {
-        // Якщо браузер попросив діапазон байтів — не віддаємо кешовану повну відповідь,
-        // бо це може порушити відтворення аудіо. Пропускаємо такий запит напряму.
-        if (e.request.headers.get('range')) {
-            e.respondWith(fetch(e.request).catch(() => new Response('', { status: 503 })));
-            return;
-        }
+        const range = e.request.headers.get('range');
+
+        const parseRange = (rangeHeader, size) => {
+            const match = /^bytes=(\d*)-(\d*)$/.exec(rangeHeader);
+            if (!match) return null;
+            let start = match[1] === '' ? size - parseInt(match[2], 10) : parseInt(match[1], 10);
+            let end = match[2] === '' ? size - 1 : parseInt(match[2], 10);
+            if (Number.isNaN(start) || Number.isNaN(end) || start < 0 || end < start || start >= size) return null;
+            return { start, end: Math.min(end, size - 1) };
+        };
+
+        const createPartialResponse = async (response, rangeHeader) => {
+            const buffer = await response.arrayBuffer();
+            const segment = parseRange(rangeHeader, buffer.byteLength);
+            if (!segment) return response;
+            const sliced = buffer.slice(segment.start, segment.end + 1);
+            return new Response(sliced, {
+                status: 206,
+                statusText: 'Partial Content',
+                headers: {
+                    'Content-Type': response.headers.get('Content-Type') || 'application/octet-stream',
+                    'Content-Range': `bytes ${segment.start}-${segment.end}/${buffer.byteLength}`,
+                    'Accept-Ranges': 'bytes',
+                    'Content-Length': String(sliced.byteLength)
+                }
+            });
+        };
 
         e.respondWith(
             caches.open(MUSIC_CACHE).then(cache =>
                 cache.match(e.request).then(cached => {
+                    if (range && cached) {
+                        return createPartialResponse(cached, range);
+                    }
                     if (cached) return cached;
-                    // Не в кеші — завантажуємо і кешуємо
                     return fetch(e.request).then(response => {
                         if (response.ok && response.status === 200) {
                             cache.put(e.request, response.clone());
                         }
                         return response;
                     }).catch(() => {
-                        // Мережі немає — повертаємо з кешу якщо є
+                        if (range && cached) {
+                            return createPartialResponse(cached, range);
+                        }
                         return cached || new Response('', { status: 503 });
                     });
                 })
