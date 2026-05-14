@@ -63,6 +63,7 @@
                     <button id="nextBtn" class="control-btn" title="Далі">⏭</button>
                     <button id="loopBtn" class="control-btn loop-control-btn" title="Повтор">🔁</button>
                     <button id="randomModeBtn" class="control-btn random-mode-btn" onclick="toggleRandomMode()" title="Рандомний режим" style="display:none;">🔀</button>
+
                     <button id="abLoopBtn" class="control-btn ab-loop-btn" onclick="toggleABLoop()" title="A→B Loop">A→B</button>
                 </div>
             </div>
@@ -130,6 +131,25 @@
         </div>
     </div>
 
+    <div id="database-warning-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeDatabaseWarning()">&times;</span>
+            <h2>⚠️ Увага</h2>
+            <p style="font-size:14px;color:var(--text-muted);line-height:1.6;">
+                Тексти пісень можуть бути неідеальними або відсутніми.
+                Можливі помилки в базі даних та написаннях.
+                Якщо щось не так — напишіть нам, і ми виправимо.
+            </p>
+            <button onclick="closeDatabaseWarning()" style="
+                background:linear-gradient(135deg,#f6b93b,#e55039);
+                color:#1a2a3a;border:none;padding:12px 24px;
+                border-radius:30px;font-weight:bold;font-size:14px;
+                cursor:pointer;margin-top:12px;font-family:'Comfortaa',cursive;
+                box-shadow:0 4px 14px rgba(230,80,57,0.35);
+            ">Я зрозумів</button>
+        </div>
+    </div>
+
     <div id="premium-modal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closePremiumModal()">&times;</span>
@@ -148,7 +168,7 @@
                 <label><input type="checkbox" id="simpleModeToggle" onchange="toggleSimpleMode(this.checked)"> 🔠 Великий інтерфейс</label>
                 <label><input type="checkbox" id="ultraSimpleModeToggle" onchange="toggleUltraSimpleMode(this.checked)"> ⚡ Мінімальний режим</label>
                 <label><input type="checkbox" id="shakeToggle" onchange="toggleShake(this.checked)"> 🎵 Тремтіння на баси</label>
-                <div style="padding-left:22px;">
+<div style="padding-left:22px;">
                     <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
                         <span style="font-size:13px;color:var(--text-muted);">Інтенсивність</span>
                         <strong id="shakeIntensityLabel" style="font-size:13px;">25</strong>
@@ -192,6 +212,8 @@
         </div>
     </div>
 
+    <!-- Set 0 to disable the startup warning, 1 to enable it -->
+    <input type="hidden" id="databaseWarningFlag" value="0">
     <script src="./java.js"></script>
 </body>
 </html>

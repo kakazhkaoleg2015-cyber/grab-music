@@ -4,6 +4,9 @@
 const CACHE_NAME = 'grab-music-v2';
 const MUSIC_CACHE = 'grab-music-files-v2';
 
+// Режим фону: true коли сторінка невидима
+let isBackgroundMode = false;
+
 // ==================== INSTALL ====================
 self.addEventListener('install', e => {
     self.skipWaiting();
@@ -20,7 +23,29 @@ self.addEventListener('activate', e => {
             )
         ).then(() => self.clients.claim())
     );
+    // Запускаємо keep-alive для фонового відтворення
+    startSwKeepAlive();
 });
+
+// ==================== KEEP-ALIVE ====================
+let swKeepAliveInterval = null;
+
+function startSwKeepAlive() {
+    if (swKeepAliveInterval) clearInterval(swKeepAliveInterval);
+    swKeepAliveInterval = setInterval(async () => {
+        const clients = await self.clients.matchAll();
+        clients.forEach(client => {
+            client.postMessage({ type: 'SW_KEEP_ALIVE' });
+        });
+    }, 30000); // кожні 30 секунд
+}
+
+function stopSwKeepAlive() {
+    if (swKeepAliveInterval) {
+        clearInterval(swKeepAliveInterval);
+        swKeepAliveInterval = null;
+    }
+}
 
 // ==================== FETCH ====================
 self.addEventListener('fetch', e => {
@@ -63,6 +88,10 @@ self.addEventListener('fetch', e => {
                         return createPartialResponse(cached, range);
                     }
                     if (cached) return cached;
+                    // У фоновому режимі — тільки з кешу, без мережі
+                    if (isBackgroundMode) {
+                        return cached || new Response('', { status: 503 });
+                    }
                     return fetch(e.request).then(response => {
                         if (response.ok && response.status === 200) {
                             cache.put(e.request, response.clone());
@@ -143,5 +172,15 @@ self.addEventListener('message', e => {
         caches.delete(MUSIC_CACHE).then(() => {
             e.source && e.source.postMessage({ type: 'CACHE_CLEARED' });
         });
+    }
+
+    // Команди для режиму фону
+    if (e.data && e.data.type === 'SET_BACKGROUND_MODE') {
+        isBackgroundMode = true;
+        console.log('🔇 Background mode enabled - music only from cache');
+    }
+    if (e.data && e.data.type === 'SET_FOREGROUND_MODE') {
+        isBackgroundMode = false;
+        console.log('🔊 Foreground mode enabled - music from cache or network');
     }
 });

@@ -210,27 +210,55 @@ let lastSrc = '';
 let lastTime = 0;
 
 // 5. Повернення на вкладку — відновлюємо все
+let backgroundKeepAliveInterval = null;
+
 document.addEventListener('visibilitychange', async () => {
     const audio = document.getElementById('audioPlayer');
     if (audioContext && audioContext.state === 'suspended') {
         try { await audioContext.resume(); } catch(e) {}
     }
     if (document.visibilityState === 'visible') {
+        // Повідомляємо SW про перехід у foreground режим
+        if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({ type: 'SET_FOREGROUND_MODE' });
+        }
         if (audio && !audio.paused) {
             requestWakeLock();
             if (!silentBufferSource) startSilentAudio();
         }
+        // Зупиняємо додатковий keep-alive
+        if (backgroundKeepAliveInterval) {
+            clearInterval(backgroundKeepAliveInterval);
+            backgroundKeepAliveInterval = null;
+        }
     } else {
+        // Повідомляємо SW про перехід у background режим
+        if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({ type: 'SET_BACKGROUND_MODE' });
+        }
         // Коли вкладка приховується — оновлюємо силент аудіо щоб утримати контекст
         if (audio && !audio.paused) {
             if (!silentBufferSource) startSilentAudio();
             if (audioContext) audioContext.resume().catch(() => {});
+            // Запускаємо додатковий keep-alive кожні 10 секунд
+            if (!backgroundKeepAliveInterval) {
+                backgroundKeepAliveInterval = setInterval(() => {
+                    if (audioContext && audioContext.state === 'suspended') {
+                        audioContext.resume().catch(() => {});
+                    }
+                    if (!silentBufferSource) startSilentAudio();
+                }, 10000);
+            }
         }
     }
 });
 
 // Обробка для мобільних пристроїв — коли екран вимикається
 document.addEventListener('freeze', async () => {
+    // Повідомляємо SW про перехід у background режим (екран вимкнено)
+    if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'SET_BACKGROUND_MODE' });
+    }
     const audio = document.getElementById('audioPlayer');
     if (audio && !audio.paused && audioContext) {
         try { await audioContext.resume(); } catch(e) {}
@@ -239,6 +267,10 @@ document.addEventListener('freeze', async () => {
 });
 
 document.addEventListener('resume', async () => {
+    // Повідомляємо SW про перехід у foreground режим (екран увімкнено)
+    if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'SET_FOREGROUND_MODE' });
+    }
     const audio = document.getElementById('audioPlayer');
     if (audio && !audio.paused && audioContext) {
         try { await audioContext.resume(); } catch(e) {}
@@ -1730,6 +1762,20 @@ if ('serviceWorker' in navigator) {
         if (e.data && e.data.type === 'PRECACHE_DONE') {
             console.log('✅ All', e.data.count, 'tracks cached');
         }
+        if (e.data && e.data.type === 'SW_KEEP_ALIVE') {
+            // Відновлюємо AudioContext при keep-alive від SW
+            const audio = document.getElementById('audioPlayer');
+            if (audioContext && audioContext.state === 'suspended') {
+                audioContext.resume().catch(() => {});
+            }
+            if (!silentBufferSource && audio && !audio.paused) {
+                startSilentAudio();
+            }
+            // Перевіряємо стан аудіо
+            if (audio && !audio.paused && audioContext) {
+                audioContext.resume().catch(() => {});
+            }
+        }
     });
 }
 
@@ -1908,9 +1954,9 @@ function openDonate() {
             ">
                 <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px;">💳 Карта (Monobank / PrivatBank)</div>
                 <div id="donateCardNumber" style="font-size:20px;font-weight:700;letter-spacing:3px;color:var(--text-primary);cursor:pointer;" onclick="copyDonateCard()" title="Натисни щоб скопіювати">
-                    #### #### #### ####
+                    
                 </div>
-                <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">← вставте номер картки тут у java.js</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:6px;"></div>
             </div>
             <button onclick="copyDonateCard()" style="
                 background:linear-gradient(135deg,#a4c2f4,#5d9cec);
@@ -2090,6 +2136,8 @@ function openPremiumModal()  { _lockScroll(); document.getElementById('premium-m
 function closePremiumModal() { document.getElementById('premium-modal').classList.remove('open'); _checkNoModals(); }
 function openSettings()      { _lockScroll(); document.getElementById('settings-modal').classList.add('open'); loadShakePreference(); loadSpeedPreference(); _updateDevUI(); }
 function closeSettings()     { document.getElementById('settings-modal').classList.remove('open'); _checkNoModals(); }
+function openDatabaseWarning() { _lockScroll(); document.getElementById('database-warning-modal')?.classList.add('open'); }
+function closeDatabaseWarning() { document.getElementById('database-warning-modal')?.classList.remove('open'); _checkNoModals(); }
 function _checkNoModals()    { if (!document.querySelector('.modal.open')) _unlockScroll(); }
 
 let _scrollY = 0;
@@ -2108,6 +2156,7 @@ window.onclick = function(e) {
     if (e.target === document.getElementById('premium-modal'))   closePremiumModal();
     if (e.target === document.getElementById('settings-modal'))  closeSettings();
     if (e.target === document.getElementById('news-modal'))      closeNews();
+    if (e.target === document.getElementById('database-warning-modal')) closeDatabaseWarning();
 };
 
 // ==================== A→B LOOP ====================
@@ -2298,6 +2347,21 @@ function formatTime(sec) {
     return `${m}:${s < 10 ? '0' + s : s}`;
 }
 
+function normalizeString(value) {
+    return String(value || '').trim().replace(/\s+/g, ' ');
+}
+
+function getSongByFilename(filename) {
+    if (!filename) return null;
+    return songsDatabase.find(song => song.file === filename || song.file === decodeURIComponent(filename));
+}
+
+function prepareQueue(list) {
+    if (!Array.isArray(list)) return;
+    currentQueue = list.filter(item => typeof item === 'string');
+    currentQueueIndex = 0;
+}
+
 // ==================== ПЛЕЙЛИСТИ ====================
 function renderPlaylistSongs(songs) {
     return songs.length ? songs.map(song => `
@@ -2482,5 +2546,13 @@ window.addEventListener('DOMContentLoaded', async () => {
     updateNavButtons();
     setupAudioUnlock();
     checkShareUrl();
+    const dbWarningFlag = document.getElementById('databaseWarningFlag')?.value;
+    if (dbWarningFlag !== '0') {
+        openDatabaseWarning();
+    }
     setTimeout(() => precacheMusicFiles(), 2000);
+    // Встановлюємо початковий режим (foreground)
+    if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'SET_FOREGROUND_MODE' });
+    }
 });
