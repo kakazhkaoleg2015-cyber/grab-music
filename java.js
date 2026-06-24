@@ -13,10 +13,6 @@ let isPlaylistLoopEnabled = false;
 
 let audioContext = null;
 let sourceNode = null;
-let bassFilter = null;
-let midFilter = null;
-let trebleFilter = null;
-let isEqInitialized = false;
 
 // Keep-alive
 let wakeLock = null;
@@ -42,11 +38,7 @@ const translations = {
         backBtn: 'Назад',
         playAllBtn: 'Програвати всі',
         lyricsTabText: '📝 Текст',
-        lrcTabText: '🎵 LRC',
-        eqBass: '🔊 Низькі',
-        eqMid: '🎵 Середні',
-        eqTreble: '🎶 Високі',
-        resetEq: '⟳ Скинути'
+        lrcTabText: '🎵 LRC'
     },
     en: {
         errorLoadingDB: 'Error loading song database.',
@@ -61,11 +53,7 @@ const translations = {
         backBtn: 'Back',
         playAllBtn: 'Play all',
         lyricsTabText: '📝 Lyrics',
-        lrcTabText: '🎵 LRC',
-        eqBass: '🔊 Bass',
-        eqMid: '🎵 Mid',
-        eqTreble: '🎶 Treble',
-        resetEq: '⟳ Reset'
+        lrcTabText: '🎵 LRC'
     }
 };
 
@@ -310,218 +298,6 @@ window.addEventListener('focus', async () => {
     }
 });
 
-// ==================== ЕКВАЛАЙЗЕР ====================
-function initEqualizer() {
-    const audio = document.getElementById('audioPlayer');
-    if (!audio) return;
-    if (localStorage.getItem('grab_music_eq') !== 'true') return;
-    if (isEqInitialized && audioContext && audioContext.state !== 'closed') {
-        if (audioContext.state === 'suspended') audioContext.resume();
-        return;
-    }
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) return;
-    try {
-        audioContext = new AudioCtx();
-        sourceNode = audioContext.createMediaElementSource(audio);
-        bassFilter = audioContext.createBiquadFilter();
-        bassFilter.type = 'lowshelf';
-        bassFilter.frequency.value = 200;
-        bassFilter.gain.value = 0;
-        midFilter = audioContext.createBiquadFilter();
-        midFilter.type = 'peaking';
-        midFilter.frequency.value = 1000;
-        midFilter.Q.value = 1;
-        midFilter.gain.value = 0;
-        trebleFilter = audioContext.createBiquadFilter();
-        trebleFilter.type = 'highshelf';
-        trebleFilter.frequency.value = 4000;
-        trebleFilter.gain.value = 0;
-        sourceNode.connect(bassFilter);
-        bassFilter.connect(midFilter);
-        midFilter.connect(trebleFilter);
-        trebleFilter.connect(audioContext.destination);
-        isEqInitialized = true;
-        audioContext.resume();
-        startSilentOscillator();
-        startKeepAlive();
-        updateEqualizerLabels();
-        initBassAnalyser();
-        console.log('✅ EQ initialized');
-    } catch(e) {
-        console.warn('EQ init failed:', e);
-        isEqInitialized = false;
-        const eqDiv = document.getElementById('eqControls');
-        if (eqDiv) eqDiv.style.display = 'none';
-        const eqCheck = document.getElementById('eqToggleCheck');
-        if (eqCheck) eqCheck.checked = false;
-        localStorage.setItem('grab_music_eq', 'false');
-    }
-}
-
-function destroyEqualizer() {
-    stopSilentAudio();
-    stopKeepAlive();
-    if (sourceNode) {
-        try { sourceNode.disconnect(); } catch(e) {}
-        sourceNode = null;
-    }
-    if (bassFilter) {
-        try { bassFilter.disconnect(); } catch(e) {}
-        bassFilter = null;
-    }
-    if (midFilter) {
-        try { midFilter.disconnect(); } catch(e) {}
-        midFilter = null;
-    }
-    if (trebleFilter) {
-        try { trebleFilter.disconnect(); } catch(e) {}
-        trebleFilter = null;
-    }
-    if (audioContext) {
-        try { audioContext.close(); } catch(e) {}
-        audioContext = null;
-    }
-    analyser = null;
-    isEqInitialized = false;
-}
-
-function updateEqualizerLabels() {
-    const eqDiv = document.getElementById('eqControls');
-    if (!eqDiv) return;
-    const bassVal   = document.getElementById('bassSlider')?.value   || 0;
-    const midVal    = document.getElementById('midSlider')?.value    || 0;
-    const trebleVal = document.getElementById('trebleSlider')?.value || 0;
-    eqDiv.innerHTML = `
-        <label>${t('eqBass')} <input type="range" id="bassSlider" min="-20" max="20" value="${bassVal}" step="1"></label>
-        <label>${t('eqMid')} <input type="range" id="midSlider" min="-20" max="20" value="${midVal}" step="1"></label>
-        <label>${t('eqTreble')} <input type="range" id="trebleSlider" min="-20" max="20" value="${trebleVal}" step="1"></label>
-        <button id="resetEqBtn" class="reset-eq-btn">${t('resetEq')}</button>
-    `;
-    const bs = document.getElementById('bassSlider');
-    const ms = document.getElementById('midSlider');
-    const ts = document.getElementById('trebleSlider');
-    const rs = document.getElementById('resetEqBtn');
-    if (bs) bs.oninput = e => { if (bassFilter)   bassFilter.gain.value   = e.target.value; };
-    if (ms) ms.oninput = e => { if (midFilter)    midFilter.gain.value    = e.target.value; };
-    if (ts) ts.oninput = e => { if (trebleFilter) trebleFilter.gain.value = e.target.value; };
-    if (rs) rs.onclick = () => {
-        [bs, ms, ts].forEach(s => { if (s) s.value = 0; });
-        if (bassFilter)   bassFilter.gain.value   = 0;
-        if (midFilter)    midFilter.gain.value    = 0;
-        if (trebleFilter) trebleFilter.gain.value = 0;
-    };
-}
-
-function loadEqPreference() {
-    const enabled = localStorage.getItem('grab_music_eq') === 'true';
-    const eqDiv = document.getElementById('eqControls');
-    if (eqDiv) eqDiv.style.display = enabled ? 'flex' : 'none';
-    const eqCheck = document.getElementById('eqToggleCheck');
-    if (eqCheck) eqCheck.checked = enabled;
-}
-
-function toggleEq(checked) {
-    const enabled = checked !== undefined ? checked : !(localStorage.getItem('grab_music_eq') === 'true');
-    localStorage.setItem('grab_music_eq', enabled ? 'true' : 'false');
-    const eqDiv = document.getElementById('eqControls');
-    if (eqDiv) eqDiv.style.display = enabled ? 'flex' : 'none';
-    if (enabled) {
-        if (!isEqInitialized) initEqualizer();
-        else {
-            const bs = document.getElementById('bassSlider');
-            const ms = document.getElementById('midSlider');
-            const ts = document.getElementById('trebleSlider');
-            if (bassFilter   && bs) bassFilter.gain.value   = bs.value;
-            if (midFilter    && ms) midFilter.gain.value    = ms.value;
-            if (trebleFilter && ts) trebleFilter.gain.value = ts.value;
-        }
-    } else {
-        if (isEqInitialized) {
-            destroyEqualizer();
-        }
-    }
-}
-
-// ==================== BASS SHAKE ====================
-let analyser = null;
-let shakeAnimFrame = null;
-
-function initBassAnalyser() {
-    if (!audioContext || analyser) return;
-    try {
-        analyser = audioContext.createAnalyser();
-        analyser.fftSize = 256;
-        analyser.smoothingTimeConstant = 0.7;
-        trebleFilter.connect(analyser);
-        startBassShake();
-        console.log('✅ Bass analyser initialized');
-    } catch(e) { console.warn('Bass analyser failed:', e); }
-}
-
-function startBassShake() {
-    if (shakeAnimFrame) cancelAnimationFrame(shakeAnimFrame);
-    if (localStorage.getItem('grab_music_shake') === 'false') return;
-    if (!analyser) return;
-    const data = new Uint8Array(analyser.frequencyBinCount);
-    let lastShake = 0;
-    function tick() {
-        shakeAnimFrame = requestAnimationFrame(tick);
-        if (localStorage.getItem('grab_music_shake') === 'false') {
-            document.body.style.transform = ''; return;
-        }
-        if (document.querySelector('.modal.open')) {
-            document.body.style.transform = ''; return;
-        }
-        analyser.getByteFrequencyData(data);
-        const bass = (data[0] + data[1] + data[2] + data[3]) / 4;
-        const now = Date.now();
-        if (bass > 185 && now - lastShake > 110) {
-            lastShake = now;
-            const sliderVal = parseInt(localStorage.getItem('grab_music_shake_intensity') ?? '25');
-            const intensity = Math.min((bass - 185) / 70, 1);
-            const px = Math.round(intensity * (sliderVal / 5));
-            if (px >= 1) {
-                const dir = Math.random() > 0.5 ? 1 : -1;
-                document.body.style.transform = `translateX(${dir * px}px)`;
-                setTimeout(() => { document.body.style.transform = ''; }, 65);
-            }
-        }
-    }
-    tick();
-}
-
-function stopBassShake() {
-    if (shakeAnimFrame) { cancelAnimationFrame(shakeAnimFrame); shakeAnimFrame = null; }
-    document.body.style.transform = '';
-}
-
-function loadShakePreference() {
-    const enabled = localStorage.getItem('grab_music_shake') !== 'false';
-    const check = document.getElementById('shakeToggle');
-    if (check) check.checked = enabled;
-    const slider = document.getElementById('shakeIntensity');
-    if (slider) slider.value = localStorage.getItem('grab_music_shake_intensity') ?? '25';
-    updateShakeIntensityLabel();
-}
-
-function updateShakeIntensityLabel() {
-    const slider = document.getElementById('shakeIntensity');
-    const label  = document.getElementById('shakeIntensityLabel');
-    if (slider && label) label.textContent = slider.value;
-}
-
-function setShakeIntensity(val) {
-    localStorage.setItem('grab_music_shake_intensity', val);
-    updateShakeIntensityLabel();
-}
-
-function toggleShake(checked) {
-    const enabled = checked !== undefined ? checked : !(localStorage.getItem('grab_music_shake') !== 'false');
-    localStorage.setItem('grab_music_shake', enabled ? 'true' : 'false');
-    if (!enabled) { document.body.style.transform = ''; }
-    else if (analyser) startBassShake();
-}
 
 // ==================== ТЕМА ====================
 function loadThemePreference() {
@@ -1429,26 +1205,10 @@ function playSong(filename, fromQueue = false) {
         const savedSpeed = parseFloat(localStorage.getItem('grab_music_speed') || '1');
         audio.playbackRate = savedSpeed;
         if (currentLrcLines.length && !lrcSyncInterval) lrcSyncInterval = setInterval(syncLRC, 100);
-        if (localStorage.getItem('grab_music_eq') === 'true' && !isEqInitialized) {
-            initEqualizer();
-        } else if (audioContext && audioContext.state === 'suspended') {
-            audioContext.resume();
-        }
         if (isRandomMode && !playlistEndedHandler) {
             playlistEndedHandler = () => playNextRandom();
             audio.addEventListener('ended', playlistEndedHandler);
         }
-        if (isEqInitialized && !analyser) initBassAnalyser();
-        if (!isEqInitialized && !analyser && audioContext) {
-            try {
-                analyser = audioContext.createAnalyser();
-                analyser.fftSize = 256;
-                analyser.smoothingTimeConstant = 0.7;
-                if (sourceNode) sourceNode.connect(analyser);
-                startBassShake();
-            } catch(e) {}
-        }
-        if (analyser) startBassShake();
         if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
         requestWakeLock();
         startAudioKeepAlive(audio);
@@ -2134,7 +1894,7 @@ function openModal()         { _lockScroll(); document.getElementById('tutorial-
 function closeModal()        { document.getElementById('tutorial-modal').classList.remove('open'); _checkNoModals(); }
 function openPremiumModal()  { _lockScroll(); document.getElementById('premium-modal').classList.add('open'); }
 function closePremiumModal() { document.getElementById('premium-modal').classList.remove('open'); _checkNoModals(); }
-function openSettings()      { _lockScroll(); document.getElementById('settings-modal').classList.add('open'); loadShakePreference(); loadSpeedPreference(); _updateDevUI(); }
+function openSettings()      { _lockScroll(); document.getElementById('settings-modal').classList.add('open'); loadSpeedPreference(); _updateDevUI(); }
 function closeSettings()     { document.getElementById('settings-modal').classList.remove('open'); _checkNoModals(); }
 function openDatabaseWarning() { _lockScroll(); document.getElementById('database-warning-modal')?.classList.add('open'); }
 function closeDatabaseWarning() { document.getElementById('database-warning-modal')?.classList.remove('open'); _checkNoModals(); }
@@ -2277,7 +2037,6 @@ function setupAudioListeners() {
         startAudioKeepAlive(audio);
         startKeepAlive();
         startSwPing();
-        if (analyser) startBassShake();
         if (currentLrcLines.length && !lrcSyncInterval) {
             lrcSyncInterval = setInterval(syncLRC, 100);
             syncLRC();
@@ -2291,7 +2050,6 @@ function setupAudioListeners() {
         stopAudioKeepAlive();
         stopKeepAlive();
         stopSwPing();
-        stopBassShake();
         if (lrcSyncInterval) { clearInterval(lrcSyncInterval); lrcSyncInterval = null; }
     };
 
@@ -2538,8 +2296,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     await loadNews();
     setupAudioListeners();
     loadThemePreference();
-    loadEqPreference();
-    loadShakePreference();
     loadSpeedPreference();
     _updateDevUI();
     loadModePreferences();

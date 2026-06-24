@@ -285,42 +285,6 @@ body {
 }
 .modal-content .close:hover { color: var(--accent-color); }
 
-/* ========== ЕКВАЛАЙЗЕР ========== */
-.equalizer-sliders {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-    margin: 10px auto;
-    padding: 8px 12px;
-    background: var(--card-bg);
-    border-radius: 6px;
-    width: fit-content;
-    max-width: 100%;
-    flex-wrap: wrap;
-    border: 1px solid var(--border-light);
-}
-.equalizer-sliders label {
-    font-size: 13px;
-    color: var(--text-primary);
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-.equalizer-sliders input { width: 100px; cursor: pointer; accent-color: var(--accent-color); }
-.reset-eq-btn {
-    background: var(--accent-color);
-    color: #1a2a3a;
-    border: none;
-    border-radius: 6px;
-    padding: 5px 12px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: bold;
-}
-.reset-eq-btn:hover { transform: scale(1.02); background: var(--accent-dark); color: white; }
-body.dark-theme .reset-eq-btn { background: #4a7aa0; color: white; }
-
 /* ========== КАСТОМНИЙ ПЛЕЄР ========== */
 .custom-player {
     width: 100%;
@@ -888,10 +852,6 @@ body.ultra-simple-mode .ultra-simple-back-btn { display: flex; }
     .progress-container { gap: 8px; margin-bottom: 8px; }
     .now-playing { padding: 8px 12px; gap: 8px; margin-top: 10px; font-size: 13px; }
     .player-image { width: 36px; height: 36px; }
-    .equalizer-sliders { gap: 8px; padding: 6px 10px; }
-    .equalizer-sliders label { font-size: 11px; gap: 5px; }
-    .equalizer-sliders input { width: 70px; }
-    .reset-eq-btn { font-size: 11px; padding: 4px 8px; }
     .lyrics-section { padding: 14px; margin-top: 16px; }
     .lyrics-section h2 { font-size: 16px; margin-bottom: 10px; }
     .lyrics-content { font-size: 13px; line-height: 1.8; padding: 10px; max-height: 280px; }
