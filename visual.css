@@ -969,7 +969,7 @@ body.modal-open {
     box-shadow: 0 4px 16px rgba(0,0,0,0.25);
     z-index: 5000;
     min-width: 190px;
-    overflow: hidden;
+    overflow: visible;
 }
 .three-dot-menu.open { display: block; }
 .three-dot-menu button {
@@ -985,9 +985,102 @@ body.modal-open {
     transition: background 0.15s;
     font-family: 'Segoe UI', Roboto, sans-serif;
 }
+.three-dot-menu > button:first-child { border-radius: 10px 10px 0 0; }
+.three-dot-menu > button:last-child  { border-radius: 0 0 10px 10px; }
 .three-dot-menu button:hover {
     background: rgba(164,194,244,0.15);
 }
+
+/* Підменю "Додати до плейлиста" */
+.three-dot-submenu-wrap {
+    position: relative;
+}
+.submenu-trigger {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+}
+.playlist-submenu {
+    display: none;
+    position: absolute;
+    top: 0;
+    right: 100%;
+    background: var(--modal-bg);
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    z-index: 5001;
+    min-width: 180px;
+    max-height: 240px;
+    overflow-y: auto;
+}
+.playlist-submenu.open { display: block; }
+.playlist-submenu button {
+    display: block;
+    width: 100%;
+    padding: 10px 14px;
+    text-align: left;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+}
+.playlist-submenu button:hover {
+    background: rgba(164,194,244,0.15);
+}
+@media (max-width: 480px) {
+    .playlist-submenu { right: auto; left: 0; top: 100%; }
+}
+
+/* ========== СТВОРЕННЯ ПЛЕЙЛИСТА ========== */
+.create-playlist-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 13px 16px;
+    margin-bottom: 14px;
+    background: linear-gradient(135deg, #a4c2f4, #5d9cec);
+    color: #1a2a3a;
+    border: none;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: bold;
+    font-family: 'Comfortaa', cursive;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(93, 156, 236, 0.35);
+    transition: filter 0.2s, transform 0.15s;
+}
+.create-playlist-btn:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+}
+body.dark-theme .create-playlist-btn {
+    background: linear-gradient(135deg, #4a7aa0, #2a6d9e);
+    color: #e0eaf5;
+}
+
+.submenu-create-btn {
+    border-top: 1px solid var(--border-light) !important;
+    color: var(--accent-color) !important;
+    font-weight: bold !important;
+}
+
+.playlist-edit-btn, .playlist-delete-btn {
+    background: transparent;
+    border: none;
+    font-size: 16px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.playlist-edit-btn:hover { background: rgba(164,194,244,0.2); }
+.playlist-delete-btn:hover { background: rgba(229,80,57,0.2); }
 
 
 /* ========== A→B LOOP ========== */

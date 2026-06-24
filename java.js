@@ -1059,6 +1059,10 @@ function _updateThreeDotMenus(filename) {
         if (btn) btn.textContent = isDisliked(filename)
             ? (currentLanguage === 'uk' ? '✅ Рекомендувати' : '✅ Recommend')
             : (currentLanguage === 'uk' ? '🚫 Не рекомендувати' : '🚫 Not interested');
+        const likeBtn = menu.querySelector('.dot-like-btn');
+        if (likeBtn) likeBtn.textContent = isFavorite(filename)
+            ? (currentLanguage === 'uk' ? '💔 Прибрати з улюбленого' : '💔 Remove from favorites')
+            : (currentLanguage === 'uk' ? '❤️ До улюбленого' : '❤️ Add to favorites');
     });
 }
 
@@ -1066,6 +1070,7 @@ function _updateThreeDotMenus(filename) {
 document.addEventListener('click', e => {
     if (!e.target.closest('.three-dot-wrap')) {
         document.querySelectorAll('.three-dot-menu.open').forEach(m => m.classList.remove('open'));
+        document.querySelectorAll('.playlist-submenu.open').forEach(m => m.classList.remove('open'));
     }
 });
 
@@ -1074,7 +1079,34 @@ function toggleThreeDotMenu(btn, filename) {
     const wasOpen = menu.classList.contains('open');
     // Закриваємо всі
     document.querySelectorAll('.three-dot-menu.open').forEach(m => m.classList.remove('open'));
+    document.querySelectorAll('.playlist-submenu.open').forEach(m => m.classList.remove('open'));
     if (!wasOpen) menu.classList.add('open');
+}
+
+// Підменю "Додати до плейлиста"
+function togglePlaylistSubmenu(e, btn) {
+    e.stopPropagation();
+    const submenu = btn.nextElementSibling;
+    const wasOpen = submenu.classList.contains('open');
+    document.querySelectorAll('.playlist-submenu.open').forEach(m => m.classList.remove('open'));
+    if (!wasOpen) submenu.classList.add('open');
+}
+
+function addSongToPlaylist(filename, playlistId, btnEl) {
+    const pl = playlistsDatabase.find(p => p.id === playlistId);
+    if (!pl) return;
+    if (!pl.songs.includes(filename)) {
+        pl.songs.push(filename);
+        savePlaylists();
+        showToast(currentLanguage === 'uk' ? `✅ Додано до «${pl.name}»` : `✅ Added to "${pl.name_en || pl.name}"`);
+    } else {
+        showToast(currentLanguage === 'uk' ? 'Пісня вже у цьому плейлисті' : 'Song already in this playlist');
+    }
+    if (playlistId === 'favorites') {
+        document.querySelectorAll(`.like-btn[data-filename="${filename}"]`).forEach(b => b.classList.add('liked'));
+        _updateThreeDotMenus(filename);
+    }
+    closeThreeDot(btnEl);
 }
 
 // HTML для кнопки ⋯ і меню
@@ -1082,9 +1114,28 @@ function threeDotHtml(filename) {
     const dislikedLabel = isDisliked(filename)
         ? (currentLanguage === 'uk' ? '✅ Рекомендувати' : '✅ Recommend')
         : (currentLanguage === 'uk' ? '🚫 Не рекомендувати' : '🚫 Not interested');
+    const likeLabel = isFavorite(filename)
+        ? (currentLanguage === 'uk' ? '💔 Прибрати з улюбленого' : '💔 Remove from favorites')
+        : (currentLanguage === 'uk' ? '❤️ До улюбленого' : '❤️ Add to favorites');
+    const downloadLabel = currentLanguage === 'uk' ? '⬇️ Завантажити' : '⬇️ Download';
+    const shareLabel = currentLanguage === 'uk' ? '🔗 Поширити' : '🔗 Share';
+    const addToPlaylistLabel = currentLanguage === 'uk' ? '➕ Додати до плейлиста' : '➕ Add to playlist';
+
+    const playlistOptions = playlistsDatabase.map(pl => {
+        const name = currentLanguage === 'en' ? (pl.name_en || pl.name) : pl.name;
+        return `<button onclick="addSongToPlaylist('${escapeHtml(filename)}','${escapeHtml(pl.id)}',this)">${pl.icon ? escapeHtml(pl.icon) + ' ' : ''}${escapeHtml(name)}</button>`;
+    }).join('') + `<button class="submenu-create-btn" onclick="closeThreeDot(this);openCreatePlaylistModal()">➕ ${currentLanguage === 'en' ? 'New playlist' : 'Новий плейлист'}</button>`;
+
     return `<div class="three-dot-wrap">
         <button class="three-dot-btn" onclick="toggleThreeDotMenu(this,'${escapeHtml(filename)}')" title="Більше">⋯</button>
         <div class="three-dot-menu" data-file="${escapeHtml(filename)}">
+            <button class="dot-like-btn" onclick="toggleFavorite('${escapeHtml(filename)}');_updateThreeDotMenus('${escapeHtml(filename)}')">${likeLabel}</button>
+            <div class="three-dot-submenu-wrap">
+                <button class="submenu-trigger" onclick="togglePlaylistSubmenu(event,this)">${addToPlaylistLabel} ›</button>
+                <div class="playlist-submenu">${playlistOptions}</div>
+            </div>
+            <button onclick="downloadSong('${escapeHtml(filename)}');closeThreeDot(this)">${downloadLabel}</button>
+            <button onclick="shareSong('${escapeHtml(filename)}');closeThreeDot(this)">${shareLabel}</button>
             <button class="dislike-btn" onclick="toggleDislike('${escapeHtml(filename)}');closeThreeDot(this)">${dislikedLabel}</button>
         </div>
     </div>`;
@@ -1503,25 +1554,8 @@ function registerServiceWorker() {
         .catch(e => console.warn('SW failed:', e));
 }
 
-function precacheMusicFiles() {
-    if (!('serviceWorker' in navigator) || !songsDatabase.length) return;
-    const files = songsDatabase.map(s => new URL('./music/' + s.file, location.href).href);
-    const send = () => {
-        if (navigator.serviceWorker.controller) {
-            navigator.serviceWorker.controller.postMessage({ type: 'PRECACHE_MUSIC', files });
-            console.log('📦 Precaching', files.length, 'tracks...');
-        } else {
-            navigator.serviceWorker.ready.then(() => setTimeout(() => precacheMusicFiles(), 1000));
-        }
-    };
-    send();
-}
-
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('message', e => {
-        if (e.data && e.data.type === 'PRECACHE_DONE') {
-            console.log('✅ All', e.data.count, 'tracks cached');
-        }
         if (e.data && e.data.type === 'SW_KEEP_ALIVE') {
             // Відновлюємо AudioContext при keep-alive від SW
             const audio = document.getElementById('audioPlayer');
@@ -1917,6 +1951,7 @@ window.onclick = function(e) {
     if (e.target === document.getElementById('settings-modal'))  closeSettings();
     if (e.target === document.getElementById('news-modal'))      closeNews();
     if (e.target === document.getElementById('database-warning-modal')) closeDatabaseWarning();
+    if (e.target === document.getElementById('create-playlist-modal')) closeCreatePlaylistModal();
 };
 
 // ==================== A→B LOOP ====================
@@ -2158,18 +2193,24 @@ function buildPlaylistCard(pl, options = {}) {
         options.otherList ? 'playlist-item-other-list' : ''
     ].filter(Boolean).join(' ');
 
+    const customBtns = pl.custom ? `
+        <button class="playlist-edit-btn" onclick="event.stopPropagation();openRenamePlaylistModal('${escapeHtml(pl.id)}')" title="${currentLanguage === 'en' ? 'Rename' : 'Перейменувати'}">✏️</button>
+        <button class="playlist-delete-btn" onclick="event.stopPropagation();confirmDeletePlaylist('${escapeHtml(pl.id)}')" title="${currentLanguage === 'en' ? 'Delete' : 'Видалити'}">🗑️</button>
+    ` : '';
+
     if (options.compact || options.collapsible) {
         const isOpen = options.defaultOpen === true;
         return `
             <div class="${classes}" id="playlist-${pl.id}">
                 <div class="playlist-header" onclick="togglePlaylist('${pl.id}')">
                     <div class="playlist-info">
-                        <h3>📋 ${escapeHtml(name)}</h3>
+                        <h3>${pl.icon ? escapeHtml(pl.icon) : '📋'} ${escapeHtml(name)}</h3>
                         <p>${escapeHtml(desc)}</p>
                         <small>${songCountText}</small>
                     </div>
                     <div class="playlist-header-btns">
                         ${playAllBtn}
+                        ${customBtns}
                         <button class="view-btn playlist-toggle-btn${isOpen ? ' active' : ''}" onclick="event.stopPropagation();togglePlaylist('${pl.id}')">
                             ${t('viewBtn')} <span class="toggle-arrow">${isOpen ? '▲' : '▼'}</span>
                         </button>
@@ -2185,11 +2226,11 @@ function buildPlaylistCard(pl, options = {}) {
         <div class="${classes}" id="playlist-${pl.id}">
             <div class="playlist-header">
                 <div class="playlist-info">
-                    <h3>📋 ${escapeHtml(name)}</h3>
+                    <h3>${pl.icon ? escapeHtml(pl.icon) : '📋'} ${escapeHtml(name)}</h3>
                     <p>${escapeHtml(desc)}</p>
                     <small>${songCountText}</small>
                 </div>
-                <div class="playlist-header-btns">${playAllBtn}</div>
+                <div class="playlist-header-btns">${playAllBtn}${customBtns}</div>
             </div>
             <div class="playlist-dropdown" id="dropdown-${pl.id}" style="display:block;">
                 ${renderPlaylistSongs(songs)}
@@ -2200,8 +2241,14 @@ function buildPlaylistCard(pl, options = {}) {
 function displayPlaylists() {
     const container = document.getElementById('playlistsContainer');
     if (!container) return;
+
+    const createBtnHtml = `
+        <button class="create-playlist-btn" onclick="openCreatePlaylistModal()">
+            ➕ ${currentLanguage === 'en' ? 'Create playlist' : 'Створити плейлист'}
+        </button>`;
+
     if (!playlistsDatabase.length) {
-        container.innerHTML = '<p style="text-align:center;color:gray;">⚠️ Немає плейлистів</p>';
+        container.innerHTML = createBtnHtml + '<p style="text-align:center;color:gray;">⚠️ Немає плейлистів</p>';
         return;
     }
 
@@ -2240,7 +2287,7 @@ function displayPlaylists() {
             </div>`;
     }
 
-    container.innerHTML = pinnedMarkup + otherMarkup;
+    container.innerHTML = createBtnHtml + pinnedMarkup + otherMarkup;
 }
 
 function togglePlaylist(id) {
@@ -2252,6 +2299,140 @@ function togglePlaylist(id) {
     dropdown.style.display = isOpen ? 'none' : 'block';
     if (arrow) arrow.textContent = isOpen ? '▼' : '▲';
     if (btn) btn.classList.toggle('active', !isOpen);
+}
+
+// ==================== СТВОРЕННЯ / РЕДАГУВАННЯ ВЛАСНИХ ПЛЕЙЛИСТІВ ====================
+
+function _slugify(name) {
+    const base = name.toLowerCase().trim()
+        .replace(/[^\p{L}\p{N}\s-]/gu, '')
+        .replace(/\s+/g, '-')
+        .slice(0, 40) || 'playlist';
+    let id = 'custom-' + base;
+    let i = 2;
+    while (playlistsDatabase.find(p => p.id === id)) {
+        id = 'custom-' + base + '-' + i;
+        i++;
+    }
+    return id;
+}
+
+function openCreatePlaylistModal() {
+    document.querySelectorAll('.three-dot-menu.open').forEach(m => m.classList.remove('open'));
+    document.querySelectorAll('.playlist-submenu.open').forEach(m => m.classList.remove('open'));
+    const modal = document.getElementById('create-playlist-modal');
+    if (!modal) return;
+    document.getElementById('playlistNameInput').value = '';
+    document.getElementById('playlistDescInput').value = '';
+    document.getElementById('playlistIconInput').value = '';
+    document.getElementById('playlistFormError').textContent = '';
+    modal.dataset.mode = 'create';
+    modal.dataset.editId = '';
+    document.getElementById('createPlaylistModalTitle').textContent = currentLanguage === 'en' ? '➕ New playlist' : '➕ Новий плейлист';
+    document.getElementById('createPlaylistSubmitBtn').textContent = currentLanguage === 'en' ? 'Create' : 'Створити';
+    _lockScroll();
+    modal.classList.add('open');
+    setTimeout(() => {
+        const input = document.getElementById('playlistNameInput');
+        if (input) {
+            input.focus();
+            input.onkeydown = e => { if (e.key === 'Enter') submitPlaylistForm(); };
+        }
+    }, 50);
+}
+
+function openRenamePlaylistModal(playlistId) {
+    const pl = playlistsDatabase.find(p => p.id === playlistId);
+    if (!pl) return;
+    const modal = document.getElementById('create-playlist-modal');
+    if (!modal) return;
+    document.getElementById('playlistNameInput').value = currentLanguage === 'en' ? (pl.name_en || pl.name) : pl.name;
+    document.getElementById('playlistDescInput').value = (currentLanguage === 'en' ? (pl.description_en || pl.description) : pl.description) || '';
+    document.getElementById('playlistIconInput').value = pl.icon || '';
+    document.getElementById('playlistFormError').textContent = '';
+    modal.dataset.mode = 'edit';
+    modal.dataset.editId = playlistId;
+    document.getElementById('createPlaylistModalTitle').textContent = currentLanguage === 'en' ? '✏️ Edit playlist' : '✏️ Редагувати плейлист';
+    document.getElementById('createPlaylistSubmitBtn').textContent = currentLanguage === 'en' ? 'Save' : 'Зберегти';
+    _lockScroll();
+    modal.classList.add('open');
+    setTimeout(() => {
+        const input = document.getElementById('playlistNameInput');
+        if (input) {
+            input.focus();
+            input.onkeydown = e => { if (e.key === 'Enter') submitPlaylistForm(); };
+        }
+    }, 50);
+}
+
+function closeCreatePlaylistModal() {
+    const modal = document.getElementById('create-playlist-modal');
+    if (modal) modal.classList.remove('open');
+    _checkNoModals();
+}
+
+function submitPlaylistForm() {
+    const modal = document.getElementById('create-playlist-modal');
+    const nameInput = document.getElementById('playlistNameInput');
+    const descInput = document.getElementById('playlistDescInput');
+    const iconInput = document.getElementById('playlistIconInput');
+    const errorEl = document.getElementById('playlistFormError');
+
+    const name = normalizeString(nameInput.value);
+    const desc = normalizeString(descInput.value);
+    const icon = normalizeString(iconInput.value).slice(0, 4);
+
+    if (!name) {
+        errorEl.textContent = currentLanguage === 'en' ? '⚠️ Name is required.' : '⚠️ Назва обов\'язкова.';
+        nameInput.focus();
+        return;
+    }
+
+    const mode = modal.dataset.mode;
+
+    if (mode === 'edit') {
+        const pl = playlistsDatabase.find(p => p.id === modal.dataset.editId);
+        if (!pl) { closeCreatePlaylistModal(); return; }
+        pl.name = name;
+        pl.name_en = name;
+        pl.description = desc;
+        pl.description_en = desc;
+        pl.icon = icon;
+    } else {
+        const id = _slugify(name);
+        playlistsDatabase.push({
+            id,
+            name,
+            name_en: name,
+            description: desc,
+            description_en: desc,
+            icon,
+            custom: true,
+            songs: []
+        });
+    }
+
+    savePlaylists();
+    closeCreatePlaylistModal();
+    displayPlaylists();
+    showToast(mode === 'edit'
+        ? (currentLanguage === 'en' ? '✅ Playlist updated' : '✅ Плейлист оновлено')
+        : (currentLanguage === 'en' ? '✅ Playlist created' : '✅ Плейлист створено'));
+}
+
+function confirmDeletePlaylist(playlistId) {
+    const pl = playlistsDatabase.find(p => p.id === playlistId);
+    if (!pl) return;
+    const name = currentLanguage === 'en' ? (pl.name_en || pl.name) : pl.name;
+    const msg = currentLanguage === 'en'
+        ? `Delete playlist "${name}"? This cannot be undone.`
+        : `Видалити плейлист «${name}»? Це незворотньо.`;
+    if (!confirm(msg)) return;
+    const idx = playlistsDatabase.findIndex(p => p.id === playlistId);
+    if (idx > -1) playlistsDatabase.splice(idx, 1);
+    savePlaylists();
+    displayPlaylists();
+    showToast(currentLanguage === 'en' ? '🗑️ Playlist deleted' : '🗑️ Плейлист видалено');
 }
 
 function isFavorite(filename) {
@@ -2306,7 +2487,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (dbWarningFlag !== '0') {
         openDatabaseWarning();
     }
-    setTimeout(() => precacheMusicFiles(), 2000);
     // Встановлюємо початковий режим (foreground)
     if (navigator.serviceWorker.controller) {
         navigator.serviceWorker.controller.postMessage({ type: 'SET_FOREGROUND_MODE' });

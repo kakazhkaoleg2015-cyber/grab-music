@@ -142,31 +142,6 @@ self.addEventListener('message', e => {
         return;
     }
 
-    // Команда: прекешувати список музики
-    if (e.data && e.data.type === 'PRECACHE_MUSIC') {
-        const files = e.data.files || [];
-        caches.open(MUSIC_CACHE).then(cache => {
-            // Кешуємо по одному щоб не перевантажувати
-            let i = 0;
-            function next() {
-                if (i >= files.length) {
-                    e.source && e.source.postMessage({ type: 'PRECACHE_DONE', count: files.length });
-                    return;
-                }
-                const url = files[i++];
-                cache.match(url).then(cached => {
-                    if (cached) { next(); return; } // вже є
-                    fetch(url).then(response => {
-                        if (response.ok) cache.put(url, response);
-                        next();
-                    }).catch(() => next());
-                });
-            }
-            next();
-        });
-        return;
-    }
-
     // Команда: очистити кеш музики
     if (e.data && e.data.type === 'CLEAR_MUSIC_CACHE') {
         caches.delete(MUSIC_CACHE).then(() => {

@@ -144,6 +144,39 @@
         </div>
     </div>
 
+    <div id="create-playlist-modal" class="modal" data-mode="create" data-edit-id="">
+        <div class="modal-content">
+            <span class="close" onclick="closeCreatePlaylistModal()">&times;</span>
+            <h2 id="createPlaylistModalTitle">➕ Новий плейлист</h2>
+            <div style="display:flex;flex-direction:column;gap:14px;margin:20px 0;text-align:left;">
+                <label style="font-size:13px;color:var(--text-muted);">
+                    Назва <span style="color:#e55039;">*</span>
+                    <input type="text" id="playlistNameInput" maxlength="40" placeholder="Наприклад: Дорожній настрій"
+                        style="width:100%;margin-top:6px;padding:10px 12px;border-radius:8px;border:1px solid var(--border-light);background:var(--card-bg);color:var(--text-primary);font-size:14px;box-sizing:border-box;">
+                </label>
+                <label style="font-size:13px;color:var(--text-muted);">
+                    Опис (необов'язково)
+                    <input type="text" id="playlistDescInput" maxlength="80" placeholder="Короткий опис плейлиста"
+                        style="width:100%;margin-top:6px;padding:10px 12px;border-radius:8px;border:1px solid var(--border-light);background:var(--card-bg);color:var(--text-primary);font-size:14px;box-sizing:border-box;">
+                </label>
+                <label style="font-size:13px;color:var(--text-muted);">
+                    Іконка / емодзі (необов'язково)
+                    <input type="text" id="playlistIconInput" maxlength="4" placeholder="🎵"
+                        style="width:100%;margin-top:6px;padding:10px 12px;border-radius:8px;border:1px solid var(--border-light);background:var(--card-bg);color:var(--text-primary);font-size:14px;box-sizing:border-box;">
+                </label>
+                <p id="playlistFormError" style="color:#e55039;font-size:13px;margin:0;min-height:16px;"></p>
+            </div>
+            <button id="createPlaylistSubmitBtn" onclick="submitPlaylistForm()" style="
+                width:100%;
+                background:linear-gradient(135deg,#a4c2f4,#5d9cec);
+                color:#1a2a3a;border:none;padding:13px;border-radius:12px;
+                font-size:15px;font-weight:bold;cursor:pointer;
+                font-family:'Comfortaa',cursive;
+                box-shadow:0 4px 14px rgba(93,156,236,0.4);
+            ">Створити</button>
+        </div>
+    </div>
+
     <div id="premium-modal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closePremiumModal()">&times;</span>
@@ -151,6 +184,7 @@
             <p>У нас все безкоштовно 🎉<br>Преміум не потрібен!</p>
         </div>
     </div>
+
 
     <div id="settings-modal" class="modal">
         <div class="modal-content">
