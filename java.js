@@ -498,25 +498,35 @@ async function loadDatabase() {
     }
 
     // ── 2. PLAYLISTS ──────────────────────────────────────────────────
-    const storedFavorites = (() => {
+    const storedPlaylists = (() => {
         try {
             const s = localStorage.getItem(STORAGE_KEY);
-            if (!s) return null;
-            const arr = JSON.parse(s);
-            return arr.find(p => p.id === 'favorites') || null;
-        } catch(e) { return null; }
+            return s ? JSON.parse(s) : [];
+        } catch(e) { return []; }
     })();
 
     const cachedPlaylists = localStorage.getItem(PLAYLISTS_CACHE_KEY);
 
+    // Об'єднує плейлисти з файлу зі збереженими даними користувача (додані пісні, кастомні плейлисти)
     const mergePlaylists = (filePlaylists) => {
         let result = filePlaylists.map(pl => {
-            if (pl.id === 'favorites' && storedFavorites) return storedFavorites;
+            const stored = storedPlaylists.find(p => p.id === pl.id);
+            // Якщо плейлист вже існує у користувача — беремо його (зі збереженими піснями),
+            // але оновлюємо назву/опис з файлу на випадок якщо вони змінились (крім favorites — той повністю користувацький)
+            if (stored) {
+                if (pl.id === 'favorites') return stored;
+                return { ...pl, songs: stored.songs || pl.songs };
+            }
             return pl;
         });
+        // Додаємо favorites якщо її нема у файлі, але є збережена
+        const storedFavorites = storedPlaylists.find(p => p.id === 'favorites');
         if (!result.find(p => p.id === 'favorites') && storedFavorites) {
             result.unshift(storedFavorites);
         }
+        // Додаємо власні (кастомні) плейлисти користувача, яких немає у файлі
+        const customPlaylists = storedPlaylists.filter(p => p.custom && !result.find(r => r.id === p.id));
+        result = result.concat(customPlaylists);
         return result;
     };
 
@@ -534,13 +544,10 @@ async function loadDatabase() {
                 playlistsDatabase = mergePlaylists(cached);
                 console.log('📦 playlists loaded from cache');
             } catch(err) {
-                playlistsDatabase = storedFavorites ? [storedFavorites] : [];
+                playlistsDatabase = storedPlaylists.length ? storedPlaylists : [];
             }
         } else {
-            try {
-                const s = localStorage.getItem(STORAGE_KEY);
-                playlistsDatabase = s ? JSON.parse(s) : [];
-            } catch(err) { playlistsDatabase = []; }
+            playlistsDatabase = storedPlaylists.length ? storedPlaylists : [];
         }
     }
 
@@ -1099,6 +1106,23 @@ function addSongToPlaylist(filename, playlistId, btnEl) {
         pl.songs.push(filename);
         savePlaylists();
         showToast(currentLanguage === 'uk' ? `✅ Додано до «${pl.name}»` : `✅ Added to "${pl.name_en || pl.name}"`);
+        // Запам'ятовуємо відкриті dropdown, щоб не закривати їх при перемальовці
+        const openDropdowns = [];
+        document.querySelectorAll('.playlist-dropdown').forEach(d => {
+            if (d.style.display !== 'none') openDropdowns.push(d.id);
+        });
+        displayPlaylists();
+        openDropdowns.forEach(id => {
+            const dropdown = document.getElementById(id);
+            const plId = id.replace('dropdown-', '');
+            const arrow = document.querySelector(`#playlist-${plId} > .playlist-header .toggle-arrow`);
+            const btn   = document.querySelector(`#playlist-${plId} > .playlist-header .playlist-toggle-btn`);
+            if (dropdown) {
+                dropdown.style.display = 'block';
+                if (arrow) arrow.textContent = '▲';
+                if (btn) btn.classList.add('active');
+            }
+        });
     } else {
         showToast(currentLanguage === 'uk' ? 'Пісня вже у цьому плейлисті' : 'Song already in this playlist');
     }
@@ -1106,7 +1130,33 @@ function addSongToPlaylist(filename, playlistId, btnEl) {
         document.querySelectorAll(`.like-btn[data-filename="${filename}"]`).forEach(b => b.classList.add('liked'));
         _updateThreeDotMenus(filename);
     }
+    refreshAllPlaylistSubmenus();
     closeThreeDot(btnEl);
+}
+
+function _renderPlaylistOptions(filename) {
+    // Користувацькі плейлисти показуємо першими, системні — нижче
+    const sorted = [...playlistsDatabase].sort((a, b) => {
+        if (a.custom && !b.custom) return -1;
+        if (!a.custom && b.custom) return 1;
+        return 0;
+    });
+    const optionsHtml = sorted.map(pl => {
+        const name = currentLanguage === 'en' ? (pl.name_en || pl.name) : pl.name;
+        const already = pl.songs && pl.songs.includes(filename);
+        return `<button onclick="addSongToPlaylist('${escapeHtml(filename)}','${escapeHtml(pl.id)}',this)">${pl.icon ? escapeHtml(pl.icon) + ' ' : '📋 '}${escapeHtml(name)}${already ? ' ✓' : ''}</button>`;
+    }).join('');
+    return optionsHtml + `<button class="submenu-create-btn" onclick="closeThreeDot(this);openCreatePlaylistModal()">➕ ${currentLanguage === 'en' ? 'New playlist' : 'Новий плейлист'}</button>`;
+}
+
+function refreshAllPlaylistSubmenus() {
+    document.querySelectorAll('.three-dot-menu[data-file]').forEach(menu => {
+        const filename = menu.getAttribute('data-file');
+        const submenu = menu.querySelector('.playlist-submenu');
+        if (submenu && filename) {
+            submenu.innerHTML = _renderPlaylistOptions(filename);
+        }
+    });
 }
 
 // HTML для кнопки ⋯ і меню
@@ -1121,10 +1171,7 @@ function threeDotHtml(filename) {
     const shareLabel = currentLanguage === 'uk' ? '🔗 Поширити' : '🔗 Share';
     const addToPlaylistLabel = currentLanguage === 'uk' ? '➕ Додати до плейлиста' : '➕ Add to playlist';
 
-    const playlistOptions = playlistsDatabase.map(pl => {
-        const name = currentLanguage === 'en' ? (pl.name_en || pl.name) : pl.name;
-        return `<button onclick="addSongToPlaylist('${escapeHtml(filename)}','${escapeHtml(pl.id)}',this)">${pl.icon ? escapeHtml(pl.icon) + ' ' : ''}${escapeHtml(name)}</button>`;
-    }).join('') + `<button class="submenu-create-btn" onclick="closeThreeDot(this);openCreatePlaylistModal()">➕ ${currentLanguage === 'en' ? 'New playlist' : 'Новий плейлист'}</button>`;
+    const playlistOptions = _renderPlaylistOptions(filename);
 
     return `<div class="three-dot-wrap">
         <button class="three-dot-btn" onclick="toggleThreeDotMenu(this,'${escapeHtml(filename)}')" title="Більше">⋯</button>
