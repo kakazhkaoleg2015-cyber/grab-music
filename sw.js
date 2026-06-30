@@ -1,7 +1,7 @@
 // sw.js — Service Worker для Grab Music
 // Кешує музику щоб Chrome міг грати у фоні без мережі
 
-const CACHE_NAME = 'grab-music-v2';
+const CACHE_NAME = 'grab-music-v3';
 const MUSIC_CACHE = 'grab-music-files-v2';
 
 // Режим фону: true коли сторінка невидима

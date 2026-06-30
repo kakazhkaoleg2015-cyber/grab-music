@@ -1135,16 +1135,11 @@ function addSongToPlaylist(filename, playlistId, btnEl) {
 }
 
 function _renderPlaylistOptions(filename) {
-    // Користувацькі плейлисти показуємо першими, системні — нижче
-    const sorted = [...playlistsDatabase].sort((a, b) => {
-        if (a.custom && !b.custom) return -1;
-        if (!a.custom && b.custom) return 1;
-        return 0;
-    });
-    const optionsHtml = sorted.map(pl => {
+    const customPlaylists = playlistsDatabase.filter(pl => pl.custom);
+    const optionsHtml = customPlaylists.map(pl => {
         const name = currentLanguage === 'en' ? (pl.name_en || pl.name) : pl.name;
         const already = pl.songs && pl.songs.includes(filename);
-        return `<button onclick="addSongToPlaylist('${escapeHtml(filename)}','${escapeHtml(pl.id)}',this)">${pl.icon ? escapeHtml(pl.icon) + ' ' : '📋 '}${escapeHtml(name)}${already ? ' ✓' : ''}</button>`;
+        return `<button onclick="addSongToPlaylist('${escapeHtml(filename)}','${escapeHtml(pl.id)}',this)">${pl.icon ? escapeHtml(pl.icon) + ' ' : (pl.custom ? '🎵 ' : '📋 ')}${escapeHtml(name)}${already ? ' ✓' : ''}</button>`;
     }).join('');
     return optionsHtml + `<button class="submenu-create-btn" onclick="closeThreeDot(this);openCreatePlaylistModal()">➕ ${currentLanguage === 'en' ? 'New playlist' : 'Новий плейлист'}</button>`;
 }
@@ -2237,7 +2232,8 @@ function buildPlaylistCard(pl, options = {}) {
         'playlist-item',
         options.compact ? 'playlist-item-compact' : '',
         options.pinned ? 'playlist-item-pinned' : '',
-        options.otherList ? 'playlist-item-other-list' : ''
+        options.otherList ? 'playlist-item-other-list' : '',
+        options.customCard ? 'playlist-item-custom-list' : ''
     ].filter(Boolean).join(' ');
 
     const customBtns = pl.custom ? `
@@ -2247,20 +2243,22 @@ function buildPlaylistCard(pl, options = {}) {
 
     if (options.compact || options.collapsible) {
         const isOpen = options.defaultOpen === true;
+        const viewBtnHtml = `<button class="view-btn playlist-toggle-btn${isOpen ? ' active' : ''}" onclick="event.stopPropagation();togglePlaylist('${pl.id}')">
+                            ${t('viewBtn')} <span class="toggle-arrow">${isOpen ? '▲' : '▼'}</span>
+                        </button>`;
+        const headerBtnsHtml = pl.custom
+            ? `<div class="playlist-buttons-col">${playAllBtn}${viewBtnHtml}</div><div class="playlist-actions-col">${customBtns}</div>`
+            : `${playAllBtn}${customBtns}${viewBtnHtml}`;
         return `
             <div class="${classes}" id="playlist-${pl.id}">
                 <div class="playlist-header" onclick="togglePlaylist('${pl.id}')">
                     <div class="playlist-info">
-                        <h3>${pl.icon ? escapeHtml(pl.icon) : '📋'} ${escapeHtml(name)}</h3>
+                        <h3>${pl.icon ? escapeHtml(pl.icon) : (pl.custom ? '🎵' : '📋')} ${escapeHtml(name)}</h3>
                         <p>${escapeHtml(desc)}</p>
                         <small>${songCountText}</small>
                     </div>
                     <div class="playlist-header-btns">
-                        ${playAllBtn}
-                        ${customBtns}
-                        <button class="view-btn playlist-toggle-btn${isOpen ? ' active' : ''}" onclick="event.stopPropagation();togglePlaylist('${pl.id}')">
-                            ${t('viewBtn')} <span class="toggle-arrow">${isOpen ? '▲' : '▼'}</span>
-                        </button>
+                        ${headerBtnsHtml}
                     </div>
                 </div>
                 <div class="playlist-dropdown" id="dropdown-${pl.id}" style="display:${isOpen ? 'block' : 'none'};">
@@ -2273,7 +2271,7 @@ function buildPlaylistCard(pl, options = {}) {
         <div class="${classes}" id="playlist-${pl.id}">
             <div class="playlist-header">
                 <div class="playlist-info">
-                    <h3>${pl.icon ? escapeHtml(pl.icon) : '📋'} ${escapeHtml(name)}</h3>
+                    <h3>${pl.icon ? escapeHtml(pl.icon) : (pl.custom ? '🎵' : '📋')} ${escapeHtml(name)}</h3>
                     <p>${escapeHtml(desc)}</p>
                     <small>${songCountText}</small>
                 </div>
@@ -2301,16 +2299,39 @@ function displayPlaylists() {
 
     const pinnedIds = ['favorites', 'ukrainian', 'foreign'];
     const pinnedPlaylists = [];
+    const customPlaylists = [];
     const otherPlaylists = [];
 
     playlistsDatabase.forEach(pl => {
         if (pinnedIds.includes(pl.id)) pinnedPlaylists.push(pl);
+        else if (pl.custom) customPlaylists.push(pl);
         else otherPlaylists.push(pl);
     });
 
     const pinnedMarkup = pinnedPlaylists.map(pl => buildPlaylistCard(pl, {
         pinned: true, collapsible: true, defaultOpen: false
     })).join('');
+
+    let customMarkup = '';
+    if (customPlaylists.length) {
+        customMarkup = `
+            <div class="playlist-item custom-playlists-group playlist-item-custom-list" id="playlist-custom-group">
+                <div class="playlist-header custom-playlists-header" onclick="togglePlaylist('custom-group')">
+                    <div class="playlist-info">
+                        <h3>📒 ${currentLanguage === 'en' ? 'User playlists' : 'Користувацькі списки відтворення'}</h3>
+                        <small>${customPlaylists.length} ${currentLanguage === 'en' ? 'playlists' : 'плейлистів'}</small>
+                    </div>
+                    <div class="playlist-header-btns">
+                        <button class="view-btn playlist-toggle-btn" onclick="event.stopPropagation();togglePlaylist('custom-group')">
+                            ${t('viewBtn')} <span class="toggle-arrow">▼</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="playlist-dropdown custom-playlists-dropdown" id="dropdown-custom-group" style="display:none;">
+                    ${customPlaylists.map(pl => buildPlaylistCard(pl, { compact: true, customCard: true })).join('')}
+                </div>
+            </div>`;
+    }
 
     let otherMarkup = '';
     if (otherPlaylists.length) {
@@ -2334,7 +2355,7 @@ function displayPlaylists() {
             </div>`;
     }
 
-    container.innerHTML = createBtnHtml + pinnedMarkup + otherMarkup;
+    container.innerHTML = createBtnHtml + pinnedMarkup + customMarkup + otherMarkup;
 }
 
 function togglePlaylist(id) {

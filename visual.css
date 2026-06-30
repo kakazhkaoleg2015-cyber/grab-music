@@ -442,6 +442,59 @@ body.dark-theme .playlist-dropdown .result-item { background: rgba(0,0,0,0.2); b
 .playlist-item-pinned .playlist-info { max-width: 58%; }
 .playlist-item-pinned .playlist-header-btns { min-width: 180px; }
 .playlist-item-other-list .playlist-header { align-items: center; justify-content: space-between; }
+.playlist-item-custom-list .playlist-header {
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    gap: 12px;
+}
+.playlist-item-custom-list .playlist-info {
+    max-width: calc(100% - 130px);
+    width: auto;
+    flex: 1 1 auto;
+}
+.playlist-item-custom-list .playlist-info small {
+    opacity: 0.95;
+    display: block;
+    margin-top: 4px;
+}
+.playlist-item-custom-list .playlist-header-btns {
+    min-width: unset;
+    width: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+}
+.playlist-item-custom-list .playlist-header-btns .view-btn {
+    width: auto;
+    justify-content: center;
+}
+.playlist-item-custom-list .playlist-buttons-col {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 0 0 auto;
+    min-width: 0;
+}
+.playlist-item-custom-list .playlist-buttons-col .view-btn,
+.playlist-item-custom-list .playlist-buttons-col .play-all-btn {
+    width: auto;
+}
+.playlist-item-custom-list .playlist-actions-col {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.playlist-item-custom-list .playlist-edit-btn,
+.playlist-item-custom-list .playlist-delete-btn {
+    font-size: 20px;
+    padding: 8px;
+}
 .other-playlists-group .playlist-info p,
 .other-playlists-group .playlist-info small { display: none; }
 .other-playlists-dropdown { display: grid; gap: 10px; }
@@ -893,10 +946,59 @@ body.ultra-simple-mode .ultra-simple-back-btn { display: flex; }
     .playlist-item h3 { font-size: 1rem; }
     .playlist-item-pinned .playlist-header,
     .playlist-item-compact .playlist-header,
-    .playlist-item-other-list .playlist-header { flex-direction: column; align-items: stretch; }
+    .playlist-item-other-list .playlist-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .playlist-item-custom-list .playlist-header {
+        flex-direction: row;
+        align-items: center;
+        flex-wrap: nowrap;
+    }
     .playlist-item-pinned .playlist-header-btns,
     .playlist-item-compact .playlist-header-btns,
-    .playlist-item-other-list .playlist-header-btns { width: 100%; min-width: unset; }
+    .playlist-item-other-list .playlist-header-btns {
+        width: 100%;
+        min-width: unset;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        margin-top: 10px;
+    }
+    .playlist-item-custom-list .playlist-header-btns {
+        width: auto !important;
+        min-width: unset !important;
+        flex: 0 0 auto !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        gap: 8px !important;
+        margin-top: 0 !important;
+    }
+    .playlist-item-custom-list .playlist-info {
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        max-width: calc(100% - 100px) !important;
+        margin-bottom: 0 !important;
+        overflow: hidden;
+    }
+    .playlist-item-custom-list .playlist-info h3,
+    .playlist-item-custom-list .playlist-info small {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .playlist-item-custom-list .playlist-header .view-btn {
+        width: auto !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+    }
+    .playlist-item-custom-list .playlist-header-btns .view-btn {
+        justify-content: center !important;
+    }
+    .playlist-item-custom-list .playlist-header-btns .view-btn .toggle-arrow {
+        margin-left: 4px;
+    }
     .player-section { padding: 12px 8px; margin-top: 14px; }
     .player-controls { gap: 8px; }
     .control-btn { font-size: 20px; padding: 3px 6px; }
@@ -909,7 +1011,8 @@ body.ultra-simple-mode .ultra-simple-back-btn { display: flex; }
     .contact-item { font-size: 12px; padding: 9px 12px; max-width: 100%; }
     .playlist-header { padding: 10px 12px; }
     .playlist-header-btns { flex-direction: row; align-items: center; }
-    .view-btn, .play-all-btn { padding: 5px 9px; font-size: 11px; }
+    .view-btn, .play-all-btn { padding: 6px 10px; font-size: 11px; }
+    .view-btn span, .play-all-btn span { font-size: 11px; }
     .translate-controls { flex-direction: column; gap: 8px; width: 100%; align-items: stretch; }
     .translate-language-select, .translate-btn, .show-original-btn { width: 100%; text-align: center; box-sizing: border-box; }
     .translate-language-select { background-position: calc(100% - 16px) center; }
