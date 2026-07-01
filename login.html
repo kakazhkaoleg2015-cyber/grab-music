@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grab Music — Вхід</title>
+    <link rel="icon" href="./favicon.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-start: #f8f9fa;
+            --bg-end: #e9ecef;
+            --card-bg: #ffffff;
+            --card-border: #a4c2f4;
+            --text-primary: #333333;
+            --text-muted: #6c757d;
+            --accent: #5d9cec;
+            --accent-light: #a4c2f4;
+            --error: #e55039;
+            --border: #e0e0e0;
+        }
+
+        body.dark {
+            --bg-start: #1a2a3a;
+            --bg-end: #0f1a24;
+            --card-bg: #1e2f3e;
+            --card-border: #7aafd4;
+            --text-primary: #f0f0f0;
+            --text-muted: #d0e0f0;
+            --border: #2c3e44;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Comfortaa', cursive;
+            color: var(--text-primary);
+            transition: background 0.3s;
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            border: 1.5px solid var(--card-border);
+            border-radius: 24px;
+            padding: 40px 36px 36px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+            text-align: center;
+            animation: fadeUp 0.4s ease-out;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo {
+            font-size: 40px;
+            margin-bottom: 6px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 32px;
+        }
+
+        label {
+            display: block;
+            text-align: left;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .input-wrap {
+            position: relative;
+            margin-bottom: 18px;
+        }
+
+        input[type="password"],
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 44px 12px 14px;
+            border-radius: 12px;
+            border: 1.5px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text-primary);
+            font-size: 15px;
+            font-family: 'Comfortaa', cursive;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            letter-spacing: 2px;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(93,156,236,0.18);
+        }
+
+        input.error {
+            border-color: var(--error);
+            box-shadow: 0 0 0 3px rgba(229,80,57,0.15);
+        }
+
+        .toggle-eye {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 17px;
+            color: var(--text-muted);
+            padding: 4px;
+            line-height: 1;
+        }
+
+        .error-msg {
+            color: var(--error);
+            font-size: 12px;
+            margin-top: -12px;
+            margin-bottom: 14px;
+            min-height: 16px;
+            text-align: left;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, #a4c2f4, #5d9cec);
+            color: #1a2a3a;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: 'Comfortaa', cursive;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(93,156,236,0.4);
+            transition: filter 0.2s, transform 0.1s;
+        }
+
+        .login-btn:hover { filter: brightness(1.07); }
+        .login-btn:active { transform: scale(0.98); }
+
+        .login-btn.shake {
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-6px); }
+            80% { transform: translateX(6px); }
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            background: var(--card-bg);
+            border: 1.5px solid var(--card-border);
+            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            cursor: pointer;
+            font-size: 17px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        .attempts-left {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 12px;
+        }
+
+        .locked-msg {
+            display: none;
+            color: var(--error);
+            font-size: 13px;
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Тема">🌙</button>
+
+    <div class="login-card">
+        <div class="logo">🎵</div>
+        <h1>Grab Music</h1>
+        <p class="subtitle">Введіть код для входу</p>
+
+        <label for="codeInput">Код доступу</label>
+        <div class="input-wrap">
+            <input type="password" id="codeInput" placeholder="••••••••"
+                onkeydown="if(event.key==='Enter') tryLogin()"
+                oninput="clearError()">
+            <button class="toggle-eye" onclick="toggleVisibility()" tabindex="-1">👁️</button>
+        </div>
+        <p class="error-msg" id="errorMsg"></p>
+
+        <button class="login-btn" id="loginBtn" onclick="tryLogin()">🔓 Увійти</button>
+        <p class="attempts-left" id="attemptsLeft"></p>
+        <p class="locked-msg" id="lockedMsg"></p>
+    </div>
+
+    <script>
+        // ============ КОНФІГ ============
+        const ACCESS_CODE = '0-1-2-3-4-5-6-7-8-9.oleg';   // ← змініть на свій код
+        const MAX_ATTEMPTS = 3;
+        const LOCKOUT_MS   = 30 * 60 * 1000;   // 30 хвилин блокування
+        const SESSION_KEY  = 'gm_auth';
+        const LOCK_KEY     = 'gm_lockout';
+        const ATTEMPTS_KEY = 'gm_attempts';
+        // ================================
+
+        // Авторизація потрібна щоразу — сесія не зберігається
+
+        function goToSite() {
+            const dest = location.search.includes('en') ? 'index_en.html' : 'index.html';
+            // Встановлюємо одноразовий токен — java.js одразу його видалить
+            sessionStorage.setItem(SESSION_KEY, '1');
+            window.location.replace(dest);
+        }
+
+        // Блокування
+        function isLocked() {
+            const until = parseInt(localStorage.getItem(LOCK_KEY) || '0');
+            return Date.now() < until;
+        }
+
+        function lockUntil() {
+            return parseInt(localStorage.getItem(LOCK_KEY) || '0');
+        }
+
+        function getAttempts() {
+            return parseInt(localStorage.getItem(ATTEMPTS_KEY) || '0');
+        }
+
+        function setAttempts(n) {
+            localStorage.setItem(ATTEMPTS_KEY, n);
+        }
+
+        function tryLogin() {
+            if (isLocked()) { showLocked(); return; }
+
+            const input = document.getElementById('codeInput').value.trim();
+            const btn   = document.getElementById('loginBtn');
+
+            if (!input) {
+                showError('Введіть код');
+                return;
+            }
+
+            if (input === ACCESS_CODE) {
+                // Успіх
+                localStorage.removeItem(ATTEMPTS_KEY);
+                localStorage.removeItem(LOCK_KEY);
+                sessionStorage.setItem(SESSION_KEY, '1');
+                btn.textContent = '✅ Вхід...';
+                btn.style.background = 'linear-gradient(135deg,#27ae60,#1e8449)';
+                btn.style.color = '#fff';
+                setTimeout(goToSite, 600);
+            } else {
+                // Невірний код
+                const attempts = getAttempts() + 1;
+                setAttempts(attempts);
+
+                btn.classList.remove('shake');
+                void btn.offsetWidth;
+                btn.classList.add('shake');
+                document.getElementById('codeInput').classList.add('error');
+
+                if (attempts >= MAX_ATTEMPTS) {
+                    localStorage.setItem(LOCK_KEY, Date.now() + LOCKOUT_MS);
+                    setAttempts(0);
+                    showLocked();
+                } else {
+                    const left = MAX_ATTEMPTS - attempts;
+                    showError(`Невірний код. Залишилось спроб: ${left}`);
+                    document.getElementById('attemptsLeft').textContent = '';
+                }
+            }
+        }
+
+        function showError(msg) {
+            document.getElementById('errorMsg').textContent = msg;
+        }
+
+        function clearError() {
+            document.getElementById('errorMsg').textContent = '';
+            document.getElementById('codeInput').classList.remove('error');
+        }
+
+        function showLocked() {
+            const ms   = lockUntil() - Date.now();
+            const mins = Math.ceil(ms / 60000);
+            document.getElementById('loginBtn').disabled = true;
+            document.getElementById('loginBtn').style.opacity = '0.5';
+            document.getElementById('lockedMsg').style.display = 'block';
+            document.getElementById('lockedMsg').textContent =
+                `🔒 Забагато невірних спроб. Спробуйте через ${mins} хв.`;
+
+            // Розблокувати після закінчення часу
+            setTimeout(() => {
+                document.getElementById('loginBtn').disabled = false;
+                document.getElementById('loginBtn').style.opacity = '';
+                document.getElementById('lockedMsg').style.display = 'none';
+                document.getElementById('errorMsg').textContent = '';
+            }, ms);
+        }
+
+        function toggleVisibility() {
+            const inp = document.getElementById('codeInput');
+            inp.type = inp.type === 'password' ? 'text' : 'password';
+        }
+
+        // Тема
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('gm_login_dark', document.body.classList.contains('dark') ? '1' : '0');
+        }
+
+        if (localStorage.getItem('gm_login_dark') === '1') {
+            document.body.classList.add('dark');
+        }
+
+        // Якщо вже заблокований при завантаженні
+        if (isLocked()) showLocked();
+
+        // Фокус на поле
+        window.onload = () => document.getElementById('codeInput').focus();
+    </script>
+</body>
+</html>

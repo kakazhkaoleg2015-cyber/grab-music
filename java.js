@@ -1,3 +1,14 @@
+// ==================== ПЕРЕВІРКА АВТОРИЗАЦІЇ ====================
+(function() {
+    if (sessionStorage.getItem('gm_auth') !== '1') {
+        const isEn = window.location.pathname.includes('_en.html');
+        window.location.replace('login.html' + (isEn ? '?en' : ''));
+    } else {
+        // Видаляємо токен одразу — наступний візит знову потребує коду
+        sessionStorage.removeItem('gm_auth');
+    }
+})();
+
 // ==================== ГЛОБАЛЬНІ ЗМІННІ ====================
 let songsDatabase = [];
 let playlistsDatabase = [];
